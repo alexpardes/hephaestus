@@ -3,29 +3,32 @@ package core;
 import java.util.*;
 
 public class UnitType {
-	public String name, imageSource;
-	public double attackDamage, attackRange, attackSpeed,
-			collisionRadius, maxHealth, selectionRadius, speed;
+	public String name, imageSource1, imageSource2;
+	public int maxHealth;
+	public double attackDamage, attackRange, attackSpeed, collisionRadius,
+			selectionRadius, speed;
 			
 	
 	public UnitType() { }
 	
 	public UnitType(Map<String, Object> jsonMap) {
 		name = (String)jsonMap.get("name");
-		imageSource = (String)jsonMap.get("source");
-		attackDamage = (int)jsonMap.get("damage");
-		attackRange = (int)jsonMap.get("range");
-		attackSpeed = (int)jsonMap.get("aspeed");
-		collisionRadius = (int)jsonMap.get("cradius");
+		imageSource1 = (String)jsonMap.get("source1");
+		imageSource2 = (String)jsonMap.get("source2");
+		attackDamage = (double)jsonMap.get("damage");
+		attackRange = (double)jsonMap.get("range");
+		attackSpeed = (double)jsonMap.get("aspeed");
+		collisionRadius = (double)jsonMap.get("cradius");
 		maxHealth = (int)jsonMap.get("health");
-		selectionRadius = (int)jsonMap.get("sradius");
-		speed = (int)jsonMap.get("mspeed");
+		selectionRadius = (double)jsonMap.get("sradius");
+		speed = (double)jsonMap.get("mspeed");
 	}
 	
 	public Map<String, Object> getJsonMap() {
 		Map<String, Object> result = new HashMap<String, Object>();
 		result.put("name", name);
-		result.put("source", imageSource);
+		result.put("source1", imageSource1);
+		result.put("source2", imageSource2);
 		result.put("damage", attackDamage);
 		result.put("range", attackRange);
 		result.put("aspeed", attackSpeed);

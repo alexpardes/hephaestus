@@ -15,28 +15,34 @@ GameState *ResourceManager::LoadMap(const std::string &filename) {
 	Json::Value tiles = map["tiles"];
 	LoadTiles(tiles);
 
-	std::string unit_file = map["unitfile"].asString();
-	LoadUnitFile(unit_file);
-
 	int map_width = map["width"].asInt();
 	int map_height = map["height"].asInt();
 	Json::Value terrain = map["terrain"];
-	std::string default_tile_type = map["defaulttile"].asString();
-	LoadTerrain(Vector2i(map_width, map_height), terrain,  default_tile_type);
+	LoadTerrain(Vector2i(map_width, map_height), terrain);
 	GameState *state = new GameState(unit_dictionary_, Vector2i(map_width, map_height));
+
+	Json::Value types = map["types"];
+	for (Json::Value::iterator type = types.begin(); type != types.end();
+			++type) {
+		LoadUnitAttributes(*type);
+		LoadUnitImages(*type);
+	}
+
 	Json::Value units = map["units"];
 	for (Json::Value::iterator unit = units.begin(); unit != units.end();
 			++unit) {
 		std::string unit_type = (*unit)["type"].asString();
-		int owner = (*unit)["owner"].asInt() - 1;
+		int owner = (*unit)["owner"].asInt();
 		float x = float((*unit)["x"].asDouble());
 		float y = float((*unit)["y"].asDouble());
-		float rotation = float((*unit)["rotation"].asDouble());
+		//float rotation = float((*unit)["rotation"].asDouble());
+		float rotation = 0; // Rotation needs to be added to the map editor.
 		state->AddUnit(unit_type, PlayerNumber(owner), Vector2f(x, y), rotation);
 	}
+
 	for (int x = 0; x < map_width; ++x) {
 		for (int y = 0; y < map_height; ++y) {
-			if (!traversability_[terrain_[x][y]]) {
+			if (!traversability_[tile_table_.at(terrain_[x][y])]) {
 				Vector2f top_left(x*kTileSize, y*kTileSize);
 				Vector2f bottom_right = top_left + Vector2f(kTileSize, kTileSize);
 				state->AddTerrain(top_left, bottom_right);
@@ -47,6 +53,7 @@ GameState *ResourceManager::LoadMap(const std::string &filename) {
 	return state;
 }
 
+// Can be removed.
 void ResourceManager::LoadUnitFile(const std::string &filename) {
 	std::ifstream unit_file(filename + ".udf");
 	if (!unit_file.good()) {
@@ -62,7 +69,7 @@ void ResourceManager::LoadUnitFile(const std::string &filename) {
 		unit != units.end(); ++unit) {
 		LoadUnitAttributes(*unit);
 		std::string name = (*unit)["name"].asString();
-		LoadUnitImages(name);
+		LoadUnitImages(*unit);
 	}
 }
 
@@ -92,24 +99,30 @@ const sf::Image &ResourceManager::GetImage(const std::string &name,
 	}
 }
 
-bool ResourceManager::LoadUnitImages(const std::string &type) {
+bool ResourceManager::LoadUnitImages(const Json::Value &unit) {
+	std::string type = unit["name"].asString();
+	std::string source1 = unit["source1"].asString();
+	std::string source2 = unit["source2"].asString();
+
 	sf::Image image1, image2;
-	image1.LoadFromFile(type + "1.png");
-	image2.LoadFromFile(type + "2.png");
+	image1.LoadFromFile(source1);
+	image2.LoadFromFile(source2);
 	unit_images_[type + "1"] = image1;
 	unit_images_[type + "2"] = image2;
 	return true;
 }
 
-bool ResourceManager::LoadTerrainImage(const std::string &type) {
+bool ResourceManager::LoadTerrainImage(const Json::Value &tile) {
+	std::string type = tile["name"].asString();
+	std::string source = tile["source"].asString();
 	sf::Image image;
-	image.LoadFromFile(type + ".png");
+	image.LoadFromFile(source);
 	terrain_images_[type] = image;
 	return true;
 }
 
-const sf::Image &ResourceManager::GetImage(const std::string &name) const {
-	return terrain_images_.at(name);
+const sf::Image &ResourceManager::GetImage(terrainId id) const {	
+	return terrain_images_.at(tile_table_.at(id));
 }
 
 void ResourceManager::LoadTiles(const Json::Value &tiles) {
@@ -117,25 +130,18 @@ void ResourceManager::LoadTiles(const Json::Value &tiles) {
 			++tile) {
 		std::string name = (*tile)["name"].asString();
 		bool is_traversable = (*tile)["traversable"].asBool();
+		tile_table_.push_back(name);
 		traversability_[name] = is_traversable;
-		LoadTerrainImage(name);
+		LoadTerrainImage(*tile);
 	}
 }
 
 void ResourceManager::LoadTerrain(const Vector2i &map_size,
-								  const Json::Value &terrain,
-								  const std::string &default_tile) {
+								  const Json::Value &terrain) {
 	for (int x = 0; x < map_size.x; ++x) {
-		terrain_.push_back(std::vector<std::string>());
+		terrain_.push_back(std::vector<terrainId>());
 		for (int y = 0; y < map_size.y; ++y) {
-			terrain_[x].push_back(default_tile);
+			terrain_[x].push_back(terrain[x][y].asInt());
 		}
-	}
-	for (Json::Value::iterator tile = terrain.begin(); tile != terrain.end();
-			++tile) {
-		std::string type = (*tile)["type"].asString();
-		int x = (*tile)["x"].asInt();
-		int y = (*tile)["y"].asInt();
-		terrain_[x][y] = type;
 	}
 }

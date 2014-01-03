@@ -9,7 +9,7 @@ public class GameMap {
 	private final Map<String, Integer> tileDictionary
 			= new HashMap<String, Integer>();
 	private final List<UnitType> unitTypes = new ArrayList<UnitType>();
-	private final List<GameUnit> startingUnits;
+	private final List<GameUnit> startingUnits = new ArrayList<GameUnit>();
 	private final Map<String, Integer> unitTypeDictionary
 			= new HashMap<String, Integer>();
 	
@@ -18,9 +18,7 @@ public class GameMap {
 		assert(height > 0);
 		
 		this.width = width;
-		this.height = height;
-		
-		startingUnits = new ArrayList<GameUnit>();
+		this.height = height;		
 		
 		terrainGrid = new ArrayList<List<Integer>>(width);
 		while (terrainGrid.size() < width) {
@@ -48,11 +46,23 @@ public class GameMap {
 			addUnitType(new UnitType(type));
 		}
 		
-		startingUnits = (List<GameUnit>)jsonMap.get("units");
+		List<Map<String, Object>> units =
+				(List<Map<String, Object>>)jsonMap.get("units");
+		for (Map<String, Object> unit : units) {
+			placeUnit(new GameUnit(unit));
+		}
 	}
 	
 	public void addUnitType(UnitType type) {
 		unitTypes.add(type);
+	}
+	
+	public void placeUnit(String typename, int playerId, double x, double y) {
+		startingUnits.add(new GameUnit(typename, playerId, x, y));
+	}
+	
+	public void placeUnit(GameUnit unit) {
+		startingUnits.add(unit);
 	}
 	
 	public Tile getTile(int column, int row) {
@@ -76,6 +86,7 @@ public class GameMap {
 	
 	public List<Tile> getTiles() { return tileTable; }
 	public List<UnitType> getUnits() { return unitTypes; }
+	public List<GameUnit> getPlacedUnits() { return startingUnits; }
 	
 	public int getWidth() { return width; }
 	public int getHeight() { return height; }
@@ -92,8 +103,13 @@ public class GameMap {
 			types.add(type.getJsonMap());
 		}
 		
+		List<Map<String, Object>> units = new ArrayList<Map<String, Object>>();
+		for (GameUnit unit : startingUnits) {
+			units.add(unit.getJsonMap());
+		}
+		
 		result.put("types", types);
-		result.put("units", startingUnits);
+		result.put("units", units);
 		result.put("tiles", tiles);		
 		result.put("width", width);
 		result.put("height", height);

@@ -39,9 +39,23 @@ public class NewMapDialog extends Stage {
 			public void handle(ActionEvent event) {
 				FileChooser chooser = new FileChooser();
 				chooser.setTitle("Save Map");
+				chooser.getExtensionFilters().add(new FileChooser.
+						ExtensionFilter("Map Files", "*.map"));
+				File directory = new File(fileLocationField.getText());
+				if (!directory.exists() || directory.isFile()) {
+					directory = directory.getParentFile();
+					if (directory == null || !directory.exists()) {
+						directory = editor.getDefaultDirectory();						
+					}
+				}
+				chooser.setInitialDirectory(directory);
 				File file = chooser.showSaveDialog(new Stage());
 				if (file != null) {
-					fileLocationField.setText(file.getAbsolutePath());
+					String path = file.getAbsolutePath();
+					if (!path.endsWith(".map")) {
+						path += ".map";
+					}
+					fileLocationField.setText(path);
 				}
 			}
 		});

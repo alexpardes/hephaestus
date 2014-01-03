@@ -11,7 +11,7 @@ void Graphics::DrawGame(const GameScene &scene) const {
 }
 
 void Graphics::DrawTerrain() const {
-	std::vector<std::vector<std::string>> terrain =
+	std::vector<std::vector<terrainId>> terrain =
 			resource_manager_.GetTerrain();
 	for (int i = 0; i < terrain.size(); ++i) {
 		for (int j = 0; j < terrain[i].size(); ++j) {
