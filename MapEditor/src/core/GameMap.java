@@ -8,10 +8,9 @@ public class GameMap {
 	private final List<Tile> tileTable = new ArrayList<Tile>();
 	private final Map<String, Integer> tileDictionary
 			= new HashMap<String, Integer>();
-	private final List<UnitType> unitTypes = new ArrayList<UnitType>();
-	private final List<GameUnit> startingUnits = new ArrayList<GameUnit>();
-	private final Map<String, Integer> unitTypeDictionary
-			= new HashMap<String, Integer>();
+	private final List<GameUnit> placedUnits = new ArrayList<GameUnit>();
+	private final Map<String, UnitType> unitTypeDictionary
+			= new HashMap<String, UnitType>();
 	
 	public GameMap(int width, int height) {
 		assert(width > 0);
@@ -25,7 +24,7 @@ public class GameMap {
 			List<Integer> row = new ArrayList<Integer>(height);
 			while (row.size() < height) row.add(0);
 			terrainGrid.add(row);
-		}		
+		}
 	}
 	
 	public GameMap(Map<String, Object> jsonMap) {
@@ -53,16 +52,42 @@ public class GameMap {
 		}
 	}
 	
+	public UnitType getUnitType(String name) {
+		assert unitTypeDictionary.containsKey(name);
+		return unitTypeDictionary.get(name);
+	}
+	
 	public void addUnitType(UnitType type) {
-		unitTypes.add(type);
+		unitTypeDictionary.put(type.name, type);
+	}
+	
+	public void editUnitType(String name, UnitType newType) {
+		UnitType type = getUnitType(name);
+		type.setType(newType);
+		
+		if (!name.equals(newType.name)) {
+			unitTypeDictionary.put(newType.name, newType);			
+			unitTypeDictionary.remove(name);
+			
+			for (GameUnit unit : placedUnits) {
+				if (unit.typeName.equals(name)) {
+					unit.typeName = newType.name;
+				}
+			}
+		}
 	}
 	
 	public void placeUnit(String typename, int playerId, double x, double y) {
-		startingUnits.add(new GameUnit(typename, playerId, x, y));
+		placedUnits.add(new GameUnit(typename, playerId, x, y));
 	}
 	
 	public void placeUnit(GameUnit unit) {
-		startingUnits.add(unit);
+		placedUnits.add(unit);
+	}
+	
+	public Tile getTile(String name) {
+		assert tileDictionary.containsKey(name);
+		return tileTable.get(tileDictionary.get(name));
 	}
 	
 	public Tile getTile(int column, int row) {
@@ -84,9 +109,58 @@ public class GameMap {
 		tileDictionary.put(tile.getName(), tileTable.size() - 1);
 	}
 	
+	public boolean hasTile(String tileName) {
+		return tileDictionary.containsKey(tileName);
+	}
+	
+	public boolean hasUnitType(String typeName) {
+		return unitTypeDictionary.containsKey(typeName);
+	}
+	
+	public void editTile(String tileName, Tile newTile) {
+		Tile tile = getTile(tileName);
+		tile.setName(newTile.getName());
+		tile.setImageSource(newTile.getImageSource());
+		tile.setTraversable(newTile.isTraversable());
+		
+		boolean hasNewName = !tileName.equals(newTile.getName());
+		if (hasNewName) {
+			tileDictionary.put(newTile.getName(), tileDictionary.get(tileName));
+			tileDictionary.remove(tileName);
+		}
+	}
+	
+	public GameUnit getUnit(double x, double y) {
+		GameUnit result = null;
+		for (int i = 0; i < placedUnits.size(); ++i) {
+			GameUnit unit = placedUnits.get(i);
+			double distanceSquared = getDistanceSquared(x, y, unit.x, unit.y);
+			double radius = getType(unit).selectionRadius;
+			double radiusSquared = radius*radius;
+			if (distanceSquared < radiusSquared) {
+				result = unit;
+				break;
+			}
+		}
+		return result;
+	}	
+	
+	private UnitType getType(GameUnit unit) {
+		return getUnitType(unit.typeName);
+	}
+	
+	private double getDistanceSquared(double x1, double y1, double x2,
+			double y2) {
+		return (x1 - x2)*(x1 - x2) + (y1 - y2)*(y1 - y2);
+	}
+	
 	public List<Tile> getTiles() { return tileTable; }
-	public List<UnitType> getUnits() { return unitTypes; }
-	public List<GameUnit> getPlacedUnits() { return startingUnits; }
+	
+	public Collection<UnitType> getUnitTypes() {
+			return unitTypeDictionary.values();
+		}
+	
+	public List<GameUnit> getPlacedUnits() { return placedUnits; }
 	
 	public int getWidth() { return width; }
 	public int getHeight() { return height; }
@@ -99,12 +173,12 @@ public class GameMap {
 		}
 		
 		List<Map<String, Object>> types = new ArrayList<Map<String, Object>>();
-		for (UnitType type : unitTypes) {
+		for (UnitType type : unitTypeDictionary.values()) {
 			types.add(type.getJsonMap());
 		}
 		
 		List<Map<String, Object>> units = new ArrayList<Map<String, Object>>();
-		for (GameUnit unit : startingUnits) {
+		for (GameUnit unit : placedUnits) {
 			units.add(unit.getJsonMap());
 		}
 		

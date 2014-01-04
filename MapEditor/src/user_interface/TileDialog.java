@@ -3,6 +3,7 @@ package user_interface;
 import java.io.File;
 
 import core.GameMap;
+import core.Tile;
 import javafx.collections.*;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -12,16 +13,21 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.*;
 
-public class NewTileDialog extends Stage {
-	private MapEditor editor;
+public class TileDialog extends Stage {
 	private ComboBox<String> imageSourceBox;
 	
-	public NewTileDialog(MapEditor mapEditor) {
+	public TileDialog() {
+		this(null);
+	}
+	
+	public TileDialog(final Tile tile) {		
 		super();
-		editor = mapEditor;
+		final MapEditor editor = MapEditor.instance;
 		
-		setResizable(false);
-		setTitle("Create New Tile");
+		final boolean isEditing = tile != null;
+		
+		setResizable(false);		
+		setTitle(isEditing? "Edit Tile" : "Create New Tile");
 		
 		GridPane grid = new GridPane();
 		grid.setAlignment(Pos.CENTER);
@@ -46,10 +52,22 @@ public class NewTileDialog extends Stage {
 		Button okButton = new Button("OK");
 		okButton.setOnAction(new EventHandler<ActionEvent>() {
 			public void handle(ActionEvent event) {
-				editor.addTile(nameField.getText(),
-								imageSourceBox.getValue(),
-								traversableCheck.isSelected());
-				close();
+				String name = nameField.getText();
+				String source = imageSourceBox.getValue();
+				boolean isTraversable = traversableCheck.isSelected();
+				Tile newTile = new Tile(name, source, isTraversable);
+				if (name.length() > 0) {
+					if (!editor.hasTile(name) ||
+							(isEditing && name.equals(tile.getName()))) {
+					
+						if (isEditing) {
+							editor.editTile(tile.getName(), newTile);
+						} else {
+							editor.addTile(newTile);
+						}
+						close();
+					}
+				}
 			}
 		});
 		
@@ -65,6 +83,12 @@ public class NewTileDialog extends Stage {
 		hBox.getChildren().addAll(okButton, cancelButton);
 		grid.add(hBox, 0, 3, 2, 1);
 		
+		if (isEditing) {
+			nameField.setText(tile.getName());
+			imageSourceBox.setValue(tile.getImageSource());
+			traversableCheck.setSelected(tile.isTraversable());
+		}
+		
 		setScene(new Scene(grid));
 	}
 	
@@ -72,7 +96,7 @@ public class NewTileDialog extends Stage {
 		ObservableList<String> items = imageSourceBox.getItems();
 		items.clear();
 		
-		File directory = editor.getMapFile().getParentFile();
+		File directory = MapEditor.instance.getMapFile().getParentFile();
 		for (File file : directory.listFiles()) {
 			if (!file.isDirectory()) {
 				String filename = file.getName();

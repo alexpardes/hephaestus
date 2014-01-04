@@ -24,6 +24,19 @@ public class UnitType {
 		speed = (double)jsonMap.get("mspeed");
 	}
 	
+	public void setType(UnitType type) {
+		name = type.name;
+		imageSource1 = type.imageSource1;
+		imageSource2 = type.imageSource2;
+		attackDamage = type.attackDamage;
+		attackRange = type.attackRange;
+		attackSpeed = type.attackSpeed;
+		collisionRadius = type.collisionRadius;
+		maxHealth = type.maxHealth;
+		selectionRadius = type.selectionRadius;
+		speed = type.speed;
+	}
+	
 	public Map<String, Object> getJsonMap() {
 		Map<String, Object> result = new HashMap<String, Object>();
 		result.put("name", name);

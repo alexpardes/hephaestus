@@ -22,6 +22,19 @@ public class Tile {
 	
 	public String getName() { return name; }
 	public String getImageSource() { return imageSource; }
+	public boolean isTraversable() { return isTraversable; }
+	
+	public void setName(String name) {
+		this.name = name;
+	}
+	
+	public void setImageSource(String source) {
+		imageSource = source;
+	}
+	
+	public void setTraversable(boolean isTraversable) {
+		this.isTraversable = isTraversable;
+	}
 	
 	public Map<String, Object> getJsonMap() {
 		Map<String, Object> result = new HashMap<String, Object>();

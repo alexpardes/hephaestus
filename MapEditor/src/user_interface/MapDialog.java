@@ -12,13 +12,14 @@ import javafx.scene.layout.*;
 import javafx.scene.text.*;
 import javafx.stage.*;
 
-public class NewMapDialog extends Stage {
+public class MapDialog extends Stage {
 	private MapEditor editor;
 	
-	public NewMapDialog(MapEditor mapEditor) {		
+	public MapDialog() {		
 		super();
-		editor = mapEditor;
+		editor = MapEditor.instance;
 		
+		initStyle(StageStyle.UTILITY);
 		setResizable(false);
 		setTitle("Create New Map");		
 		

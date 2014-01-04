@@ -2,6 +2,7 @@ package user_interface;
 
 import java.io.File;
 
+import core.UnitType;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -17,16 +18,22 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 
-public class NewUnitDialog extends Stage {
+public class UnitDialog extends Stage {
 	private MapEditor editor;
 	private ComboBox<String> imageSourceBox1, imageSourceBox2;
 	
-	public NewUnitDialog(MapEditor mapEditor) {
+	public UnitDialog() {
+		this(null);
+	}
+	
+	public UnitDialog(final UnitType type) {
 		super();
-		editor = mapEditor;
+		editor = MapEditor.instance;
+		
+		final boolean isEditing = type != null;
 		
 		setResizable(false);
-		setTitle("Create New Unit");
+		setTitle(isEditing? "Edit Unit" : "Create New Unit");
 		
 		GridPane grid = new GridPane();
 		grid.setAlignment(Pos.CENTER);
@@ -62,7 +69,7 @@ public class NewUnitDialog extends Stage {
 		Label damageLabel = new Label("Damage");
 		grid.add(damageLabel, 0, 4);
 		
-		final IntField damageField = new IntField();
+		final DoubleField damageField = new DoubleField();
 		grid.add(damageField, 1, 4);
 		
 		Label attackSpeedLabel = new Label("Attack Speed");
@@ -98,13 +105,28 @@ public class NewUnitDialog extends Stage {
 		Button okButton = new Button("OK");
 		okButton.setOnAction(new EventHandler<ActionEvent>() {
 			public void handle(ActionEvent event) {
-				editor.addUnitType(nameField.getText(),
-						imageSourceBox1.getValue(), imageSourceBox2.getValue(),
-						healthField.getValue(), damageField.getValue(),
-						attackSpeedField.getValue(), rangeField.getValue(),
-						speedField.getValue(), collisionRadiusField.getValue(),
-						selectionRadiusField.getValue());
-				close();
+				UnitType newType = new UnitType();
+				newType.name = nameField.getText();
+				newType.imageSource1 = imageSourceBox1.getValue();
+				newType.imageSource2 = imageSourceBox2.getValue();
+				newType.maxHealth = healthField.getValue();
+				newType.attackDamage = damageField.getValue();
+				newType.attackSpeed = attackSpeedField.getValue();
+				newType.attackRange = rangeField.getValue();
+				newType.speed = speedField.getValue();
+				newType.collisionRadius = collisionRadiusField.getValue();
+				newType.selectionRadius = selectionRadiusField.getValue();
+				if (newType.name.length() > 0) {
+					if (!editor.hasUnitType(newType.name) ||
+							(isEditing && newType.name.equals(type.name))) {
+						if (isEditing) {
+							editor.editUnitType(type.name, newType);
+						}  else {
+							editor.addUnitType(newType);
+						}
+						close();
+					}
+				}
 			}
 		});
 		
@@ -119,6 +141,19 @@ public class NewUnitDialog extends Stage {
 		hBox.setAlignment(Pos.BOTTOM_RIGHT);
 		hBox.getChildren().addAll(okButton, cancelButton);
 		grid.add(hBox, 0, 10, 2, 1);
+		
+		if (isEditing) {
+			nameField.setText(type.name);
+			imageSourceBox1.setValue(type.imageSource1);
+			imageSourceBox2.setValue(type.imageSource2);
+			healthField.setValue(type.maxHealth);
+			damageField.setValue(type.attackDamage);
+			attackSpeedField.setValue(type.attackSpeed);
+			rangeField.setValue(type.attackRange);
+			speedField.setValue(type.speed);
+			collisionRadiusField.setValue(type.collisionRadius);
+			selectionRadiusField.setValue(type.selectionRadius);
+		}
 		
 		setScene(new Scene(grid));
 	}

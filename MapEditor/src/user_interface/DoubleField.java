@@ -31,4 +31,8 @@ public class DoubleField extends TextField {
 	public double getValue() {
 		return Double.parseDouble(getText());
 	}
+	
+	public void setValue(double value) {
+		setText(Double.toString(value));
+	}
 }

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ASCII"?>
 <anttasks:AntTask xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:anttasks="http://org.eclipse.fx.ide.jdt/1.0" buildDirectory="${project}/build">
   <deploy packagingFormat="none">
-    <application name="MapEditor" mainclass="user_interface.MapEditor" version="1.1" toolkit="fx"/>
+    <application name="MapEditor" mainclass="user_interface.MapEditor" version="1.5" toolkit="fx"/>
     <info title="Map Editor" vendor="Alexander Pardes"/>
   </deploy>
   <signjar/>
