@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "GameManager.h"
+#include "Commands.h"
 
 GameManager::GameManager(ResourceManager &resource_manager,
 						 float timestep) :
@@ -101,19 +102,22 @@ void GameManager::IssueMoveCommand(const std::list<GameUnit *> &units,
 void GameManager::IssueAttackCommand(const std::list<GameUnit *> &units,
 									 unitId target_id) {
 	GameUnit *target = game_state_->GetUnit(target_id);
-	for (std::list<GameUnit *>::const_iterator p_unit =
-			units.begin(); p_unit != units.end();
-			++p_unit) {
-		(*p_unit)->set_target(target);
-		(*p_unit)->set_destination((*p_unit)->position());
-		(*p_unit)->ClearPath();
+	if (target) {
+		for (std::list<GameUnit *>::const_iterator p_unit =
+				units.begin(); p_unit != units.end();
+				++p_unit) {
+			(*p_unit)->set_target(target);
+			(*p_unit)->set_destination((*p_unit)->position());
+			(*p_unit)->ClearPath();
+		}
 	}
 }
 
 void GameManager::ApplyCommands(PlayerNumber player_number) {
 	Player &player = players_.GetPlayer(player_number);
 	player.DeselectDeadUnits();
-	const CommandTurn *commands = player.PopCommandTurn();
+
+	const CommandTurn *commands = player.PopCommandTurn();	
 	if (commands) {
 		for (int i = 0; i < commands->size(); ++i) {
 			const Command *command = (*commands)[i];
@@ -137,7 +141,10 @@ void GameManager::ApplyCommands(PlayerNumber player_number) {
 					std::list<GameUnit *> units;
 					for (std::list<unitId>::iterator id = unit_ids.begin();
 							id != unit_ids.end(); ++id) {
-						selected_units.push_back(game_state_->GetUnit(*id));
+						GameUnit *unit = game_state_->GetUnit(*id);
+						if (unit) {
+							selected_units.push_back(unit);
+						}
 					}
 					player.set_selected_units(selected_units);
 					break;

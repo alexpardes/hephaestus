@@ -181,18 +181,23 @@
     <ClCompile Include="Util.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AttackCommand.h" />
+    <ClInclude Include="AttackMoveCommand.h" />
+    <ClInclude Include="Command.h" />
     <ClInclude Include="Commands.h" />
     <ClInclude Include="GameManager.h" />
     <ClInclude Include="GameState.h" />
     <ClInclude Include="GameUnit.h" />
     <ClInclude Include="Graphics.h" />
     <ClInclude Include="Hephaestus.h" />
+    <ClInclude Include="MoveCommand.h" />
     <ClInclude Include="Networking.h" />
     <ClInclude Include="Pathing.h" />
     <ClInclude Include="Players.h" />
     <ClInclude Include="Projectile.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="ResourceManager.h" />
+    <ClInclude Include="SelectCommand.h" />
     <ClInclude Include="Simulator.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="UnitBehavior.h" />

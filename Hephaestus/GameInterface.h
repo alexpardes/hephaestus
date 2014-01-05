@@ -1,7 +1,7 @@
 #ifndef GameInterface_
 #define GameInterface_
 
-#include "Commands.h"
+#include "Command.h"
 #include "GameState.h"
 #include "GameUnit.h"
 #include "Networking.h"
@@ -26,9 +26,9 @@ class GameInterface {
 		Command *ProcessEvent(const sf::Event &event);
 		void MoveScreen(float time_step);
 
-		std::vector<Command> TakeCommands() {
-			std::vector<Command> old_queue = command_queue_;
-			command_queue_ = std::vector<Command>();
+		CommandTurn TakeCommands() {
+			CommandTurn old_queue = command_queue_;
+			command_queue_ = CommandTurn();
 			return old_queue;
 		}
 
@@ -71,7 +71,7 @@ class GameInterface {
 		Vector2f selection_corner2_;
 		bool is_selecting_;
 		std::list<unitId> selected_unit_ids_;
-		std::vector<Command> command_queue_;
+		CommandTurn command_queue_;
 		static const float kScrollSpeed;
 		enum CursorAction {kSelect, kAttack};
 		CursorAction cursor_action_;

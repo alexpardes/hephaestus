@@ -2,6 +2,8 @@ package core;
 
 import java.util.*;
 
+import javafx.scene.paint.Color;
+
 public class GameMap {
 	private final int width, height;
 	private final List<List<Integer>> terrainGrid;
@@ -11,6 +13,7 @@ public class GameMap {
 	private final List<GameUnit> placedUnits = new ArrayList<GameUnit>();
 	private final Map<String, UnitType> unitTypeDictionary
 			= new HashMap<String, UnitType>();
+	private final List<Color> playerColors = new ArrayList<Color>();
 	
 	public GameMap(int width, int height) {
 		assert(width > 0);
@@ -25,6 +28,9 @@ public class GameMap {
 			while (row.size() < height) row.add(0);
 			terrainGrid.add(row);
 		}
+		
+		playerColors.add(Color.RED);
+		playerColors.add(Color.BLUE);
 	}
 	
 	public GameMap(Map<String, Object> jsonMap) {
@@ -50,6 +56,28 @@ public class GameMap {
 		for (Map<String, Object> unit : units) {
 			placeUnit(new GameUnit(unit));
 		}
+		
+		List<String> players =
+				(List<String>)jsonMap.get("players");
+		if (players != null) {
+			for (String player : players) {
+				playerColors.add(Color.valueOf(player));
+			}
+		} else {		
+			// For legacy format.
+			if (playerColors.size() == 0) {
+				playerColors.add(Color.RED);
+				playerColors.add(Color.BLUE);
+			}
+		}
+	}
+	
+	public Color getPlayerColor(int playerNum) {
+		return playerColors.get(playerNum);
+	}
+	
+	public void setPlayerColor(int playerNum, Color color) {
+		playerColors.set(playerNum, color);
 	}
 	
 	public UnitType getUnitType(String name) {
@@ -182,6 +210,12 @@ public class GameMap {
 			units.add(unit.getJsonMap());
 		}
 		
+		List<String> colors = new ArrayList<String>();
+		for (Color color : playerColors) {
+			colors.add(color.toString());
+		}
+		
+		result.put("players", colors);
 		result.put("types", types);
 		result.put("units", units);
 		result.put("tiles", tiles);		

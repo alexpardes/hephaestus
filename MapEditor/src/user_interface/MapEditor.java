@@ -140,12 +140,59 @@ public class MapEditor extends Application {
 		}
 	}
 	
+	private enum Direction { LEFT, UP, RIGHT, DOWN } 
+		
+	private void scrollMap(Direction direction) {
+		ScrollBar hScrollBar = null;
+		ScrollBar vScrollBar = null;
+        Set<Node> nodes = mapPane.lookupAll(".scroll-bar");
+        for (final Node node : nodes) {
+            if (node instanceof ScrollBar) {
+                ScrollBar scrollBar = (ScrollBar) node;
+                if (scrollBar.getOrientation() == Orientation.HORIZONTAL) {
+                	hScrollBar = scrollBar;
+                } else {
+                	vScrollBar = scrollBar;
+                }
+            }
+        }
+        
+        switch (direction) {
+        	case  LEFT:
+        		hScrollBar.decrement();
+        		break;
+        	case UP:
+        		vScrollBar.decrement();
+        		break;
+        	case RIGHT:
+        		hScrollBar.increment();
+        		break;
+        	case DOWN:
+        		vScrollBar.increment();
+        		break;
+        }
+	}
+	
 	private final EventHandler<KeyEvent> keyPressedHandler
 			= new EventHandler<KeyEvent>() {
 		public void handle(KeyEvent e) {
-			if (e.getCode() == KeyCode.DELETE) {
-				deleteSelectedUnits();
-				drawMap();
+			switch (e.getCode()) {
+				case DELETE:
+					deleteSelectedUnits();
+					drawMap();
+					break;
+				case W:
+					scrollMap(Direction.UP);
+					break;
+				case A:
+					scrollMap(Direction.LEFT);
+					break;
+				case S:
+					scrollMap(Direction.DOWN);
+					break;
+				case D:
+					scrollMap(Direction.RIGHT);
+					break;
 			}
 		}
 	};
@@ -318,26 +365,43 @@ public class MapEditor extends Application {
 					new UnitButton(type, unitGroup));
 		}
 	}
+	
+	private void updateUnitImages() {
+		Collection<String> typeNames = unitImageTable.keySet();
+		for (String typeName : typeNames) {
+			storeUnitImage(map.getUnitType(typeName));
+		}
+		drawUnits();
+	}
 
 	private void storeUnitImage(UnitType type) {
 		String name = type.name;
 		String source1 = type.imageSource1;
 		String source2 = type.imageSource2;
-		
-		assert !unitImageTable.containsKey(name);
 
 		InputStream imageStream1, imageStream2;
 		Image[] images = new Image[2];
 		try {
 			imageStream1 = new FileInputStream(getMapDirectory() + '\\' + source1);
-			images[0] = new Image(imageStream1);
-			
+			Image base = new Image(imageStream1);
+
 			imageStream2 = new FileInputStream(getMapDirectory() + '\\' + source2);
-			images[1] = new Image(imageStream2);
+			Image mask = new Image(imageStream2);
+
+			images[0] = ImageProcessor.createPlayerImage(base, mask, 0);
+			images[1] = ImageProcessor.createPlayerImage(base, mask, 1);
 			
 			unitImageTable.put(name, images);
-		} catch (FileNotFoundException e) {
-		}
+		} catch (FileNotFoundException e) { }
+	}
+	
+	public Color getPlayerColor(int playerNum) {
+		return map.getPlayerColor(playerNum);
+	}
+	
+	public void setPlayerColor(int playerNum, Color color) {
+		map.setPlayerColor(playerNum, color);
+		updateUnitImages();
 	}
 
 	public void addUnitType(UnitType type) {
@@ -437,7 +501,7 @@ public class MapEditor extends Application {
 		for (GameUnit unit : units) {
 			drawUnit(unit);
 		}
-	}
+	}	
 
 	private void drawMap() {
 		if (tileImageTable.size() > 0) {
@@ -535,11 +599,10 @@ public class MapEditor extends Application {
 	private MenuBar createMenuBar() {
 		MenuBar menuBar = new MenuBar();
 
-		Menu editMenu = new Menu("Edit");
 		Menu viewMenu = new Menu("View");
 
 		menuBar.getMenus().addAll(createFileMenu(), createTileMenu(),
-				createUnitMenu(), editMenu, viewMenu);
+				createUnitMenu(), createEditMenu(), viewMenu);
 		return menuBar;
 	}
 
@@ -636,5 +699,19 @@ public class MapEditor extends Application {
 		});
 		mapDependentItems.add(item);
 		return item;
-	}	
+	}
+	
+	private Menu createEditMenu() {
+		Menu menu = new Menu("Edit");
+		
+		MenuItem item = new MenuItem("Player Colors");
+		item.setOnAction(new EventHandler<ActionEvent>() {
+			public void handle(ActionEvent e) {
+				openDialog(new ColorDialog());
+			}
+		});
+		
+		menu.getItems().add(item);
+		return menu;
+	}
 }

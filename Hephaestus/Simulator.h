@@ -1,7 +1,6 @@
 #ifndef SIMULATOR_
 #define SIMULATOR_
 
-#include "Commands.h"
 #include "GameState.h"
 #include "Pathing.h"
 #include "GameInterface.h"

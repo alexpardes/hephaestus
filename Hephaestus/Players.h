@@ -1,7 +1,7 @@
 #ifndef PLAYERS_
 #define PLAYERS_
 
-#include "Commands.h"
+#include "Command.h"
 #include "GameUnit.h"
 
 class Player {

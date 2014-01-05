@@ -17,6 +17,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 
 public class UnitDialog extends Stage {
 	private MapEditor editor;
@@ -34,6 +35,7 @@ public class UnitDialog extends Stage {
 		
 		setResizable(false);
 		setTitle(isEditing? "Edit Unit" : "Create New Unit");
+		initStyle(StageStyle.UTILITY);
 		
 		GridPane grid = new GridPane();
 		grid.setAlignment(Pos.CENTER);
@@ -47,13 +49,13 @@ public class UnitDialog extends Stage {
 		final TextField nameField = new TextField();
 		grid.add(nameField, 1, 0);
 		
-		Label image1Label = new Label("Player 1 Image");
+		Label image1Label = new Label("Image");
 		grid.add(image1Label, 0, 1);
 
 		imageSourceBox1 = new ComboBox<String>();
 		grid.add(imageSourceBox1, 1, 1);
 		
-		Label image2Label = new Label("Player 2 Image");
+		Label image2Label = new Label("Color Mask");
 		grid.add(image2Label, 0, 2);
 		
 		imageSourceBox2 = new ComboBox<String>();

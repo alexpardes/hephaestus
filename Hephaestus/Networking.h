@@ -1,7 +1,7 @@
 #ifndef NETWORKING_
 #define NETWORKING_
 
-#include "Commands.h"
+#include "Command.h"
 #include "Util.h"
 
 class NetworkConnection {

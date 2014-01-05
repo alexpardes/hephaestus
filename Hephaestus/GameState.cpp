@@ -69,6 +69,7 @@ void GameState::AddUnit(const std::string &type,
 
 void GameState::RemoveUnit(GameUnit *unit) {
 	units_.remove(unit);
+	unit_table_.erase(unit->id());
 	RemoveFromUnitGrid(*unit);
 	if (unit->is_stationary()) {
 		RemoveFromPathingGrid(*unit);

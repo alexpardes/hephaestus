@@ -1,6 +1,6 @@
 #include "stdafx.h"
 
-#include "Commands.h"
+#include "Command.h"
 #include "GameState.h"
 #include "Graphics.h"
 #include "Networking.h"

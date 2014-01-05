@@ -1,8 +1,13 @@
 #include "stdafx.h"
 #include "Networking.h"
+
+#include "SelectCommand.h"
 BOOST_CLASS_EXPORT(SelectCommand)
+#include "MoveCommand.h"
 BOOST_CLASS_EXPORT(MoveCommand)
+#include "AttackCommand.h"
 BOOST_CLASS_EXPORT(AttackCommand)
+#include "AttackMoveCommand.h"
 BOOST_CLASS_EXPORT(AttackMoveCommand)
 
 using boost::asio::ip::tcp;
@@ -44,7 +49,7 @@ void NetworkConnection::Reconnect() {
 
 void NetworkConnection::SendCommands(const CommandTurn *commands) {	
 	boost::archive::text_oarchive serializer(tcp_stream_);
-	serializer << commands;
+	serializer << const_cast<const CommandTurn * const>(commands);
 	tcp_stream_.flush();
 }
 

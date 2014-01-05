@@ -1,10 +1,13 @@
 #define CATCH_CONFIG_MAIN
 
 #include <Hephaestus/stdafx.h>
-#include <Hephaestus/Commands.h>
+#include <Hephaestus/SelectCommand.h>
 BOOST_CLASS_EXPORT(SelectCommand)
+#include <Hephaestus/MoveCommand.h>
 BOOST_CLASS_EXPORT(MoveCommand)
+#include <Hephaestus/AttackCommand.h>
 BOOST_CLASS_EXPORT(AttackCommand)
+#include <Hephaestus/AttackMoveCommand.h>
 BOOST_CLASS_EXPORT(AttackMoveCommand)
 
 #include "catch.hpp"

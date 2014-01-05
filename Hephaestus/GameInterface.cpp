@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "Commands.h"
 #include "GameInterface.h"
 
 const float GameInterface::kScrollSpeed = 500.f;
