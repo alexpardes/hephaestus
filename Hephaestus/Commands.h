@@ -1,5 +1,5 @@
-#ifndef COMMANDS_
-#define COMMANDS_
+#ifndef PLAYER_COMMANDS_
+#define PLAYER_COMMANDS_
 
 #include "AttackCommand.h"
 #include "AttackMoveCommand.h"

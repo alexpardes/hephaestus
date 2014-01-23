@@ -20,9 +20,12 @@ class Util {
 		static float Length2(const Vector2f &vector);
 		static float Cross(const Vector2f &vector1, const Vector2f &vector2);
 		static float Dot(const Vector2f &vector1, const Vector2f &vector2);
+    static float FindAngle(const Vector2f &vector);
 		static float FindAngle(const Vector2f &vector1, const Vector2f &vector2);
+    static float FindAngleDegrees(const Vector2f &vector1, const Vector2f &vector2);
 		static Vector2f Perpendicular(const Vector2f &vector);
 		static void Normalize(Vector2f &vector);
+    static Vector2f GetNormalized(const Vector2f &vector);
 		static void Scale(Vector2f &vector, float length);
 		static float Square(float x);
 		template <typename T> static int Sign(T val);
@@ -35,6 +38,18 @@ class Util {
 		static Vector2f GetVector2f(const Vector2i &vector) {
 			return Vector2f((float) vector.x, (float) vector.y);
 		}
+		static Vector2f GetVector2f(const sf::Vector2u &vector) {
+			return Vector2f((float) vector.x, (float) vector.y);
+		}
+};
+
+struct Vector2iHash : std::unary_function<Vector2i, std::size_t> {
+  std::size_t operator()(const Vector2i &t) const {
+    std::size_t val = 0;
+    boost::hash_combine(val, t.x);
+    boost::hash_combine(val, t.y);
+    return val;
+  }
 };
 
 #endif

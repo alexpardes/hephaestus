@@ -23,7 +23,7 @@ class GameManager {
 			if (last_scene_) {
 				frame_time = 1.f;
 			} else {
-				frame_time = 1000*clock_.GetElapsedTime() / timestep_;
+				frame_time = clock_.getElapsedTime().asMilliseconds() / timestep_;
 			}
 			return frame_time;
 		}
@@ -39,9 +39,9 @@ class GameManager {
 			return scene;
 		}
 
-		std::list<GameUnit *> GetSelectedUnits() {
-			return players_.GetPlayer(self_).selected_units();
-		}
+		//std::list<GameUnit *> GetSelectedUnits() {
+		//	return players_.GetPlayer(self_).selected_units();
+		//}
 
 		PlayerNumber self() const {return self_;}
 		void RunGame();
@@ -51,7 +51,7 @@ class GameManager {
 		void IssueMoveCommand(const std::list<GameUnit *> &units,
 				const Vector2i &location);
 		void IssueAttackCommand(const std::list<GameUnit *> &units,
-				unitId target_id);
+				UnitId target_id);
 		ResourceManager &resource_manager_;
 		GameState *game_state_;
 		GameScene *last_scene_;
@@ -64,7 +64,7 @@ class GameManager {
 		bool is_running_;
 		std::mutex commands_mutex_;
 		std::mutex scene_mutex_;
-		Players players_;
+		Players *players_;
 		PlayerNumber self_, opponent_;
 		int turn_delay_;
 };

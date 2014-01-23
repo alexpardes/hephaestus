@@ -1,12 +1,16 @@
 #include "stdafx.h"
 #include "GameState.h"
 
+#include "MoveAbility.h"
+
 const float GameState::kPathingResolution = 25.f;
 const float GameState::kUnitGridResolution = 25.f;
 
-GameState::GameState(const UnitDictionary &unit_dictionary,
-					 const Vector2i &map_size) :
-	unit_dictionary_(unit_dictionary) {
+GameState::GameState(const UnitDictionary &unit_dictionary, 
+                     const Vector2i &map_size,
+                     PathFinder *pathfinder) : 
+    unit_dictionary_(unit_dictionary) {
+  this->pathfinder = pathfinder;
 	max_unit_radius_ = 0.f;
 	map_size_ = map_size;
 	Vector2f map_pixel_size = kTileSize * Util::GetVector2f(map_size);
@@ -25,6 +29,8 @@ GameState::GameState(const UnitDictionary &unit_dictionary,
 	for (int i = 0; i < unit_grid_width_; ++i) {
 		unit_grid_[i] = new std::list<GameUnit*>[unit_grid_height_];
 	}
+
+  lastUnitId = 0;
 }
 
 GameState::~GameState() {
@@ -51,33 +57,65 @@ GameState::~GameState() {
 	}
 }
 
+Vector2f GameState::GetUnitPosition(UnitId id) const {
+  return GetUnit(id)->position();
+}
+
+void GameState::MoveUnit(UnitId id, Vector2f location) {
+  GetUnit(id)->SetPosition(Constrain(location));
+}
+
+Vector2f GameState::Constrain(Vector2f location) {
+  if (location.x < 0) {
+    location.x = 0.0;
+  } else if (location.x > kTileSize * map_size().x) {
+    location.x = kTileSize * map_size().x;
+  }
+  if (location.y < 0) {
+    location.y = 0.0;
+  } else if (location.y > kTileSize * map_size().y) {
+    location.y = kTileSize * map_size().y;
+  }
+  return location;
+}
+
+void GameState::ExecuteTurn() {
+  std::list<GameUnit*>::iterator it = units_.begin();
+  while (it != units_.end()) {
+    (**it++).PerformAction();
+  }
+}
+
 
 void GameState::AddUnit(const std::string &type,
 						PlayerNumber owner,
 						const Vector2f &location,
 						float rotation) {
 	const UnitAttributes &attributes = unit_dictionary_.at(type);
-	GameUnit *unit = new GameUnit(attributes, owner, location, rotation);
+	GameUnit *unit = new GameUnit(++lastUnitId, attributes, owner, location, rotation);
+  UnitAbility *ability = new MoveAbility(unit, pathfinder, this, attributes.speed());
+  unit->SetAbility(ability);
+
 	units_.push_back(unit);
 	AddToUnitGrid(*unit);
 	AddToPathingGrid(*unit);
-	if (unit->attributes().collision_radius() > max_unit_radius_) {
-		max_unit_radius_ = unit->attributes().collision_radius();
+	if (unit->Attributes().collision_radius() > max_unit_radius_) {
+		max_unit_radius_ = unit->Attributes().collision_radius();
 	}
-	unit_table_[unit->id()] = unit;
+	unit_table_[unit->Id()] = unit;
 }
 
 void GameState::RemoveUnit(GameUnit *unit) {
 	units_.remove(unit);
-	unit_table_.erase(unit->id());
+	unit_table_.erase(unit->Id());
 	RemoveFromUnitGrid(*unit);
-	if (unit->is_stationary()) {
+	if (unit->IsStationary()) {
 		RemoveFromPathingGrid(*unit);
 	}
 	delete unit;
 }
 
-GameUnit *GameState::GetUnit(unitId id) const {
+GameUnit *GameState::GetUnit(UnitId id) const {
 	GameUnit *unit = NULL;
 	if (unit_table_.count(id)) unit = unit_table_.at(id);
 	return unit;
@@ -134,9 +172,9 @@ void GameState::UpdateUnitGrid(GameUnit &unit) {
 	}
 }
 
-std::list<GameUnit *> GameState::GetUnitsInRectangle(const Vector2f &corner1,
+std::vector<GameUnit *> GameState::GetUnitsInRectangle(const Vector2f &corner1,
 		const Vector2f &corner2) const {
-	std::list<GameUnit *> units;
+	std::vector<GameUnit *> units;
 	int margin = int(max_unit_radius_ / kUnitGridResolution + 1);
 	float left = std::min(corner1.x, corner2.x);
 	float right = std::max(corner1.x, corner2.x);
@@ -156,7 +194,7 @@ std::list<GameUnit *> GameState::GetUnitsInRectangle(const Vector2f &corner1,
 					unit_grid_[i][j].begin();
 					unit != unit_grid_[i][j].end();
 					++unit) {
-				float r = (*unit)->attributes().selection_radius();
+				float r = (*unit)->Attributes().selection_radius();
 				float x = (*unit)->position().x;
 				float y = (*unit)->position().y;
 				if (x + r >= left && x - r <= right &&
@@ -210,15 +248,15 @@ void GameState::AdjustPathingGrid(const GameUnit &unit, int value) {
 	int center_x = (int) (unit.position().x / kPathingResolution);
 	int center_y = (int) (unit.position().y / kPathingResolution);
 	int start_x = (int) ((unit.position().x -
-			unit.attributes().collision_radius()) /	kPathingResolution);
+			unit.Attributes().collision_radius()) /	kPathingResolution);
 	int end_x =	(int) ((unit.position().x +
-			unit.attributes().collision_radius()) / kPathingResolution);
+			unit.Attributes().collision_radius()) / kPathingResolution);
 	int start_y = (int) ((unit.position().y -
-			unit.attributes().collision_radius()) / kPathingResolution);
+			unit.Attributes().collision_radius()) / kPathingResolution);
 	int end_y =	(int) ((unit.position().y +
-			unit.attributes().collision_radius()) / kPathingResolution);
-	float radius2 = unit.attributes().collision_radius() *
-			unit.attributes().collision_radius();
+			unit.Attributes().collision_radius()) / kPathingResolution);
+	float radius2 = unit.Attributes().collision_radius() *
+			unit.Attributes().collision_radius();
 	for (int i = start_x; i <= end_x; ++i) {
 		if (i == center_x) {
 			for (int j = start_y; j <= end_y; ++j) {
@@ -258,6 +296,20 @@ void GameState::AddTerrain(const Vector2f &top_left,
 			++pathing_grid_[x][y];
 		}
 	}
+}
+
+Vector2i GameState::GetTile(UnitId id) const {
+  return GetTile(GetUnit(id)->position());
+}
+
+Vector2i GameState::GetTile(const Vector2f &gameLocation) const {
+  return Vector2i(gameLocation.x / kTileSize, gameLocation.y / kTileSize);
+}
+
+// Returns the centerpoint of the input tile.
+Vector2f GameState::GetLocation(const Vector2i &gridLocation) const {
+  return Vector2f((gridLocation.x + 0.5) * kTileSize,
+      (gridLocation.y + 0.5) * kTileSize);
 }
 
 const float GameScene::kUnitGridResolution = 25.f;
@@ -394,10 +446,10 @@ void GameScene::AddToUnitGrid(const UnitModel &unit) {
 	unit_grid_[x][y].push_back(&unit);
 }
 
-std::list<const UnitModel *> GameScene::GetUnitsInRectangle(
+std::vector<const UnitModel *> GameScene::GetUnitsInRectangle(
 		const Vector2f &corner1,
 		const Vector2f &corner2) const {
-	std::list<const UnitModel *> units;
+	std::vector<const UnitModel *> units;
 	int margin = int(max_unit_radius_ / kUnitGridResolution + 1);
 	float left = std::min(corner1.x, corner2.x);
 	float right = std::max(corner1.x, corner2.x);
@@ -430,7 +482,7 @@ std::list<const UnitModel *> GameScene::GetUnitsInRectangle(
 	return units;
 }
 
-UnitModel *GameScene::GetUnit(unitId id) const {
+UnitModel *GameScene::GetUnit(UnitId id) const {
 	UnitModel *unit = NULL;
 	if (unit_table_.count(id)) unit = unit_table_.at(id);
 	return unit;

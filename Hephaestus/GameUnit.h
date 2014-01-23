@@ -2,10 +2,14 @@
 #define GAMEUNIT_
 
 #include "Util.h"
+#include <list>
 
-typedef short unitId;
+class UnitAction;
+class UnitAbility;
 
-enum PlayerNumber {kPlayer1, kPlayer2};
+typedef short UnitId;
+
+enum PlayerNumber { kPlayer1, kPlayer2 };
 
 class UnitAttributes {
 	public:
@@ -30,7 +34,7 @@ class UnitAttributes {
 		float attack_range() const {return attack_range_;}
 		float max_health() const {return max_health_;}
 
-		float set_speed(float speed) {speed_ = speed;}
+		void set_speed(float speed) {speed_ = speed;}
 		void set_collision_radius(float collision_radius) {collision_radius_ = collision_radius;}
 		void set_selection_radius(float selection_radius) {selection_radius_ = selection_radius;}
 		void set_attack_damage(float attack_damage) {attack_damage_ = attack_damage;}
@@ -46,7 +50,7 @@ class UnitAttributes {
 
 class GameUnit {
 	public:
-		GameUnit(const UnitAttributes &attributes, PlayerNumber owner,
+		GameUnit(int id, const UnitAttributes &attributes, PlayerNumber owner,
 				const Vector2f &position, float rotation);
 
 		void set_destination(const Vector2f &destination) {
@@ -57,11 +61,11 @@ class GameUnit {
 			pathing_destination_ = pathing_destination;
 		}
 
-		void set_position(const Vector2f &position) {
+		void SetPosition(const Vector2f &position) {
 			position_ = position;
 		}
 
-		void set_rotation(float rotation) {
+		void SetRotation(float rotation) {
 			rotation_ = rotation;
 		}
 
@@ -112,7 +116,7 @@ class GameUnit {
 			}
 		}
 		Vector2f velocity() const {return velocity_;}
-		float rotation() const {return rotation_;}
+		float Rotation() const {return rotation_;}
 
 		static std::vector<Vector2i> pathing_offsets(int x, int y) {
 			return pathing_offsets_[3*x + y + 4];
@@ -138,14 +142,19 @@ class GameUnit {
 		}
 		bool IsLoaded() const {return reload_time_ == 0;}
 
+		void SetAction(UnitAction *action);
+    void PerformAction();
+
 		void Kill() {is_alive_ = false;}
-		bool is_alive() const {return is_alive_;}
-		bool is_stationary() const {return is_stationary_;}
+		bool IsAlive() const {return is_alive_;}
+		bool IsStationary() const {return is_stationary_;}
 		bool operator==(const GameUnit &other) const {return this == &other;}
 		bool operator!=(const GameUnit &other) const {return this != &other;}
-		int id() const {return id_;}
-		PlayerNumber owner() const {return owner_;}
-		const UnitAttributes attributes() const {return attributes_;}
+		int Id() const {return id_;}
+		PlayerNumber Owner() const {return owner_;}
+		const UnitAttributes Attributes() const {return attributes_;}
+
+    void SetAbility(UnitAbility *ability) { this->ability = ability; }
 
 	private:
 		Vector2f position_, destination_, pathing_destination_, velocity_;
@@ -159,10 +168,12 @@ class GameUnit {
 		static std::vector<Vector2i>* pathing_offsets_;
 		float current_health_;
 		int id_;
-		static int serial_number_;
 		UnitAttributes attributes_;
 		PlayerNumber owner_;
+    UnitAction *action;
+    UnitAbility *ability;
 };
+typedef std::list<GameUnit*> UnitList;
 
 class UnitModel {
 	public:

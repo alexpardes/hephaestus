@@ -170,7 +170,7 @@ public class UnitDialog extends Stage {
 		for (File file : directory.listFiles()) {
 			if (!file.isDirectory()) {
 				String filename = file.getName();
-				int dotPos = filename.indexOf('.');
+				int dotPos = filename.lastIndexOf('.');
 				if (dotPos > 0) {
 					String extension = filename.substring(dotPos + 1).
 							toLowerCase();

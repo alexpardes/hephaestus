@@ -17,7 +17,7 @@ void Simulator::ProcessProjectiles(const std::list<Projectile *> &projectiles) {
 	for (std::list<Projectile *>::const_iterator projectile =
 			projectiles.begin(); projectile != projectiles.end();
 			++projectile) {
-		if (!(*projectile)->target()->is_alive()) {
+		if (!(*projectile)->target()->IsAlive()) {
 			dead_projectiles.push_back(*projectile);
 		} else {
 			Vector2f trajectory = (*projectile)->target()->position() -
@@ -25,7 +25,7 @@ void Simulator::ProcessProjectiles(const std::list<Projectile *> &projectiles) {
 			float travel_distance = timestep_ * (*projectile)->kSpeed;
 			if (Util::Length(trajectory) <=
 					travel_distance +
-					(*projectile)->target()->attributes().collision_radius()) {
+					(*projectile)->target()->Attributes().collision_radius()) {
 				(*projectile)->target()->
 						modify_health(-(*projectile)->damage());
 				dead_projectiles.push_back(*projectile);
@@ -48,13 +48,13 @@ void Simulator::ProcessUnits(const std::list<GameUnit *> &units) {
 	for (std::list<GameUnit *>::const_iterator unit_iterator = units.begin();
 			unit_iterator != units.end(); ++unit_iterator) {
 		GameUnit &unit = **unit_iterator;
-		if (!unit.is_alive()) {
+		if (!unit.IsAlive()) {
 			dead_units.push_back(*unit_iterator);
 		} else if (unit.current_health() <= 0) {
 			unit.Kill();
 		} else {
 			if (unit.target()) {
-				if (!unit.target()->is_alive()) {
+				if (!unit.target()->IsAlive()) {
 					unit.set_target(NULL);
 					unit.set_destination(unit.position());
 					unit.ClearPath();
@@ -70,8 +70,8 @@ void Simulator::ProcessUnits(const std::list<GameUnit *> &units) {
 					unit.position()) {
 				float distance = 0.f;
 				if (unit.target()) {
-					distance = unit.attributes().attack_range() +
-							unit.target()->attributes().collision_radius();
+					distance = unit.Attributes().attack_range() +
+							unit.target()->Attributes().collision_radius();
 				}
 				pathfinder_.PathUnit(unit, distance);
 			}
@@ -80,7 +80,7 @@ void Simulator::ProcessUnits(const std::list<GameUnit *> &units) {
 				//MoveUnit(*unit_iterator);
 				//behavior_.SteerUnit(unit);
 				game_state_.RemoveFromPathingGrid(unit);
-				float movement_distance = unit.attributes().speed() * timestep_;
+				float movement_distance = unit.Attributes().speed() * timestep_;
 				Vector2f new_position = unit.position();
 				while (unit.pathing_destination() != unit.position()) {
 					float waypoint_distance = Util::Distance(new_position,
@@ -88,7 +88,7 @@ void Simulator::ProcessUnits(const std::list<GameUnit *> &units) {
 					if (waypoint_distance >= movement_distance) {
 						Vector2f movement = unit.pathing_destination() -
 								unit.position();
-						Util::Scale(movement, unit.attributes().speed() * timestep_);
+						Util::Scale(movement, unit.Attributes().speed() * timestep_);
 						new_position = unit.position() + movement;
 						break;
 					} else {
@@ -97,8 +97,8 @@ void Simulator::ProcessUnits(const std::list<GameUnit *> &units) {
 						movement_distance -= waypoint_distance;
 					}
 				}
-				unit.set_rotation(unit.GetHeading());
-				unit.set_position(new_position);
+				unit.SetRotation(unit.GetHeading());
+				unit.SetPosition(new_position);
 				/*unit.set_position(unit.position() +
 						timestep_ * unit.velocity());*/
 				game_state_.AddToPathingGrid(unit);
@@ -121,11 +121,11 @@ void Simulator::ProcessUnits(const std::list<GameUnit *> &units) {
 				if (unit.IsLoaded() &&
 						Util::Distance(unit.target()->position(),
 						unit.position()) <=
-						unit.attributes().attack_range() +
-						unit.target()->attributes().collision_radius()) {
+						unit.Attributes().attack_range() +
+						unit.target()->Attributes().collision_radius()) {
 					game_state_.AddProjectile(unit.position(),
 							unit.target(),
-							unit.attributes().attack_damage());
+							unit.Attributes().attack_damage());
 					unit.ResetReload();
 				}
 			}

@@ -1,31 +1,35 @@
 #ifndef PLAYERS_
 #define PLAYERS_
 
-#include "Command.h"
 #include "GameUnit.h"
+#include "GameState.h"
+
+class Command;
+class UnitAction;
+typedef std::vector<const Command*> CommandTurn;
 
 class Player {
 	public:
-		Player();
-
-		const std::list<GameUnit *> &selected_units() const;
-
-		void set_selected_units(const std::list<GameUnit *> &units) {
-			selected_units_ = units;
-		}
+		Player(GameState &gameState);
 
 		void AddCommandTurn(const CommandTurn *turn);
-		const CommandTurn *PopCommandTurn();
-		void DeselectDeadUnits();
+    void ExecuteTurn();
+    void ClearSelection();
+    void AddToSelection(UnitId id);
+    void GiveOrder(UnitAction *action);
 
 	private:
-		std::list<GameUnit *> selected_units_;
+    void DeselectDeadUnits();
+    const CommandTurn* PopCommandTurn();
+		std::list<UnitId> selected_units_;
 		std::deque<const CommandTurn *> turn_queue_;
+    GameState &gameState;
 };
 
 class Players {
 	public:
-		Players() : player1_(), player2_() { }
+		Players(GameState &gameState) : player1_(gameState),
+        player2_(gameState) { }
 		Player &GetPlayer(PlayerNumber number);
 
 	private:

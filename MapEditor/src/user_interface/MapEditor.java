@@ -3,6 +3,8 @@ package user_interface;
 import java.io.*;
 import java.util.*;
 
+import pathing.PathingGrid;
+
 import com.fasterxml.jackson.core.*;
 import com.fasterxml.jackson.databind.*;
 
@@ -459,7 +461,9 @@ public class MapEditor extends Application {
 	
 	private void saveMap() {
 		try {
-			jsonMapper.writeValue(mapFile, map.getJsonMap());
+			Map<String, Object> jsonMap = map.getJsonMap();
+			jsonMap.put("pathinginfo", PathingCompiler.makePathingInfo(map));
+			jsonMapper.writeValue(mapFile, jsonMap);
 		} catch (IOException e) { }
 	}
 	

@@ -3,15 +3,17 @@
 
 #include "GameUnit.h"
 #include "Projectile.h"
+#include "PathFinder.h"
 
 
 const float kTileSize = 50.f;
+typedef std::pair<std::string, UnitAttributes> UnitDefinition;
 typedef std::unordered_map<std::string, const UnitAttributes> UnitDictionary;
 
 class GameState {
 	public:
 		GameState(const UnitDictionary &unit_dictionary,
-				const Vector2i &map_size);
+				const Vector2i &map_size, PathFinder *pathfinder);
 		void AddUnit(const std::string &type, PlayerNumber owner,
 				const Vector2f &location, float rotation);
 		void RemoveUnit(GameUnit *unit);
@@ -29,7 +31,7 @@ class GameState {
 		void AddToUnitGrid(GameUnit &unit);
 		void RemoveFromUnitGrid(GameUnit &unit);
 		void UpdateUnitGrid(GameUnit &unit);
-		std::list<GameUnit *> GetUnitsInRectangle(const Vector2f &corner1,
+		std::vector<GameUnit *> GetUnitsInRectangle(const Vector2f &corner1,
 				const Vector2f &corner2) const;
 		std::list<GameUnit *> GetUnitsInCircle(const Vector2f &center,
 				float radius) const;
@@ -40,10 +42,18 @@ class GameState {
 				const Vector2f &bottom_right);
 		const static float kPathingResolution;
 		const static float kUnitGridResolution;
-		GameUnit *GetUnit(unitId id) const;
+		GameUnit *GetUnit(UnitId id) const;
 		Vector2i map_size() const {return map_size_;}
+    Vector2i GetTile(UnitId id) const;
+    Vector2i GetTile(const Vector2f &gameLocation) const;
+    Vector2f GetLocation(const Vector2i &gridLocation) const;
+    void ExecuteTurn();
+    void MoveUnit(UnitId id, Vector2f location);
+    Vector2f GetUnitPosition(UnitId id) const;
 
 	private:
+    // Returns the closest point which is on the map.
+    Vector2f Constrain(Vector2f location);
 		void AdjustPathingGrid(const GameUnit &unit, int value);
 		std::list<GameUnit *> units_;
 		std::list<Projectile *> projectiles_;
@@ -53,8 +63,11 @@ class GameState {
 		int pathing_width_, pathing_height_;
 		float max_unit_radius_;
 		const UnitDictionary &unit_dictionary_;
-		std::unordered_map<unitId, GameUnit *> unit_table_;
+		std::unordered_map<UnitId, GameUnit *> unit_table_;
 		Vector2i map_size_;
+    PathFinder *pathfinder;
+    int lastUnitId;
+    
 };
 
 class GameScene {
@@ -68,9 +81,9 @@ class GameScene {
 			return projectiles_;
 		}
 
-		std::list<const UnitModel *> GetUnitsInRectangle(
+		std::vector<const UnitModel *> GetUnitsInRectangle(
 				const Vector2f &corner1, const Vector2f &corner2) const;
-		UnitModel *GetUnit(unitId id) const;
+		UnitModel *GetUnit(UnitId id) const;
 		const static float kUnitGridResolution;
 
 	private:
@@ -85,7 +98,7 @@ class GameScene {
 		std::list<const UnitModel *> **unit_grid_;
 		int unit_grid_width_, unit_grid_height_;
 		float max_unit_radius_;
-		std::unordered_map<unitId, UnitModel *> unit_table_;
+		std::unordered_map<UnitId, UnitModel *> unit_table_;
 };
 
 #endif

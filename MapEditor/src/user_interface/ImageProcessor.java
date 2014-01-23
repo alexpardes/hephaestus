@@ -40,6 +40,7 @@ public class ImageProcessor {
 	
 	private static Color adjustLightness(Color base, Color mask) {
 		double maskLightness = getLightness(mask);
+//		double newLightness = maskLightness;
 		double newLightness = scaleLightness(getLightness(base), maskLightness);
 		double hslSaturation = getHslSaturation(base);
 		
@@ -49,8 +50,8 @@ public class ImageProcessor {
 	// A mask of 0 returns 0, a mask of 1 returns 1, and a mask of .5 returns
 	// the base. Intermediate masks interpolate.
 	private static double scaleLightness(double base, double mask) {
-		double maskWeight = 2*Math.abs(mask - 0.5);
-		return (1 - maskWeight)*base + maskWeight*mask;
+		double weight = mask > 0.5 ? (1 - base) : base;
+		return base + weight * (2*mask - 1);
 	}
 	
 	private static Color getColor(double hue, double saturation, double lightness) {

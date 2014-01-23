@@ -9,11 +9,12 @@ GameManager::GameManager(ResourceManager &resource_manager,
 		last_scene_(NULL),
 		buffered_commands_(),
 		timestep_(timestep),
-		players_(),
+		players_(NULL),
 		turn_delay_(1) { }
 
 void GameManager::InitializeGame() {
 	game_state_ = resource_manager_.LoadMap("default.map");
+  players_ = new Players(*game_state_);
 	last_scene_ = new GameScene(*game_state_);
 	simulator_ = new Simulator(*game_state_, timestep_);
 }
@@ -45,16 +46,17 @@ void GameManager::BufferCommand(const Command *command) {
 }
 
 void GameManager::RunGame() {
-	Player &home_player = players_.GetPlayer(self_);
-	Player &away_player = players_.GetPlayer(opponent_);
+	Player &home_player = players_->GetPlayer(self_);
+	Player &away_player = players_->GetPlayer(opponent_);
+  buffered_commands_ = new CommandTurn();
 
 	is_running_ = true;
 	while (is_running_) {
-		float elapsed_time = clock_.GetElapsedTime() * 1000.f;
+		float elapsed_time = clock_.getElapsedTime().asMilliseconds();
 		while (elapsed_time < timestep_) {
 			boost::this_thread::sleep(boost::posix_time::
 					milliseconds(int64_t(timestep_ - elapsed_time)));
-			elapsed_time = clock_.GetElapsedTime() * 1000.f;
+			elapsed_time = clock_.getElapsedTime().asMilliseconds();
 		};		
 
 		CommandTurn *last_turn = buffered_commands_;
@@ -79,12 +81,13 @@ void GameManager::RunGame() {
 			--turn_delay_;
 		}
 
-		simulator_->StepSimulation();
+		//simulator_->StepSimulation();
+    game_state_->ExecuteTurn();
 		scene_mutex_.lock();
 		if (last_scene_) delete last_scene_;
 		last_scene_ = new GameScene(*game_state_);
 		scene_mutex_.unlock();
-		clock_.Reset();
+		clock_.restart();
 	}
 }
 
@@ -100,7 +103,7 @@ void GameManager::IssueMoveCommand(const std::list<GameUnit *> &units,
 }
 
 void GameManager::IssueAttackCommand(const std::list<GameUnit *> &units,
-									 unitId target_id) {
+									 UnitId target_id) {
 	GameUnit *target = game_state_->GetUnit(target_id);
 	if (target) {
 		for (std::list<GameUnit *>::const_iterator p_unit =
@@ -114,44 +117,45 @@ void GameManager::IssueAttackCommand(const std::list<GameUnit *> &units,
 }
 
 void GameManager::ApplyCommands(PlayerNumber player_number) {
-	Player &player = players_.GetPlayer(player_number);
-	player.DeselectDeadUnits();
+	Player &player = players_->GetPlayer(player_number);
+  player.ExecuteTurn();
+	//player.DeselectDeadUnits();
 
-	const CommandTurn *commands = player.PopCommandTurn();	
-	if (commands) {
-		for (int i = 0; i < commands->size(); ++i) {
-			const Command *command = (*commands)[i];
-			switch (command->type()) {
-				case Command::kMove: {
-					const Vector2i &location =
-							static_cast<const MoveCommand *>(command)->location();
-					IssueMoveCommand(player.selected_units(), location);
-					break;
-				}
-				case Command::kAttack: {
-					unitId target_id =
-							static_cast<const AttackCommand *>(command)->target();
-					IssueAttackCommand(player.selected_units(), target_id);
-					break;
-				}
-				case Command::kSelect: {
-					std::list<GameUnit *> selected_units;
-					std::list<unitId> unit_ids =
-							static_cast<const SelectCommand *>(command)->targets();
-					std::list<GameUnit *> units;
-					for (std::list<unitId>::iterator id = unit_ids.begin();
-							id != unit_ids.end(); ++id) {
-						GameUnit *unit = game_state_->GetUnit(*id);
-						if (unit) {
-							selected_units.push_back(unit);
-						}
-					}
-					player.set_selected_units(selected_units);
-					break;
-				}
-			}
-			delete command;
-		}
-		delete commands;
-	}
+	//const CommandTurn *commands = player.PopCommandTurn();	
+	//if (commands) {
+	//	for (int i = 0; i < commands->size(); ++i) {
+	//		const Command *command = (*commands)[i];
+			//switch (command->type()) {
+			//	case Command::kMove: {
+			//		const Vector2i &location =
+			//				static_cast<const MoveCommand *>(command)->location();
+			//		IssueMoveCommand(player.selected_units(), location);
+			//		break;
+			//	}
+			//	case Command::kAttack: {
+			//		unitId target_id =
+			//				static_cast<const AttackCommand *>(command)->target();
+			//		IssueAttackCommand(player.selected_units(), target_id);
+			//		break;
+			//	}
+			//	case Command::kSelect: {
+			//		std::list<GameUnit *> selected_units;
+			//		std::list<unitId> unit_ids =
+			//				static_cast<const SelectCommand *>(command)->targets();
+			//		std::list<GameUnit *> units;
+			//		for (std::list<unitId>::iterator id = unit_ids.begin();
+			//				id != unit_ids.end(); ++id) {
+			//			GameUnit *unit = game_state_->GetUnit(*id);
+			//			if (unit) {
+			//				selected_units.push_back(unit);
+			//			}
+			//		}
+			//		player.set_selected_units(selected_units);
+			//		break;
+			//	}
+			//}
+	//		delete command;
+	//	}
+	//	delete commands;
+	//}
 }

@@ -10,12 +10,12 @@ class Simulator {
 		Simulator(GameState &game_state, float timestep);
 		void StepSimulation();
 		Vector2f GetVelocity(GameUnit &unit);
+		std::stack<Vector2f> GetPath(const GameUnit &unit, const Vector2f destination);
 
 	private:
 		GameState &game_state_;
 		void ProcessUnits(const std::list<GameUnit *> &units);
 		void ProcessProjectiles(const std::list<Projectile *> &projectiles);
-		void MoveUnit(GameUnit &unit);
 		const float timestep_;
 		Pathfinder pathfinder_;
 };

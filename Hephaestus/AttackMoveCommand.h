@@ -8,7 +8,6 @@ class AttackMoveCommand : public Command {
 		AttackMoveCommand() { }
 		AttackMoveCommand(const Vector2i &location): location_(location) { }
 		~AttackMoveCommand() { }
-		CommandType type() const { return Command::kAttackMove; }
 		const Vector2i &location() const {return location_;}
 		virtual void Execute(const std::vector<GameUnit> *units) { }
 

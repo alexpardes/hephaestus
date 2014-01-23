@@ -1,5 +1,8 @@
 #include "stdafx.h"
 #include "ResourceManager.h"
+#include "PathFinder.h"
+#include <PathFinding/SubgoalPathFinder.h>
+#include <PathFinding/VectorPathingGrid.h>
 
 GameState *ResourceManager::LoadMap(const std::string &filename) {
 	std::ifstream map_file(filename);
@@ -19,7 +22,10 @@ GameState *ResourceManager::LoadMap(const std::string &filename) {
 	int map_height = map["height"].asInt();
 	Json::Value terrain = map["terrain"];
 	LoadTerrain(Vector2i(map_width, map_height), terrain);
-	GameState *state = new GameState(unit_dictionary_, Vector2i(map_width, map_height));
+  PathFinder *pathfinder = LoadPathingInfo(map["pathinginfo"], map_width, map_height);
+	GameState *state = new GameState(unit_dictionary_,
+      Vector2i(map_width, map_height),
+      pathfinder);
 
 	Json::Value types = map["types"];
 	for (Json::Value::iterator type = types.begin(); type != types.end();
@@ -51,6 +57,40 @@ GameState *ResourceManager::LoadMap(const std::string &filename) {
 	}
 
 	return state;
+}
+
+PathFinder *ResourceManager::LoadPathingInfo(const Json::Value &pathingInfo,
+                                             int width,
+                                             int height) {
+
+  PathingGrid *grid = new VectorPathingGrid(width, height);
+  for (size_t x = 0; x < width; ++x) {
+    for (size_t y = 0; y < height; ++y) {
+      grid->SetBlocked(x, y, !traversability_[tile_table_.at(terrain_[x][y])]);
+    }
+  }
+  std::vector<const Vector2i> subgoals;
+  Json::Value::const_iterator subgoal = pathingInfo["subgoals"].begin();
+  while (subgoal != pathingInfo["subgoals"].end()) {    
+    Json::Value::const_iterator coordinate = (*subgoal++).begin();
+    int x = (*coordinate).asInt();
+    ++coordinate;
+    int y = (*coordinate).asInt();
+    subgoals.push_back(Vector2i(x, y));
+  }
+  std::vector<const std::vector<int>> adjacencyLists;
+  Json::Value::const_iterator adjacencyList = pathingInfo["adjacencies"].begin();
+  while (adjacencyList != pathingInfo["adjacencies"].end()) {
+    Json::Value::const_iterator it = (*adjacencyList).begin();
+    std::vector<int> neighbors;
+    while (it != (*adjacencyList).end()) {
+      neighbors.push_back((*it++).asInt());
+    }
+    adjacencyLists.push_back(neighbors);
+    ++adjacencyList;
+  }
+
+  return new SubgoalPathFinder(grid, subgoals, adjacencyLists);
 }
 
 // Can be removed.
@@ -88,7 +128,7 @@ void  ResourceManager::LoadUnitAttributes(const Json::Value &unit) {
 			attributes));
 }
 
-const sf::Image &ResourceManager::GetImage(const std::string &name,
+const sf::Texture &ResourceManager::GetImage(const std::string &name,
 										   PlayerNumber owner) const {
 	switch (owner) {
 		case kPlayer2:
@@ -104,9 +144,9 @@ bool ResourceManager::LoadUnitImages(const Json::Value &unit) {
 	std::string source1 = unit["source1"].asString();
 	std::string source2 = unit["source2"].asString();
 
-	sf::Image image1, image2;
-	image1.LoadFromFile(source1);
-	image2.LoadFromFile(source2);
+	sf::Texture image1, image2;
+	image1.loadFromFile(source1);
+	image2.loadFromFile(source2);
 	unit_images_[type + "1"] = image1;
 	unit_images_[type + "2"] = image2;
 	return true;
@@ -115,13 +155,13 @@ bool ResourceManager::LoadUnitImages(const Json::Value &unit) {
 bool ResourceManager::LoadTerrainImage(const Json::Value &tile) {
 	std::string type = tile["name"].asString();
 	std::string source = tile["source"].asString();
-	sf::Image image;
-	image.LoadFromFile(source);
+	sf::Texture image;
+	image.loadFromFile(source);
 	terrain_images_[type] = image;
 	return true;
 }
 
-const sf::Image &ResourceManager::GetImage(terrainId id) const {	
+const sf::Texture &ResourceManager::GetImage(terrainId id) const {	
 	return terrain_images_.at(tile_table_.at(id));
 }
 

@@ -193,6 +193,10 @@ public class GameMap {
 	public int getWidth() { return width; }
 	public int getHeight() { return height; }
 	
+	public boolean isBlocked(int x, int y) {
+		return !getTile(x, y).isTraversable();
+	}
+	
 	public Map<String, Object> getJsonMap() {
 		Map<String, Object> result = new HashMap<String, Object>();
 		List<Map<String, Object>> tiles = new ArrayList<Map<String, Object>>();

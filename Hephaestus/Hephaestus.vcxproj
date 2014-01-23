@@ -81,22 +81,22 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>SFML_STATIC;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\Lib\boost\;..\Lib\sfml\;..\Lib\jsoncpp\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <AdditionalIncludeDirectories>..\Lib\boost\;..\Lib\sfml\;..\Lib\jsoncpp\;..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>json_vc71_libmtd.lib;sfml-graphics-s-d.lib;glu32.lib;sfml-main-d.lib;sfml-system-s-d.lib;sfml-window-s-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\thirdparty\vs2012\x86\jsoncpp-src-0.5.0\build\vs71\debug\lib_json;C:\Program Files\boost\boost_1_55_0\stage\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>sfml-system-s-d.lib;sfml-window-s-d.lib;sfml-graphics-s-d.lib;json_vc71_libmdd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\Lib\boost\lib;..\Lib\jsoncpp\lib\debug;..\Lib\sfml\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>..\Lib\jsoncpp\lib\debug;..\Lib\sfml\lib;..\Lib\boost\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>sfml-system-s-d.lib;sfml-graphics-s-d.lib;json_vc71_libmtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\Lib\jsoncpp\lib\debug;..\Lib\sfml\lib;..\Lib\boost\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>sfml-system-s-d.lib;sfml-window-s-d.lib;sfml-graphics-s-d.lib;json_vc71_libmdd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -124,8 +124,8 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>SFML_STATIC;WIN32;NDEBUG;_WINDOWS;_WIN32_WINNT=0x0501;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\Lib\boost\;..\Lib\sfml\;..\Lib\jsoncpp\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <AdditionalIncludeDirectories>..\Lib\boost\;..\Lib\sfml\;..\Lib\jsoncpp\;..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -137,7 +137,7 @@
     </Link>
     <Lib>
       <AdditionalLibraryDirectories>..\Lib\jsoncpp\lib\release;..\Lib\sfml\lib;..\Lib\boost\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>sfml-graphics-s.lib;sfml-system-s.lib;sfml-window-s.lib;json_vc71_libmt.lib</AdditionalDependencies>
+      <AdditionalDependencies>sfml-graphics-s.lib;sfml-system-s.lib;sfml-window-s.lib;json_vc71_libmd.lib</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -166,23 +166,29 @@
     <ClCompile Include="GameUnit.cpp" />
     <ClCompile Include="Graphics.cpp" />
     <ClCompile Include="Hephaestus.cpp" />
+    <ClCompile Include="MoveAbility.cpp" />
+    <ClCompile Include="MoveAction.cpp" />
+    <ClCompile Include="MoveCommand.cpp" />
     <ClCompile Include="Networking.cpp" />
+    <ClCompile Include="PathFinder.cpp" />
     <ClCompile Include="Pathing.cpp" />
     <ClCompile Include="Players.cpp" />
     <ClCompile Include="Projectile.cpp" />
     <ClCompile Include="ResourceManager.cpp" />
+    <ClCompile Include="SelectCommand.cpp" />
     <ClCompile Include="Simulator.cpp" />
     <ClCompile Include="GameState.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="UnitBehavior.cpp" />
     <ClCompile Include="GameInterface.cpp" />
+    <ClCompile Include="UnitCommand.cpp" />
     <ClCompile Include="Util.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AttackCommand.h" />
-    <ClInclude Include="AttackMoveCommand.h" />
     <ClInclude Include="Command.h" />
     <ClInclude Include="Commands.h" />
     <ClInclude Include="GameManager.h" />
@@ -190,8 +196,11 @@
     <ClInclude Include="GameUnit.h" />
     <ClInclude Include="Graphics.h" />
     <ClInclude Include="Hephaestus.h" />
+    <ClInclude Include="MoveAbility.h" />
+    <ClInclude Include="MoveAction.h" />
     <ClInclude Include="MoveCommand.h" />
     <ClInclude Include="Networking.h" />
+    <ClInclude Include="PathFinder.h" />
     <ClInclude Include="Pathing.h" />
     <ClInclude Include="Players.h" />
     <ClInclude Include="Projectile.h" />
@@ -200,8 +209,11 @@
     <ClInclude Include="SelectCommand.h" />
     <ClInclude Include="Simulator.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="UnitAbility.h" />
+    <ClInclude Include="UnitAction.h" />
     <ClInclude Include="UnitBehavior.h" />
     <ClInclude Include="GameInterface.h" />
+    <ClInclude Include="UnitCommand.h" />
     <ClInclude Include="Util.h" />
     <ClInclude Include="VectorSerialization.h" />
   </ItemGroup>

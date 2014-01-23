@@ -1,21 +1,17 @@
-#ifndef SELECT_COMMAND_
-#define SELECT_COMMAND_
+#pragma once
 
 #include "Command.h"
 
 class SelectCommand : public Command {
 	public:
 		SelectCommand() { } // Default constructor for serialization. Probably can be made private. 12/25/2013
-		SelectCommand(const std::list<unitId> &targets) :
-				/*Command(kSelect),*/ targets_(targets) { }
+		SelectCommand(const std::vector<UnitId> &targets) : targets_(targets) { }
 		~SelectCommand() { }
-		CommandType type() const { return Command::kSelect; }
-		const std::list<unitId> &targets() const {return targets_;}
-		virtual void Execute(const std::vector<GameUnit> *units) { }
+		virtual void Execute(Player &player) const;
 
 	private:
 		friend class boost::serialization::access;
-		std::list<unitId> targets_;
+		std::vector<UnitId> targets_;
 
 		template<class Archive>
 		void serialize(Archive & ar, const unsigned int version) {
@@ -23,5 +19,3 @@ class SelectCommand : public Command {
 			ar & targets_;
 		}
 };
-
-#endif

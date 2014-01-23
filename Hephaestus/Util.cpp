@@ -34,6 +34,10 @@ float Util::Dot(const Vector2f &vector1, const Vector2f &vector2) {
 	return vector1.x * vector2.x + vector1.y * vector2.y;
 }
 
+float Util::FindAngle(const Vector2f &vector) {
+  return FindAngle(Vector2f(1, 0), vector);
+}
+
 
 //	Returns the angle in radians from vector1 counterclockwise to vector2.
 float Util::FindAngle(const Vector2f &vector1, const Vector2f &vector2) {
@@ -42,6 +46,9 @@ float Util::FindAngle(const Vector2f &vector1, const Vector2f &vector2) {
 	return angle;
 }
 
+float Util::FindAngleDegrees(const Vector2f &vector1, const Vector2f &vector2) {
+  return Degrees(FindAngle(vector1, vector2));
+}
 
 // Returns the vector rotated by 90 degrees CCW.
 Vector2f Util::Perpendicular(const Vector2f &vector) {
@@ -52,6 +59,12 @@ void Util::Normalize(Vector2f &vector) {
 	float length = Length(vector);
 	if (length != 0)
 			vector /= Length(vector);
+}
+
+Vector2f Util::GetNormalized(const Vector2f &vector) {
+  Vector2f copy(vector);
+  Normalize(copy);
+  return copy;
 }
 
 void Util::Scale(Vector2f &vector, float length) {

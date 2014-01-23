@@ -12,7 +12,7 @@ Projectile::Projectile(const Vector2f &position,
 }
 
 bool ProjectileModel::is_initialized_ = false;
-sf::Image ProjectileModel::image_;
+//sf::Texture ProjectileModel::image_;
 
 ProjectileModel::ProjectileModel(const Projectile &projectile) {
 	position_ = projectile.position();
@@ -23,7 +23,8 @@ ProjectileModel::ProjectileModel(const Projectile &projectile) {
 }
 
 bool ProjectileModel::Initialize() {
-	return image_.LoadFromFile("projectile.png");
+  return true;
+	//return image_.loadFromFile("projectile.png");
 }
 
 ProjectileModel::ProjectileModel(const ProjectileModel &projectile1,

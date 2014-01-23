@@ -18,9 +18,10 @@ class GameInterface {
 			is_selecting_ = false;
 			cursor_action_ = kSelect;
 			player_ = player;
-			interface_shape_ = sf::Shape::Rectangle(0.f, screen_size.y - 200.f,
-					screen_size.x, screen_size.y,
-					sf::Color(255, 255, 255, 255));
+			interface_graphic_ = sf::RectangleShape(Vector2f(screen_size.x,
+					200.f));
+			interface_graphic_.setPosition(Vector2f(0.f, screen_size.y - 200.f));
+			interface_graphic_.setFillColor(sf::Color(255, 255, 255, 255));
 			game_scene_ = NULL;
 		}
 		Command *ProcessEvent(const sf::Event &event);
@@ -38,8 +39,8 @@ class GameInterface {
 		}
 
 		bool is_selecting() const {return is_selecting_;}
-		sf::Shape GetSelectionBoxGraphic() const;
-		sf::Shape GetInterfaceGrahic() const;
+		sf::Drawable *GetSelectionBoxGraphic() const;
+		const sf::Drawable *GetInterfaceGrahic() const;
 		const std::list<UnitModel *> GetSelectedUnits() const;
 
 		void set_scene(GameScene *scene) {
@@ -51,7 +52,7 @@ class GameInterface {
 
 	private:
 		const UnitModel *GetUnit(const Vector2i &location) const;
-		const std::list<unitId> GetUnitIds(const Vector2f &location1,
+		const std::vector<UnitId> GetUnitIds(const Vector2f &location1,
 				const Vector2f &location2) const;
 		Vector2i selection_corner1() const {return Util::GetVector2i(selection_corner1_);}
 		Vector2i selection_corner2() const {return Util::GetVector2i(selection_corner2_);}
@@ -70,13 +71,13 @@ class GameInterface {
 		Vector2f selection_corner1_;
 		Vector2f selection_corner2_;
 		bool is_selecting_;
-		std::list<unitId> selected_unit_ids_;
+		std::list<UnitId> selected_unit_ids_;
 		CommandTurn command_queue_;
 		static const float kScrollSpeed;
 		enum CursorAction {kSelect, kAttack};
 		CursorAction cursor_action_;
 		Vector2f screen_size_, map_size_;
-		sf::Shape interface_shape_;
+		sf::RectangleShape interface_graphic_;
 		GameScene *game_scene_;
 		PlayerNumber player_;
 };

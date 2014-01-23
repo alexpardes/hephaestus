@@ -6,15 +6,13 @@
 class AttackCommand : public Command {
 	public:
 		AttackCommand() { }
-		AttackCommand(unitId target): target_(target) { }
+		AttackCommand(UnitId target): target_(target) { }
 		~AttackCommand() { }
-		Command::CommandType type() const { return Command::kAttack; }
-		unitId target() const {return target_;}
-		virtual void Execute(const std::vector<GameUnit> *units) { }
+		virtual void Execute(Player &player) { }
 
 	private:
 		friend class boost::serialization::access;
-		unitId target_;
+		UnitId target_;
 
 		template<class Archive>
 		void serialize(Archive & ar, const unsigned int version) {

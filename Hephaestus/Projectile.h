@@ -30,14 +30,17 @@ class ProjectileModel {
 				const ProjectileModel &projectile2, float weight);
 		Vector2f position() const {return position_;}
 		int id() const {return id_;}
-		static const sf::Image &image() {return image_;}
+		static const sf::Texture &image() {
+      return sf::Texture();
+      //return image_;
+    }
 
 	private:
 		bool Initialize();
 		Vector2f position_;
 		int id_;
 		static bool is_initialized_;
-		static sf::Image image_;
+		//static sf::Texture image_;
 };
 
 #endif

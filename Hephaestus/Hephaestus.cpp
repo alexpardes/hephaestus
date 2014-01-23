@@ -43,7 +43,7 @@ void Quit(sf::RenderWindow &window,
 		game_manager->EndGame();
 		thread->join();
 	}
-	window.Close();
+	window.close();
 }
 
 void RunGame(GameType game_type, sf::RenderWindow &window) {
@@ -52,7 +52,7 @@ void RunGame(GameType game_type, sf::RenderWindow &window) {
 	game_manager->InitializeGame();
 	SetGameType(game_manager, game_type);
 	Vector2i map_size = resource_manager.GetMapSize();
-	GameInterface game_interface(Vector2f(1000, 700),
+	GameInterface game_interface(Vector2f(1280, 720),
 			kTileSize * Util::GetVector2f(map_size), game_manager->self());
 	Graphics graphics(window, game_interface, resource_manager);
 	GameScene *game_scene1 = NULL;
@@ -60,14 +60,14 @@ void RunGame(GameType game_type, sf::RenderWindow &window) {
 	std::thread simulation_thread(RunSimulation, game_manager);
 	sf::Clock clock;
 	float time_step;
-	while (window.IsOpened()) {
-		time_step = clock.GetElapsedTime();
-		clock.Reset();
+	while (window.isOpen()) {
+		time_step = clock.getElapsedTime().asSeconds();
+		clock.restart();
 		sf::Event event;
-		while (window.GetEvent(event)) {
-			if (event.Type == sf::Event::Closed ||
-					(event.Type == sf::Event::KeyPressed &&
-					event.Key.Code == sf::Key::Escape)) {
+		while (window.pollEvent(event)) {
+			if (event.type == sf::Event::Closed ||
+					(event.type == sf::Event::KeyPressed &&
+					event.key.code == sf::Keyboard::Key::Escape)) {
 				Quit(window, game_manager, &simulation_thread);
 			}
 			Command *command = game_interface.ProcessEvent(event);
@@ -95,25 +95,25 @@ void RunGame(GameType game_type, sf::RenderWindow &window) {
 }
 
 void Run() {
-	sf::RenderWindow window(sf::VideoMode(1000, 700, 32), "Hephaestus"/*,*/
+	sf::RenderWindow window(sf::VideoMode(1280, 720), "Hephaestus"/*,*/
 			/*sf::Style::Fullscreen*/);
-	window.SetFramerateLimit(60);
-	while (window.IsOpened()) {
+	window.setFramerateLimit(60);
+	while (window.isOpen()) {
 		sf::Event event;
-		while (window.GetEvent(event)) {
-			if (event.Type == sf::Event::Closed) window.Close();
-			if (event.Type == sf::Event::KeyPressed &&
-					event.Key.Code == sf::Key::Escape)
-					window.Close();
-			if (event.Type == sf::Event::KeyPressed) {
-				switch (event.Key.Code) {
-					case sf::Key::Num1:
+		while (window.pollEvent(event)) {
+			if (event.type == sf::Event::Closed) window.close();
+			if (event.type == sf::Event::KeyPressed &&
+					event.key.code == sf::Keyboard::Key::Escape)
+					window.close();
+			if (event.type == sf::Event::KeyPressed) {
+				switch (event.key.code) {
+					case sf::Keyboard::Key::Num1:
 						RunGame(kSinglePlayer, window);
 						break;
-					case sf::Key::Num2:
+					case sf::Keyboard::Key::Num2:
 						RunGame(kHost, window);
 						break;
-					case sf::Key::Num3:
+					case sf::Keyboard::Key::Num3:
 						RunGame(kJoin, window);
 						break;
 				}

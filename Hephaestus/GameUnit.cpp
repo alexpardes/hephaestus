@@ -1,13 +1,13 @@
 #include "stdafx.h"
 #include "GameUnit.h"
+#include "UnitAction.h"
 
-int GameUnit::serial_number_ = 0;
-
-GameUnit::GameUnit(const UnitAttributes &attributes,
-				   PlayerNumber owner,
-				   const Vector2f &position,
-				   float rotation) {
-	id_ = ++serial_number_;
+GameUnit::GameUnit(int id,
+                   const UnitAttributes &attributes,
+                   PlayerNumber owner,
+                   const Vector2f &position,
+                   float rotation) {
+	id_ = id;
 	is_alive_ = true;
 	attributes_ = attributes;
 	position_ = position;
@@ -20,6 +20,8 @@ GameUnit::GameUnit(const UnitAttributes &attributes,
 	target_ = NULL;
 	owner_ = owner;
 	rotation_ = rotation;
+  ability = NULL;
+  action = NULL;
 }
 
 void GameUnit::ResetReload() {
@@ -44,14 +46,25 @@ float GameUnit::GetHeading() const {
 	return heading;
 }
 
+void GameUnit::SetAction(UnitAction *action) {
+  this->action = action;
+  action->Start(ability);
+}
+
+void GameUnit::PerformAction() {
+  if (action) {
+    action->Execute();
+  }
+}
+
 UnitModel::UnitModel(const GameUnit &unit) {
 	current_health_ = unit.current_health();
 	position_ = unit.position();
-	rotation_ = unit.rotation();
-	id_ = unit.id();
-	name_ = unit.attributes().name();
-	owner_ = unit.owner();
-	radius_ = unit.attributes().selection_radius();
+	rotation_ = unit.Rotation();
+	id_ = unit.Id();
+	name_ = unit.Attributes().name();
+	owner_ = unit.Owner();
+	radius_ = unit.Attributes().selection_radius();
 }
 
 UnitModel::UnitModel(const UnitModel &unit1,
