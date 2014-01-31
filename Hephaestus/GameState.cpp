@@ -62,19 +62,35 @@ Vector2f GameState::GetUnitPosition(UnitId id) const {
 }
 
 void GameState::MoveUnit(UnitId id, Vector2f location) {
-  GetUnit(id)->SetPosition(Constrain(location));
+  GameUnit *unit = GetUnit(id);
+  unit->SetPosition(Constrain(location));
+  UpdateUnitGrid(*unit);
 }
 
-Vector2f GameState::Constrain(Vector2f location) {
+Vector2f GameState::Constrain(Vector2f location) const {
   if (location.x < 0) {
-    location.x = 0.0;
+    location.x = 0.f;
   } else if (location.x > kTileSize * map_size().x) {
     location.x = kTileSize * map_size().x;
   }
   if (location.y < 0) {
-    location.y = 0.0;
+    location.y = 0.f;
   } else if (location.y > kTileSize * map_size().y) {
     location.y = kTileSize * map_size().y;
+  }
+  return location;
+}
+
+Vector2i GameState::Constrain(Vector2i location) const {
+  if (location.x < 0) {
+    location.x = 0.f;
+  } else if (location.x >= map_size().x) {
+    location.x = map_size().x - 1;
+  }
+  if (location.y < 0) {
+    location.y = 0.f;
+  } else if (location.y >= map_size().y) {
+    location.y = map_size().y - 1;
   }
   return location;
 }
@@ -109,9 +125,7 @@ void GameState::RemoveUnit(GameUnit *unit) {
 	units_.remove(unit);
 	unit_table_.erase(unit->Id());
 	RemoveFromUnitGrid(*unit);
-	if (unit->IsStationary()) {
-		RemoveFromPathingGrid(*unit);
-	}
+	RemoveFromPathingGrid(*unit);
 	delete unit;
 }
 
@@ -207,33 +221,56 @@ std::vector<GameUnit *> GameState::GetUnitsInRectangle(const Vector2f &corner1,
 	return units;
 }
 
-std::list<GameUnit *> GameState::GetUnitsInCircle(const Vector2f &center,
+std::vector<GameUnit *> GameState::GetUnitsInCircle(const Vector2f &center,
 		float radius) const {
-	std::list<GameUnit *> units;
-	float effective_radius = radius + max_unit_radius_;
-	float effective_radius2 = Util::Square(effective_radius);
-	int start_x = int((center.x - effective_radius) / kUnitGridResolution);
-	int start_y = int((center.y - effective_radius) / kUnitGridResolution);
-	int end_x = int((center.x + effective_radius) / kUnitGridResolution);
-	int end_y = int((center.y + effective_radius) / kUnitGridResolution);
-	if (start_x < 0) start_x = 0;
-	if (start_y < 0) start_y = 0;
-	if (end_x >= unit_grid_width_) end_x = unit_grid_width_ - 1;
-	if (end_y >= unit_grid_height_) end_y = unit_grid_height_ - 1;
-	for (int i = start_x; i <= end_x; ++i) {
-		for (int j = start_y; j <= end_y; ++j) {
+	std::vector<GameUnit *> units;
+	float effectiveRadius = radius + max_unit_radius_;
+
+  Vector2i topLeft;
+  topLeft.x = int((center.x - effectiveRadius) / kUnitGridResolution);
+  topLeft.y = int((center.y - effectiveRadius) / kUnitGridResolution);
+  topLeft = Util::Constrain2(topLeft, Vector2i(0, 0),
+    Vector2i(unit_grid_width_, unit_grid_height_));
+
+  Vector2i bottomRight;
+  bottomRight.x = int((center.x + effectiveRadius) / kUnitGridResolution);
+  bottomRight.y = int((center.y + effectiveRadius) / kUnitGridResolution);
+  bottomRight = Util::Constrain2(bottomRight, Vector2i(0, 0),
+      Vector2i(unit_grid_width_, unit_grid_height_));
+
+  for (int i = topLeft.x; i <= bottomRight.x; ++i) {
+    for (int j = topLeft.y; j <= bottomRight.y; ++j) {
 			for (std::list<GameUnit *>::iterator unit =
 					unit_grid_[i][j].begin();
 					unit != unit_grid_[i][j].end();
 					++unit) {
-				float distance2 = Util::Distance2((*unit)->position(), center);
-				if (distance2 <= effective_radius2) {
+				float distance = Util::Distance((*unit)->position(), center);
+				if (distance <= effectiveRadius) {
 					units.push_back(*unit);
 				}
 			}
 		}
 	}
 	return units;
+}
+
+std::vector<Rect>
+GameState::GetWallsInRectangle(const Rect &rectangle) const {
+  Vector2i topLeft = GetTile(rectangle.topLeft);
+  Vector2i bottomRight = GetTile(rectangle.bottomRight);
+
+  std::vector<Rect> walls;
+  for (int x = topLeft.x; x <= bottomRight.x; ++x) {
+    for (int y = topLeft.y; y <= bottomRight.y; ++y) {
+      if (pathfinder->GetPathingGrid()->IsBlocked(x, y)) {
+        Rect wall;
+        wall.topLeft = Vector2f(x*kTileSize, y*kTileSize);
+        wall.bottomRight = Vector2f((x + 1)*kTileSize, (y + 1)*kTileSize);
+        walls.push_back(wall);
+      }
+    }
+  }
+  return walls;
 }
 
 void GameState::AddToPathingGrid(const GameUnit &unit) {

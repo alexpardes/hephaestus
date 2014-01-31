@@ -1,6 +1,9 @@
 #ifndef GameInterface_
 #define GameInterface_
 
+#include <SFML/Window/Event.hpp>
+#include <SFML/Graphics/Drawable.hpp>
+#include <SFML/Graphics/RectangleShape.hpp>
 #include "Command.h"
 #include "GameState.h"
 #include "GameUnit.h"

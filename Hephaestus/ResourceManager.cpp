@@ -1,8 +1,8 @@
 #include "stdafx.h"
 #include "ResourceManager.h"
-#include "PathFinder.h"
 #include <PathFinding/SubgoalPathFinder.h>
 #include <PathFinding/VectorPathingGrid.h>
+#include <PathFinding/Subgoal.h>
 
 GameState *ResourceManager::LoadMap(const std::string &filename) {
 	std::ifstream map_file(filename);
@@ -69,14 +69,31 @@ PathFinder *ResourceManager::LoadPathingInfo(const Json::Value &pathingInfo,
       grid->SetBlocked(x, y, !traversability_[tile_table_.at(terrain_[x][y])]);
     }
   }
-  std::vector<const Vector2i> subgoals;
+  std::vector<Subgoal*> subgoals;
   Json::Value::const_iterator subgoal = pathingInfo["subgoals"].begin();
   while (subgoal != pathingInfo["subgoals"].end()) {    
     Json::Value::const_iterator coordinate = (*subgoal++).begin();
-    int x = (*coordinate).asInt();
-    ++coordinate;
-    int y = (*coordinate).asInt();
-    subgoals.push_back(Vector2i(x, y));
+    int x = (*coordinate++).asInt();
+    int y = (*coordinate++).asInt();
+
+    Vector2i direction;
+    switch ((*coordinate).asInt()) {
+      case 0:
+        direction = Vector2i(-1, -1);
+        break;
+      case 1:
+        direction = Vector2i(1, -1);
+        break;
+      case 2:
+        direction = Vector2i(-1, 1);
+        break;
+      case 3:
+        direction = Vector2i(1, 1);
+        break;
+      default:
+        assert(false);
+    }
+    subgoals.push_back(new Subgoal(Vector2i(x, y), direction));
   }
   std::vector<const std::vector<int>> adjacencyLists;
   Json::Value::const_iterator adjacencyList = pathingInfo["adjacencies"].begin();
@@ -91,26 +108,6 @@ PathFinder *ResourceManager::LoadPathingInfo(const Json::Value &pathingInfo,
   }
 
   return new SubgoalPathFinder(grid, subgoals, adjacencyLists);
-}
-
-// Can be removed.
-void ResourceManager::LoadUnitFile(const std::string &filename) {
-	std::ifstream unit_file(filename + ".udf");
-	if (!unit_file.good()) {
-		assert(0);
-		return;
-	}
-	Json::Reader reader;
-	Json::Value units;
-	reader.parse(unit_file, units);
-	unit_file.close();
-	units = units["units"];
-	for (Json::Value::iterator unit = units.begin();
-		unit != units.end(); ++unit) {
-		LoadUnitAttributes(*unit);
-		std::string name = (*unit)["name"].asString();
-		LoadUnitImages(*unit);
-	}
 }
 
 void  ResourceManager::LoadUnitAttributes(const Json::Value &unit) {

@@ -412,136 +412,136 @@ const bool Pathfinder::kCounterClockwise = true;
 std::stack<Vector2f> Pathfinder::FindAStarPath(const GameUnit &unit,
 											  float range) const {
 	std::stack<Vector2f> solution_path;
-	int **pathing_grid = game_state_.pathing_grid();
-	float resolution = game_state_.kPathingResolution;
-	int goal_radius = (int) (range / resolution);
-	int width = game_state_.pathing_width();
-	int height = game_state_.pathing_height();
-	bool **visited = new bool*[width];
-	for (int i = 0; i < width; ++i) {
-		visited[i] = new bool[height];
-		for (int j = 0; j < height; ++j) {
-			visited[i][j] = false;
-		}
-	}
-	//	The cells bounding the unit form a square with length 2*unit_size + 1.
-	int unit_size = (int) (unit.Attributes().collision_radius() /
-			game_state_.kPathingResolution + 0.5f);
-	int end_x = (int) (unit.destination().x / game_state_.kPathingResolution);
-	int end_y = (int) (unit.destination().y / game_state_.kPathingResolution);
+	//int **pathing_grid = game_state_.pathing_grid();
+	//float resolution = game_state_.kPathingResolution;
+	//int goal_radius = (int) (range / resolution);
+	//int width = game_state_.pathing_width();
+	//int height = game_state_.pathing_height();
+	//bool **visited = new bool*[width];
+	//for (int i = 0; i < width; ++i) {
+	//	visited[i] = new bool[height];
+	//	for (int j = 0; j < height; ++j) {
+	//		visited[i][j] = false;
+	//	}
+	//}
+	////	The cells bounding the unit form a square with length 2*unit_size + 1.
+	//int unit_size = (int) (unit.Attributes().collision_radius() /
+	//		game_state_.kPathingResolution + 0.5f);
+	//int end_x = (int) (unit.destination().x / game_state_.kPathingResolution);
+	//int end_y = (int) (unit.destination().y / game_state_.kPathingResolution);
 
-	std::priority_queue<PathNode*, std::vector<PathNode*>, Greater> open_list;
-	std::vector<PathNode*> node_list;
-	int start_x = (int) (unit.position().x / game_state_.kPathingResolution);
-	int start_y = (int) (unit.position().y / game_state_.kPathingResolution);
+	//std::priority_queue<PathNode*, std::vector<PathNode*>, Greater> open_list;
+	//std::vector<PathNode*> node_list;
+	//int start_x = (int) (unit.position().x / game_state_.kPathingResolution);
+	//int start_y = (int) (unit.position().y / game_state_.kPathingResolution);
 
-	int x_dist = std::labs(end_x - start_x);
-	int y_dist = std::labs(end_y - start_y);
-	float f = std::max(x_dist, y_dist) + .4142135624f*std::min(x_dist, y_dist);
-	PathNode *root = new PathNode(start_x, start_y, NULL, 0.f, f);
-	open_list.push(root);
-	node_list.push_back(root);
-	bool solution_found = false;
-	PathNode *closest_node = root;
-	int num_nodes_checked = 0;
-	while (!solution_found && !open_list.empty() &&
-			++num_nodes_checked < 500) {
-		PathNode *node = open_list.top();
-		open_list.pop();
-		if (!visited[node->x][node->y]) {
-			if (node->f - node->distance_from_root <
-					closest_node->f - closest_node->distance_from_root) {
-				closest_node = node;
-			}
-			if (node->f - node->distance_from_root <= goal_radius) {
-				solution_found = true;
-			} else {
-				visited[node->x][node->y] = true;
-				for (int i = -1; i <= 1; ++i) {
-					for (int j = -1; j <= 1; ++j) {
-						int x = node->x + i;
-						int y = node->y + j;
-						if (x - unit_size > 0 && x + unit_size < width &&
-								y - unit_size > 0 && y + unit_size < height &&
-								!visited[x][y]) {
-							bool is_diagonal = i != 0 && j != 0;
-							bool position_clear = true;
+	//int x_dist = std::labs(end_x - start_x);
+	//int y_dist = std::labs(end_y - start_y);
+	//float f = std::max(x_dist, y_dist) + .4142135624f*std::min(x_dist, y_dist);
+	//PathNode *root = new PathNode(start_x, start_y, NULL, 0.f, f);
+	//open_list.push(root);
+	//node_list.push_back(root);
+	//bool solution_found = false;
+	//PathNode *closest_node = root;
+	//int num_nodes_checked = 0;
+	//while (!solution_found && !open_list.empty() &&
+	//		++num_nodes_checked < 500) {
+	//	PathNode *node = open_list.top();
+	//	open_list.pop();
+	//	if (!visited[node->x][node->y]) {
+	//		if (node->f - node->distance_from_root <
+	//				closest_node->f - closest_node->distance_from_root) {
+	//			closest_node = node;
+	//		}
+	//		if (node->f - node->distance_from_root <= goal_radius) {
+	//			solution_found = true;
+	//		} else {
+	//			visited[node->x][node->y] = true;
+	//			for (int i = -1; i <= 1; ++i) {
+	//				for (int j = -1; j <= 1; ++j) {
+	//					int x = node->x + i;
+	//					int y = node->y + j;
+	//					if (x - unit_size > 0 && x + unit_size < width &&
+	//							y - unit_size > 0 && y + unit_size < height &&
+	//							!visited[x][y]) {
+	//						bool is_diagonal = i != 0 && j != 0;
+	//						bool position_clear = true;
 
-							//if (pathing_grid[x][y]) {
-							//	position_clear = false;
-							//} else if (is_diagonal &&
-							//		(pathing_grid[x][node->y] ||
-							//		pathing_grid[node->x][y])) {
-							//	position_clear = false;
-							//}
+	//						//if (pathing_grid[x][y]) {
+	//						//	position_clear = false;
+	//						//} else if (is_diagonal &&
+	//						//		(pathing_grid[x][node->y] ||
+	//						//		pathing_grid[node->x][y])) {
+	//						//	position_clear = false;
+	//						//}
 
-							if (is_diagonal) {
-								int x_offset = x + i*unit_size;
-								int y_offset = y + j*unit_size;
-								if (pathing_grid[x_offset][y_offset]) {
-									int z = pathing_grid[x_offset][y_offset];
-									position_clear = false;
-								} else {
-									for (int k = -unit_size;
-											k <= unit_size; ++k) {
-										if (pathing_grid[x + k][y_offset] ||
-											pathing_grid[x_offset][y + k]) {
-											position_clear = false;
-											break;
-										}
-									}
-								}
-							} else {
-								for (int k = -unit_size; k <= unit_size; ++k) {
-									int new_x = x + i*unit_size + j*k;
-									int new_y = y + j*unit_size + i*k;
-									if (pathing_grid[new_x][new_y]) {
-										position_clear = false;
-										break;
-									}
-								}
-							}
-							if (position_clear) {
-								float distance = node->distance_from_root;
-								if (is_diagonal) {
-									distance += 1.414213562f;
-								} else {
-									distance += 1.f;
-								}
-								int x_dist = std::labs(end_x - x);
-								int y_dist = std::labs(end_y - y);
-								float f = std::max(x_dist, y_dist) +
-										.4142135624f*std::min(x_dist, y_dist) +
-										distance;
-								PathNode* child =
-										new PathNode(x, y, node, distance, f);
-								open_list.push(child);
-								node_list.push_back(child);
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-	Vector2f location;
-	PathNode *node = closest_node;
-	if (node->x == end_x && node->y == end_y)
-			solution_path.push(unit.destination());
-	while (node != root) {
-		location.x = (node->x + .5f) * resolution;
-		location.y = (node->y + .5f) * resolution;
-		solution_path.push(location);
-		node = node->parent;
-	}
-	while (!node_list.empty()) {
-		delete node_list.back();
-		node_list.pop_back();
-	}
-	for (int i = 0; i < width; ++i) {
-		delete visited[i];
-	}
-	delete visited;
+	//						if (is_diagonal) {
+	//							int x_offset = x + i*unit_size;
+	//							int y_offset = y + j*unit_size;
+	//							if (pathing_grid[x_offset][y_offset]) {
+	//								int z = pathing_grid[x_offset][y_offset];
+	//								position_clear = false;
+	//							} else {
+	//								for (int k = -unit_size;
+	//										k <= unit_size; ++k) {
+	//									if (pathing_grid[x + k][y_offset] ||
+	//										pathing_grid[x_offset][y + k]) {
+	//										position_clear = false;
+	//										break;
+	//									}
+	//								}
+	//							}
+	//						} else {
+	//							for (int k = -unit_size; k <= unit_size; ++k) {
+	//								int new_x = x + i*unit_size + j*k;
+	//								int new_y = y + j*unit_size + i*k;
+	//								if (pathing_grid[new_x][new_y]) {
+	//									position_clear = false;
+	//									break;
+	//								}
+	//							}
+	//						}
+	//						if (position_clear) {
+	//							float distance = node->distance_from_root;
+	//							if (is_diagonal) {
+	//								distance += 1.414213562f;
+	//							} else {
+	//								distance += 1.f;
+	//							}
+	//							int x_dist = std::labs(end_x - x);
+	//							int y_dist = std::labs(end_y - y);
+	//							float f = std::max(x_dist, y_dist) +
+	//									.4142135624f*std::min(x_dist, y_dist) +
+	//									distance;
+	//							PathNode* child =
+	//									new PathNode(x, y, node, distance, f);
+	//							open_list.push(child);
+	//							node_list.push_back(child);
+	//						}
+	//					}
+	//				}
+	//			}
+	//		}
+	//	}
+	//}
+	//Vector2f location;
+	//PathNode *node = closest_node;
+	//if (node->x == end_x && node->y == end_y)
+	//		solution_path.push(unit.destination());
+	//while (node != root) {
+	//	location.x = (node->x + .5f) * resolution;
+	//	location.y = (node->y + .5f) * resolution;
+	//	solution_path.push(location);
+	//	node = node->parent;
+	//}
+	//while (!node_list.empty()) {
+	//	delete node_list.back();
+	//	node_list.pop_back();
+	//}
+	//for (int i = 0; i < width; ++i) {
+	//	delete visited[i];
+	//}
+	//delete visited;
 	return solution_path;
 }
 
@@ -557,236 +557,236 @@ Vector2i Pathfinder::RotateCCW(const Vector2i &direction) {
 std::stack<Vector2f> Pathfinder::FindPath(const GameUnit &unit, float range)
 		const {
 	std::stack<Vector2f> solution_path;
-	int **pathing_grid = game_state_.pathing_grid();
-	float resolution = game_state_.kPathingResolution;
-	int goal_radius = (int) (range / resolution - .7071067812f);
-	int width = game_state_.pathing_width();
-	int height = game_state_.pathing_height();
-	bool ***visited = new bool**[width];
-	for (int i = 0; i < width; ++i) {
-		visited[i] = new bool*[height];
-		for (int j = 0; j < height; ++j) {
-			visited[i][j] = new bool[4];
-			for (int k = 0; k < 4; ++k) {
-				visited[i][j][k] = false;
-			}
-		}
-	}
-	//	The cells bounding the unit form a square with length 2*unit_size + 1.
-	int unit_size = (int) (unit.Attributes().collision_radius() /
-			game_state_.kPathingResolution + 0.5f);
-	int end_x = (int) (unit.destination().x / game_state_.kPathingResolution);
-	int end_y = (int) (unit.destination().y / game_state_.kPathingResolution);
+	//int **pathing_grid = game_state_.pathing_grid();
+	//float resolution = game_state_.kPathingResolution;
+	//int goal_radius = (int) (range / resolution - .7071067812f);
+	//int width = game_state_.pathing_width();
+	//int height = game_state_.pathing_height();
+	//bool ***visited = new bool**[width];
+	//for (int i = 0; i < width; ++i) {
+	//	visited[i] = new bool*[height];
+	//	for (int j = 0; j < height; ++j) {
+	//		visited[i][j] = new bool[4];
+	//		for (int k = 0; k < 4; ++k) {
+	//			visited[i][j][k] = false;
+	//		}
+	//	}
+	//}
+	////	The cells bounding the unit form a square with length 2*unit_size + 1.
+	//int unit_size = (int) (unit.Attributes().collision_radius() /
+	//		game_state_.kPathingResolution + 0.5f);
+	//int end_x = (int) (unit.destination().x / game_state_.kPathingResolution);
+	//int end_y = (int) (unit.destination().y / game_state_.kPathingResolution);
 
-	std::priority_queue<PathNode*, std::vector<PathNode*>, Greater> open_list;
-	std::vector<PathNode*> node_list;
-	int start_x = (int) (unit.position().x / game_state_.kPathingResolution);
-	int start_y = (int) (unit.position().y / game_state_.kPathingResolution);
+	//std::priority_queue<PathNode*, std::vector<PathNode*>, Greater> open_list;
+	//std::vector<PathNode*> node_list;
+	//int start_x = (int) (unit.position().x / game_state_.kPathingResolution);
+	//int start_y = (int) (unit.position().y / game_state_.kPathingResolution);
 
-	int x_dist = std::labs(end_x - start_x);
-	int y_dist = std::labs(end_y - start_y);
-	float f = std::max(x_dist, y_dist) + .4142135624f*std::min(x_dist, y_dist);
-	PathNode *root = new PathNode(start_x, start_y, NULL, 0.f, f);
-	open_list.push(root);
-	node_list.push_back(root);
-	bool solution_found = false;
-	PathNode *closest_node = root;
-	int num_nodes_checked = 0;
-	while (!solution_found && !open_list.empty() &&
-			++num_nodes_checked < 500) {
-		PathNode *node = open_list.top();
-		open_list.pop();
-		if (node->hug_direction != Vector2i(0, 0) &&
-				IsVisited(Vector2i(node->x, node->y), Vector2i(0, 0),
-				node->hug_direction, visited)) {
-			continue;
-		}
-		if (node->f - node->distance_from_root <
-				closest_node->f - closest_node->distance_from_root) {
-			closest_node = node;
-		}
-		if (node->f - node->distance_from_root <= goal_radius) {
-			solution_found = true;
-		} else {
-			if (node->hug_direction != Vector2i(0, 0)) {
-				MarkVisited(Vector2i(node->x, node->y),
-						node->hug_direction, visited);
-				if (CanMoveInDirection(Vector2i(node->x, node->y),
-						node->hug_direction, unit_size)) {
-					PathNode *child = MakeChildNode(node,
-							node->hug_direction,
-							Vector2i(end_x, end_y));
-					open_list.push(child);
-					node_list.push_back(child);
-				} else {
-					Vector2i direction = node->hug_direction;
-					Vector2i child_direction = RotateCW(direction);
-					Vector2i child_hug = direction;
-					for (int i = 0; i < 2; ++i) {
-						if (IsMoveOffGrid(Vector2i(node->x, node->y),
-								child_direction, unit_size) ||
-								IsVisited(Vector2i(node->x, node->y),
-								child_direction, child_hug, visited)) {
-							break;
-						}
-						if (CanMoveInDirection(Vector2i(node->x,
-								node->y),
-								child_direction,
-								unit_size)) {
-							PathNode *child = MakeChildNode(node,
-									child_direction,
-									Vector2i(end_x, end_y));
-							child->hug_direction = child_hug;
-							open_list.push(child);
-							node_list.push_back(child);
-							break;
-						}
-						child_direction = RotateCW(child_direction);
-						child_hug = RotateCW(child_hug);
-					}
-					child_direction = RotateCCW(direction);
-					child_hug = direction;
-					for (int i = 0; i < 2; ++i) {
-						if (IsMoveOffGrid(Vector2i(node->x, node->y),
-								child_direction, unit_size) ||
-								IsVisited(Vector2i(node->x, node->y),
-								child_direction, child_hug, visited)) {
-							break;
-						}
-						if (CanMoveInDirection(Vector2i(node->x,
-								node->y),
-								child_direction,
-								unit_size)) {
-							PathNode *child = MakeChildNode(node,
-									child_direction,
-									Vector2i(end_x, end_y));
-							child->hug_direction = child_hug;
-							open_list.push(child);
-							node_list.push_back(child);
-							break;
-						}
-						child_direction = RotateCCW(child_direction);
-						child_hug = RotateCCW(child_hug);
-					}
-				}
-			} else {
-				Vector2i direction(0, 0);
-				if (end_x > node->x) {
-					direction.x = 1;
-				} else if (end_x < node->x) {
-					direction.x = -1;
-				}
-				if (end_y > node->y) {
-					direction.y = 1;
-				} else if (end_y < node->y) {
-					direction.y = -1;
-				}
-				if (!IsMoveOffGrid(Vector2i(node->x, node->y), direction,
-						unit_size)) {
-					if (CanMoveInDirection(Vector2i(node->x, node->y),
-							direction, unit_size)) {
-						PathNode *child = MakeChildNode(node, direction,
-								Vector2i(end_x, end_y));
-						open_list.push(child);
-						node_list.push_back(child);
-					} else {
-						bool is_diagonal = direction.x != 0 &&
-								direction.y != 0;
-						Vector2i child_direction;
-						Vector2i child_hug;
-						if (is_diagonal) {
-							if (direction.x != direction.y) {
-								child_direction = Vector2i(0, direction.y);
-								child_hug = Vector2i(direction.x, 0);
-							} else {
-								child_direction = Vector2i(direction.x, 0);
-								child_hug = Vector2i(0, direction.y);
-							}
-						} else {
-							child_direction = RotateCW(direction);
-							child_hug = direction;
-						}
-						for (int i = 0; i < 3; ++i) {
-							if (IsMoveOffGrid(Vector2i(node->x, node->y),
-									child_direction, unit_size) ||
-									IsVisited(Vector2i(node->x, node->y),
-									child_direction, child_hug, visited)) {
-								break;
-							}
-							if (CanMoveInDirection(Vector2i(node->x,
-									node->y),
-									child_direction,
-									unit_size)) {
-								PathNode *child = MakeChildNode(node,
-										child_direction,
-										Vector2i(end_x, end_y));
-								child->hug_direction = child_hug;
-								open_list.push(child);
-								node_list.push_back(child);
-								break;
-							}
-							child_direction = RotateCW(child_direction);
-							child_hug = RotateCW(child_hug);
-						}
-						if (is_diagonal) {
-							if (direction.x == direction.y) {
-								child_direction = Vector2i(0, direction.y);
-								child_hug = Vector2i(direction.x, 0);
-							} else {
-								child_direction = Vector2i(direction.x, 0);
-								child_hug = Vector2i(0, direction.y);
-							}
-						} else {
-							child_direction = RotateCCW(direction);
-							child_hug = direction;
-						}
-						for (int i = 0; i < 3; ++i) {
-							if (IsMoveOffGrid(Vector2i(node->x, node->y),
-									child_direction, unit_size) ||
-									IsVisited(Vector2i(node->x, node->y),
-									child_direction, child_hug, visited)) {
-								break;
-							}
-							if (CanMoveInDirection(Vector2i(node->x,
-									node->y),
-									child_direction,
-									unit_size)) {
-								PathNode *child = MakeChildNode(node,
-										child_direction,
-										Vector2i(end_x, end_y));
-								child->hug_direction = child_hug;
-								open_list.push(child);
-								node_list.push_back(child);
-								break;
-							}
-							child_direction = RotateCCW(child_direction);
-							child_hug = RotateCCW(child_hug);
-						}
-					}
-				}
-			}
-		}
-	}
-	Vector2f location;
-	PathNode *node = closest_node;
-	if (node->x == end_x && node->y == end_y)
-			solution_path.push(unit.destination());
-	while (node != root) {
-		location.x = (node->x + .5f) * resolution;
-		location.y = (node->y + .5f) * resolution;
-		solution_path.push(location);
-		node = node->parent;
-	}
-	while (!node_list.empty()) {
-		delete node_list.back();
-		node_list.pop_back();
-	}
-	for (int i = 0; i < width; ++i) {
-		for (int j = 0; j < 4; ++j) {
-			delete visited[i][j];
-		}
-	}
-	delete visited;
+	//int x_dist = std::labs(end_x - start_x);
+	//int y_dist = std::labs(end_y - start_y);
+	//float f = std::max(x_dist, y_dist) + .4142135624f*std::min(x_dist, y_dist);
+	//PathNode *root = new PathNode(start_x, start_y, NULL, 0.f, f);
+	//open_list.push(root);
+	//node_list.push_back(root);
+	//bool solution_found = false;
+	//PathNode *closest_node = root;
+	//int num_nodes_checked = 0;
+	//while (!solution_found && !open_list.empty() &&
+	//		++num_nodes_checked < 500) {
+	//	PathNode *node = open_list.top();
+	//	open_list.pop();
+	//	if (node->hug_direction != Vector2i(0, 0) &&
+	//			IsVisited(Vector2i(node->x, node->y), Vector2i(0, 0),
+	//			node->hug_direction, visited)) {
+	//		continue;
+	//	}
+	//	if (node->f - node->distance_from_root <
+	//			closest_node->f - closest_node->distance_from_root) {
+	//		closest_node = node;
+	//	}
+	//	if (node->f - node->distance_from_root <= goal_radius) {
+	//		solution_found = true;
+	//	} else {
+	//		if (node->hug_direction != Vector2i(0, 0)) {
+	//			MarkVisited(Vector2i(node->x, node->y),
+	//					node->hug_direction, visited);
+	//			if (CanMoveInDirection(Vector2i(node->x, node->y),
+	//					node->hug_direction, unit_size)) {
+	//				PathNode *child = MakeChildNode(node,
+	//						node->hug_direction,
+	//						Vector2i(end_x, end_y));
+	//				open_list.push(child);
+	//				node_list.push_back(child);
+	//			} else {
+	//				Vector2i direction = node->hug_direction;
+	//				Vector2i child_direction = RotateCW(direction);
+	//				Vector2i child_hug = direction;
+	//				for (int i = 0; i < 2; ++i) {
+	//					if (IsMoveOffGrid(Vector2i(node->x, node->y),
+	//							child_direction, unit_size) ||
+	//							IsVisited(Vector2i(node->x, node->y),
+	//							child_direction, child_hug, visited)) {
+	//						break;
+	//					}
+	//					if (CanMoveInDirection(Vector2i(node->x,
+	//							node->y),
+	//							child_direction,
+	//							unit_size)) {
+	//						PathNode *child = MakeChildNode(node,
+	//								child_direction,
+	//								Vector2i(end_x, end_y));
+	//						child->hug_direction = child_hug;
+	//						open_list.push(child);
+	//						node_list.push_back(child);
+	//						break;
+	//					}
+	//					child_direction = RotateCW(child_direction);
+	//					child_hug = RotateCW(child_hug);
+	//				}
+	//				child_direction = RotateCCW(direction);
+	//				child_hug = direction;
+	//				for (int i = 0; i < 2; ++i) {
+	//					if (IsMoveOffGrid(Vector2i(node->x, node->y),
+	//							child_direction, unit_size) ||
+	//							IsVisited(Vector2i(node->x, node->y),
+	//							child_direction, child_hug, visited)) {
+	//						break;
+	//					}
+	//					if (CanMoveInDirection(Vector2i(node->x,
+	//							node->y),
+	//							child_direction,
+	//							unit_size)) {
+	//						PathNode *child = MakeChildNode(node,
+	//								child_direction,
+	//								Vector2i(end_x, end_y));
+	//						child->hug_direction = child_hug;
+	//						open_list.push(child);
+	//						node_list.push_back(child);
+	//						break;
+	//					}
+	//					child_direction = RotateCCW(child_direction);
+	//					child_hug = RotateCCW(child_hug);
+	//				}
+	//			}
+	//		} else {
+	//			Vector2i direction(0, 0);
+	//			if (end_x > node->x) {
+	//				direction.x = 1;
+	//			} else if (end_x < node->x) {
+	//				direction.x = -1;
+	//			}
+	//			if (end_y > node->y) {
+	//				direction.y = 1;
+	//			} else if (end_y < node->y) {
+	//				direction.y = -1;
+	//			}
+	//			if (!IsMoveOffGrid(Vector2i(node->x, node->y), direction,
+	//					unit_size)) {
+	//				if (CanMoveInDirection(Vector2i(node->x, node->y),
+	//						direction, unit_size)) {
+	//					PathNode *child = MakeChildNode(node, direction,
+	//							Vector2i(end_x, end_y));
+	//					open_list.push(child);
+	//					node_list.push_back(child);
+	//				} else {
+	//					bool is_diagonal = direction.x != 0 &&
+	//							direction.y != 0;
+	//					Vector2i child_direction;
+	//					Vector2i child_hug;
+	//					if (is_diagonal) {
+	//						if (direction.x != direction.y) {
+	//							child_direction = Vector2i(0, direction.y);
+	//							child_hug = Vector2i(direction.x, 0);
+	//						} else {
+	//							child_direction = Vector2i(direction.x, 0);
+	//							child_hug = Vector2i(0, direction.y);
+	//						}
+	//					} else {
+	//						child_direction = RotateCW(direction);
+	//						child_hug = direction;
+	//					}
+	//					for (int i = 0; i < 3; ++i) {
+	//						if (IsMoveOffGrid(Vector2i(node->x, node->y),
+	//								child_direction, unit_size) ||
+	//								IsVisited(Vector2i(node->x, node->y),
+	//								child_direction, child_hug, visited)) {
+	//							break;
+	//						}
+	//						if (CanMoveInDirection(Vector2i(node->x,
+	//								node->y),
+	//								child_direction,
+	//								unit_size)) {
+	//							PathNode *child = MakeChildNode(node,
+	//									child_direction,
+	//									Vector2i(end_x, end_y));
+	//							child->hug_direction = child_hug;
+	//							open_list.push(child);
+	//							node_list.push_back(child);
+	//							break;
+	//						}
+	//						child_direction = RotateCW(child_direction);
+	//						child_hug = RotateCW(child_hug);
+	//					}
+	//					if (is_diagonal) {
+	//						if (direction.x == direction.y) {
+	//							child_direction = Vector2i(0, direction.y);
+	//							child_hug = Vector2i(direction.x, 0);
+	//						} else {
+	//							child_direction = Vector2i(direction.x, 0);
+	//							child_hug = Vector2i(0, direction.y);
+	//						}
+	//					} else {
+	//						child_direction = RotateCCW(direction);
+	//						child_hug = direction;
+	//					}
+	//					for (int i = 0; i < 3; ++i) {
+	//						if (IsMoveOffGrid(Vector2i(node->x, node->y),
+	//								child_direction, unit_size) ||
+	//								IsVisited(Vector2i(node->x, node->y),
+	//								child_direction, child_hug, visited)) {
+	//							break;
+	//						}
+	//						if (CanMoveInDirection(Vector2i(node->x,
+	//								node->y),
+	//								child_direction,
+	//								unit_size)) {
+	//							PathNode *child = MakeChildNode(node,
+	//									child_direction,
+	//									Vector2i(end_x, end_y));
+	//							child->hug_direction = child_hug;
+	//							open_list.push(child);
+	//							node_list.push_back(child);
+	//							break;
+	//						}
+	//						child_direction = RotateCCW(child_direction);
+	//						child_hug = RotateCCW(child_hug);
+	//					}
+	//				}
+	//			}
+	//		}
+	//	}
+	//}
+	//Vector2f location;
+	//PathNode *node = closest_node;
+	//if (node->x == end_x && node->y == end_y)
+	//		solution_path.push(unit.destination());
+	//while (node != root) {
+	//	location.x = (node->x + .5f) * resolution;
+	//	location.y = (node->y + .5f) * resolution;
+	//	solution_path.push(location);
+	//	node = node->parent;
+	//}
+	//while (!node_list.empty()) {
+	//	delete node_list.back();
+	//	node_list.pop_back();
+	//}
+	//for (int i = 0; i < width; ++i) {
+	//	for (int j = 0; j < 4; ++j) {
+	//		delete visited[i][j];
+	//	}
+	//}
+	//delete visited;
 	return solution_path;
 }
 
@@ -858,10 +858,10 @@ bool Pathfinder::CanMoveInDirection(const Vector2i &location,
 
 void Pathfinder::PathUnit(GameUnit &unit, float range) const {
 	//if (unit.is_stationary()) {
-	game_state_.RemoveFromPathingGrid(unit);
-	//	unit.set_is_stationary(false);
-	//}
+	//game_state_.RemoveFromPathingGrid(unit);
+	////	unit.set_is_stationary(false);
+	////}
 
-	unit.set_path(FindPath(unit, range));
-	game_state_.AddToPathingGrid(unit);
+	//unit.set_path(FindPath(unit, range));
+	//game_state_.AddToPathingGrid(unit);
 }

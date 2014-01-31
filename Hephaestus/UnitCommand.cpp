@@ -2,5 +2,5 @@
 #include "UnitCommand.h"
 
 void UnitCommand::Execute(Player &player) const {
-  player.GiveOrder(MakeUnitAction());
+  player.GiveOrder(this);
 }

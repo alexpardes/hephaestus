@@ -156,7 +156,7 @@ void GameInterface::MoveScreen(float time_step) {
 
 sf::Drawable *GameInterface::GetSelectionBoxGraphic() const {
 	sf::RectangleShape *selection_box =
-			new sf::RectangleShape(selection_corner1_ - selection_corner2_);
+			new sf::RectangleShape(selection_corner2_ - selection_corner1_);
 	selection_box->setPosition(selection_corner1_ - screen_position_);
 	selection_box->setFillColor(sf::Color(100, 100, 255, 100));
 	selection_box->setOutlineColor(sf::Color(0, 0, 255, 200));

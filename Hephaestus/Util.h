@@ -1,15 +1,17 @@
-#ifndef UTIL_
-#define UTIL_
+#pragma once
 
-#include "stdafx.h"
+#include <functional>
+#include "Vector2.h"
+#include "Rectangle.h"
+#include "DirectedSegment.h"
 
 #define M_PI 3.14159265358979323846f
 
-using sf::Vector2f;
-using sf::Vector2i;
-
 class Util {
 	public:
+
+    // Returns the angle between origin and origin + 2*pi.
+    static float Angle(float angle, float origin);
 		static float Degrees(float radians);
 		static float Radians(float degrees);
 		static float Distance(const Vector2f &point1,
@@ -25,7 +27,7 @@ class Util {
     static float FindAngleDegrees(const Vector2f &vector1, const Vector2f &vector2);
 		static Vector2f Perpendicular(const Vector2f &vector);
 		static void Normalize(Vector2f &vector);
-    static Vector2f GetNormalized(const Vector2f &vector);
+    static Vector2f Normalized(const Vector2f &vector);
 		static void Scale(Vector2f &vector, float length);
 		static float Square(float x);
 		template <typename T> static int Sign(T val);
@@ -41,15 +43,21 @@ class Util {
 		static Vector2f GetVector2f(const sf::Vector2u &vector) {
 			return Vector2f((float) vector.x, (float) vector.y);
 		}
-};
+    static void Limit(Vector2f &v, float length);
 
-struct Vector2iHash : std::unary_function<Vector2i, std::size_t> {
-  std::size_t operator()(const Vector2i &t) const {
-    std::size_t val = 0;
-    boost::hash_combine(val, t.x);
-    boost::hash_combine(val, t.y);
-    return val;
-  }
-};
+    template<class T> static T Constrain(T x, T min, T max) {
+      if (x < min) return min;
+      if (x > max) return max;
+      return x;
+    }
 
-#endif
+    template<class T> static T Constrain2(T v, T min, T max) {
+      T result(v);
+      result.x = Constrain(result.x, min.x, max.x);
+      result.y = Constrain(result.y, min.y, max.y);
+      return result;
+    }
+
+    const static Vector2i kLeft, kUp, kRight, kDown;
+    static Rect BoundingRectangle(const DirectedSegment &segment);
+};

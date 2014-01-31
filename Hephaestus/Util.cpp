@@ -1,6 +1,27 @@
 #include "stdafx.h"
 #include "Util.h"
 
+const Vector2i Util::kLeft = Vector2i(-1, 0);
+const Vector2i Util::kUp = Vector2i(0, -1);
+const Vector2i Util::kRight = Vector2i(1, 0);
+const Vector2i Util::kDown = Vector2i(0, 1);
+
+void Util::Limit(Vector2f &v, float length) {
+  if (Length(v) > length) {
+    Scale(v, length);
+  }
+}
+
+float Util::Angle(float angle, float origin) {
+  while (angle < origin) {
+    angle += 2*M_PI;
+  }
+  while (angle >= origin + 2*M_PI) {
+    angle -= 2*M_PI;
+  }
+  return angle;
+}
+
 float Util::Degrees(float radians) {
 	return radians * 180.f / M_PI;
 }
@@ -61,7 +82,7 @@ void Util::Normalize(Vector2f &vector) {
 			vector /= Length(vector);
 }
 
-Vector2f Util::GetNormalized(const Vector2f &vector) {
+Vector2f Util::Normalized(const Vector2f &vector) {
   Vector2f copy(vector);
   Normalize(copy);
   return copy;
@@ -93,4 +114,15 @@ void Util::Rotate(Vector2f &vector, float angle) {
 
 float Util::Square(float x) {
 	return x * x;
+}
+
+Rect Util::BoundingRectangle(const DirectedSegment &segment) {
+  Rect result;
+  float left = std::min(segment.Start().x, segment.End().x);
+  float right = std::max(segment.Start().x, segment.End().x);
+  float top = std::min(segment.Start().y, segment.End().y);
+  float bottom = std::max(segment.Start().y, segment.End().y);
+  result.topLeft = Vector2f(left, top);
+  result.bottomRight = Vector2f(right, bottom);
+  return result;
 }

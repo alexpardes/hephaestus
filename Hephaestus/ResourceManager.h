@@ -13,7 +13,6 @@ class PathFinder;
 class ResourceManager {
 	public:
 		GameState *LoadMap(const std::string &filename);
-		void LoadUnitFile(const std::string &filename);
 		const sf::Texture &GetImage(const std::string &name,
 				PlayerNumber owner) const;
 		const sf::Texture &GetImage(terrainId) const;

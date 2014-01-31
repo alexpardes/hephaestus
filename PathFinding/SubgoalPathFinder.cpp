@@ -1,16 +1,17 @@
 #include "SubgoalPathFinder.h"
-#include <Hephaestus/Util.h>
+#include <queue>
 #include <boost/unordered_set.hpp>
+#include <Hephaestus/Vector2.h>
+#include <Hephaestus/Util.h>
 #include "GridRegion.h"
+#include "Subgoal.h"
 
 SubgoalPathFinder::SubgoalPathFinder(
     const PathingGrid *grid,
-    const std::vector<const Vector2i> &subgoalPoints,
+    const std::vector<Subgoal*> &subgoals,
     const std::vector<const std::vector<int>> &adjacencyLists) : grid(grid) {
-  std::vector<const Vector2i>::const_iterator it = subgoalPoints.begin();
-  while (it != subgoalPoints.end()) {
-    subgoals.push_back(new Subgoal(*it++));
-  }
+
+  this->subgoals = subgoals;
 
   for (int i = 0; i < subgoals.size(); ++i) {
     const std::vector<int> &adjacencyList = adjacencyLists.at(i);
@@ -63,16 +64,13 @@ SubgoalPathFinder::~SubgoalPathFinder() {
   }
 }
 
-bool SubgoalPathFinder::SubgoalComparer::operator()(
-    SubgoalPathFinder::Subgoal *a,
-    SubgoalPathFinder::Subgoal *b) {
+bool SubgoalPathFinder::SubgoalComparer::operator()(Subgoal *a, Subgoal *b) {
   float distance1 = PathingGrid::OctileDistance(a->Point(), point);
   float distance2 = PathingGrid::OctileDistance(b->Point(), point);
   return distance1 < distance2;
 }
 
-std::vector<SubgoalPathFinder::Subgoal*> SubgoalPathFinder::GetDirectSubgoals(
-    const Vector2i &p) {
+std::vector<Subgoal*> SubgoalPathFinder::GetDirectSubgoals(const Vector2i &p) {
 
   // List of regions which are h-reachable from p through a subgoal.
   std::vector<Subgoal*> result;
@@ -98,7 +96,7 @@ std::vector<SubgoalPathFinder::Subgoal*> SubgoalPathFinder::GetDirectSubgoals(
 // Adds the start and end points to the subgoal graph, and then A* searches through it.
 // Returns an empty path if no path exists. Returns the endpoint if start and
 // end are directly connected.
-std::vector<Vector2i> SubgoalPathFinder::GetPath(const Vector2i &start,
+std::vector<Subgoal*> SubgoalPathFinder::GetPath(const Vector2i &start,
                                                  const Vector2i &end) {
 
   boost::unordered_set<Vector2i, Vector2iHash> endGoals;
@@ -112,7 +110,7 @@ std::vector<Vector2i> SubgoalPathFinder::GetPath(const Vector2i &start,
   // already in the correct order.
   // TODO: fix memory leaks
   std::vector<Subgoal*> startSubgoals = GetDirectSubgoals(end);
-  Subgoal *startGoal = new Subgoal(end);
+  Subgoal *startGoal = new Subgoal(end, Vector2i(0, 0));
   SearchNode *startNode = new SearchNode(NULL, startGoal, start);
   for (int i = 0; i < startSubgoals.size(); ++i) {
     openList.push(new SearchNode(startNode, startSubgoals.at(i), start));
@@ -148,14 +146,14 @@ std::vector<Vector2i> SubgoalPathFinder::GetPath(const Vector2i &start,
     }
   }
 
-  std::vector<Vector2i> path;
+  std::vector<Subgoal*> path;
 
   if (AreDirectlyConnected(start, end) && (!endNode ||
       endNode->MinDist() > PathingGrid::OctileDistance(start, end))) {
-    path.push_back(end);
+    path.push_back(new Subgoal(end, Vector2i(0, 0)));
   } else {
     while (endNode) {
-      path.push_back(endNode->GetSubgoal()->Point());
+      path.push_back(endNode->GetSubgoal());
       SearchNode *parent = endNode->Parent();
       endNode = parent;
     }

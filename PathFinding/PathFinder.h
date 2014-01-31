@@ -1,5 +1,8 @@
 #pragma once
-#include "Util.h"
+#include <vector>
+#include <Hephaestus/Vector2.h>
+
+class Subgoal;
 
 class PathingGrid {
   public:
@@ -18,7 +21,8 @@ class PathingGrid {
 
 class PathFinder {
   public:
-    virtual std::vector<Vector2i> GetPath(const Vector2i &start,
+    virtual std::vector<Subgoal*> GetPath(const Vector2i &start,
         const Vector2i &end) = 0;
     virtual ~PathFinder() { }
+    virtual const PathingGrid *GetPathingGrid() const = 0;
 };

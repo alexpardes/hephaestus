@@ -1,8 +1,9 @@
 #ifndef PROJECTILE_
 #define PROJECTILE_
 
+#include <SFML/Graphics/Texture.hpp>
 #include "GameUnit.h"
-#include "Util.h"
+#include "Vector2.h"
 
 class Projectile {
 	public:

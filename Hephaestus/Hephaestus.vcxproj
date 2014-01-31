@@ -162,18 +162,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="DirectedSegment.cpp" />
     <ClCompile Include="GameManager.cpp" />
     <ClCompile Include="GameUnit.cpp" />
     <ClCompile Include="Graphics.cpp" />
     <ClCompile Include="Hephaestus.cpp" />
+    <ClCompile Include="Line.cpp" />
     <ClCompile Include="MoveAbility.cpp" />
     <ClCompile Include="MoveAction.cpp" />
     <ClCompile Include="MoveCommand.cpp" />
     <ClCompile Include="Networking.cpp" />
-    <ClCompile Include="PathFinder.cpp" />
     <ClCompile Include="Pathing.cpp" />
     <ClCompile Include="Players.cpp" />
     <ClCompile Include="Projectile.cpp" />
+    <ClCompile Include="Rectangle.cpp" />
     <ClCompile Include="ResourceManager.cpp" />
     <ClCompile Include="SelectCommand.cpp" />
     <ClCompile Include="Simulator.cpp" />
@@ -191,19 +193,23 @@
     <ClInclude Include="AttackCommand.h" />
     <ClInclude Include="Command.h" />
     <ClInclude Include="Commands.h" />
+    <ClInclude Include="DirectedSegment.h" />
     <ClInclude Include="GameManager.h" />
     <ClInclude Include="GameState.h" />
     <ClInclude Include="GameUnit.h" />
     <ClInclude Include="Graphics.h" />
     <ClInclude Include="Hephaestus.h" />
+    <ClInclude Include="Interval.h" />
+    <ClInclude Include="Line.h" />
+    <ClInclude Include="LineSegment.h" />
     <ClInclude Include="MoveAbility.h" />
     <ClInclude Include="MoveAction.h" />
     <ClInclude Include="MoveCommand.h" />
     <ClInclude Include="Networking.h" />
-    <ClInclude Include="PathFinder.h" />
     <ClInclude Include="Pathing.h" />
     <ClInclude Include="Players.h" />
     <ClInclude Include="Projectile.h" />
+    <ClInclude Include="Rectangle.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="ResourceManager.h" />
     <ClInclude Include="SelectCommand.h" />
@@ -215,6 +221,7 @@
     <ClInclude Include="GameInterface.h" />
     <ClInclude Include="UnitCommand.h" />
     <ClInclude Include="Util.h" />
+    <ClInclude Include="Vector2.h" />
     <ClInclude Include="VectorSerialization.h" />
   </ItemGroup>
   <ItemGroup>

@@ -1,8 +1,9 @@
 #include "stdafx.h"
 #include "GameUnit.h"
 #include "UnitAction.h"
+#include "Util.h"
 
-GameUnit::GameUnit(int id,
+GameUnit::GameUnit(UnitId id,
                    const UnitAttributes &attributes,
                    PlayerNumber owner,
                    const Vector2f &position,
@@ -11,39 +12,11 @@ GameUnit::GameUnit(int id,
 	is_alive_ = true;
 	attributes_ = attributes;
 	position_ = position;
-	destination_ = position;
-	pathing_destination_ = position;
 	current_health_ = attributes_.max_health();
-	velocity_ = Vector2f(0.f, 0.f);
-	is_stationary_ = true;
-	reload_time_ = 0.f;
-	target_ = NULL;
 	owner_ = owner;
 	rotation_ = rotation;
   ability = NULL;
   action = NULL;
-}
-
-void GameUnit::ResetReload() {
-	reload_time_ = attributes_.attack_speed();
-}
-
-float GameUnit::GetHeading() const {
-	float heading = rotation_;
-	if (pathing_destination() != position_) {
-		Vector2f difference = pathing_destination() - position_;
-		if (difference.x == 0) {
-			if (difference.y > 0) {
-				heading = M_PI / 2;
-			} else {
-				heading = 3 * M_PI / 2;
-			}
-		} else  {
-			heading = std::atanf(difference.y / difference.x);
-			if (difference.x < 0) heading += M_PI;
-		}
-	}
-	return heading;
 }
 
 void GameUnit::SetAction(UnitAction *action) {
@@ -74,7 +47,14 @@ UnitModel::UnitModel(const UnitModel &unit1,
 	float a = 1 - weight;
 	current_health_ = a*unit1.current_health() + b*unit2.current_health();
 	position_ = a*unit1.position() + b*unit2.position();
-	rotation_ = a*unit1.rotation() + b*unit2.rotation();
+  if (std::abs(unit1.rotation() - unit2.rotation()) > M_PI) {
+    rotation_ = a*Util::Angle(unit1.rotation(), M_PI / 2)
+        + b*Util::Angle(unit2.rotation(), M_PI / 2);
+    rotation_ = Util::Angle(rotation_, 0.f);
+  } else {
+    	rotation_ = a*unit1.rotation() + b*unit2.rotation();
+  }
+
 	id_ = unit1.id();
 	name_ = unit1.name();
 	owner_ = unit1.owner();

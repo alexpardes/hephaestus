@@ -48,10 +48,6 @@ class GameManager {
 
 	private:
 		void ApplyCommands(PlayerNumber player_number);
-		void IssueMoveCommand(const std::list<GameUnit *> &units,
-				const Vector2i &location);
-		void IssueAttackCommand(const std::list<GameUnit *> &units,
-				UnitId target_id);
 		ResourceManager &resource_manager_;
 		GameState *game_state_;
 		GameScene *last_scene_;

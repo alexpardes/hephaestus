@@ -13,7 +13,7 @@ import pathing.ObstacleCorner.Direction;
 public class SubgoalGraph {
 	private PathingGrid grid;
 	private List<ObstacleCorner> corners;
-	private List<Node<Point>> subgoalTable;
+	private List<Node<ObstacleCorner>> subgoalTable;
 	
 	// Maps from subgoal points to node indices in subgoalTable. 
 	private Map<Point, Integer> subgoalMap;
@@ -93,39 +93,39 @@ public class SubgoalGraph {
 	
 	// Assumes find corners has been run.
 	private void makeSubgoals(int size) {
-		subgoalTable = new ArrayList<Node<Point>>(corners.size());
+		subgoalTable = new ArrayList<Node<ObstacleCorner>>(corners.size());
 		subgoalMap = new HashMap<Point, Integer>(corners.size());
 		for (ObstacleCorner corner : corners) {
 			Point point = corner.getPoint(size);
 			subgoalMap.put(point, subgoalTable.size());			
-			subgoalTable.add(new Node<Point>(point));
+			subgoalTable.add(new Node<ObstacleCorner>(corner));
 		}
 	}
 	
 	public void connectSubgoals() {
 		findCorners();			
 		makeSubgoals(1);
-		for (Node<Point> subgoal : subgoalTable) {
+		for (Node<ObstacleCorner> subgoal : subgoalTable) {
 			connectToSubgoals(subgoal);
 		}
 	}
 	
 	// Returns the list of subgoals which can be directly reached
 	// from the point.
-	private void connectToSubgoals(Node<Point> startSubgoal) {
-		Point point = startSubgoal.value();
-		PriorityQueue<Node<Point>> subgoalQueue =
-				new PriorityQueue<Node<Point>>(corners.size(),
+	private void connectToSubgoals(Node<ObstacleCorner> startSubgoal) {
+		Point point = startSubgoal.value().getPoint(1);
+		PriorityQueue<Node<ObstacleCorner>> subgoalQueue =
+				new PriorityQueue<Node<ObstacleCorner>>(corners.size(),
 				new SubgoalComparator(point));
-		for (Node<Point> subgoal : subgoalTable) {
+		for (Node<ObstacleCorner> subgoal : subgoalTable) {
 			subgoalQueue.add(subgoal);
 		}
 		
 		Collection<GridRegion> blockedRegions = new ArrayList<GridRegion>();
 		
 		while (!subgoalQueue.isEmpty()) {
-			Node<Point> subgoal = subgoalQueue.poll();
-			Point q = subgoal.value();
+			Node<ObstacleCorner> subgoal = subgoalQueue.poll();
+			Point q = subgoal.value().getPoint(1);
 			if (point.equals(q)) continue;
 			
 			boolean blocked = false;
@@ -142,20 +142,21 @@ public class SubgoalGraph {
 		}		
 	}	
 	
-	public List<Point> getSubgoalTable() {
-		List<Point> pointTable = new ArrayList<Point>(subgoalTable.size());
-		for (Node<Point> subgoal : subgoalTable) {
+	public List<ObstacleCorner> getSubgoalTable() {
+		List<ObstacleCorner> pointTable =
+				new ArrayList<ObstacleCorner>(subgoalTable.size());
+		for (Node<ObstacleCorner> subgoal : subgoalTable) {
 			pointTable.add(subgoal.value());
 		}
 		return pointTable;
 	}
 	
 	public List<Integer> getAdjacencies(int subgoalIndex) {
-		Collection<Node<Point>> adjacencies =
+		Collection<Node<ObstacleCorner>> adjacencies =
 				subgoalTable.get(subgoalIndex).getNeighbors();
 		List<Integer> indices = new ArrayList<Integer>(adjacencies.size());
-		for (Node<Point> subgoal : adjacencies) {
-			indices.add(subgoalMap.get(subgoal.value()));
+		for (Node<ObstacleCorner> subgoal : adjacencies) {
+			indices.add(subgoalMap.get(subgoal.value().getPoint(1)));
 		}
 		return indices;
 	}

@@ -1,5 +1,5 @@
 #pragma once
-#include "Hephaestus/PathFinder.h"
+#include "PathFinder.h"
 
 class VectorPathingGrid : public PathingGrid {
   public:

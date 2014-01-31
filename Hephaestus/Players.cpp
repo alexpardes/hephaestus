@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "Players.h"
 #include "Command.h"
+#include "UnitCommand.h"
 #include "UnitAction.h"
 
 Player::Player(GameState &gameState) : gameState(gameState) {
@@ -42,11 +43,11 @@ void Player::ExecuteTurn() {
   delete turn;
 }
 
-void Player::GiveOrder(UnitAction *action) {
+void Player::GiveOrder(const UnitCommand *command) {
   for (std::list<UnitId>::const_iterator it = selected_units_.begin();
       it != selected_units_.end(); ++it) {
     GameUnit *unit = gameState.GetUnit(*it);
-    unit->SetAction(action);
+    unit->SetAction(command->MakeUnitAction());
   }
 }
 

@@ -30,6 +30,7 @@ public class ObstacleCorner {
 	}
 	
 	public Point getPoint(int size) {
+		if (size == 0) return location;
 		Point offset;
 		switch (direction) {
 			case UP_LEFT:
@@ -52,5 +53,9 @@ public class ObstacleCorner {
 				offset = null;
 		}
 		return PointUtil.add(location, offset);
+	}
+	
+	public Direction Direction() {
+		return direction;
 	}
 }

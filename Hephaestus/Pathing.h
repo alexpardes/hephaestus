@@ -1,6 +1,7 @@
 #ifndef PATHING_
 #define PATHING_
 
+#include <stack>
 #include "GameState.h"
 #include "Util.h"
 

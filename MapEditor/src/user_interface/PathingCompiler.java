@@ -9,19 +9,39 @@ import java.util.Map;
 import core.GameMap;
 import pathing.PathingGrid;
 import pathing.SubgoalGraph;
+import pathing.ObstacleCorner;
 
 public class PathingCompiler {
 	
-	private static List<Integer> getCoordinates(Point p) {
+	private static List<Integer> getCoordinates(ObstacleCorner corner) {
 		List<Integer> coordinates = new ArrayList<Integer>(2);
-		coordinates.add(p.x);
-		coordinates.add(p.y);
+		Point point = corner.getPoint(0);
+		coordinates.add(point.x);
+		coordinates.add(point.y);
+		int direction;
+		switch (corner.Direction()) {
+			case UP_LEFT:
+				direction = 0;
+				break;
+			case UP_RIGHT:
+				direction = 1;
+				break;
+			case DOWN_LEFT:
+				direction = 2;
+				break;
+			case DOWN_RIGHT:
+				direction = 3;
+				break;
+			default:
+				direction = -1;
+		}
+		coordinates.add(direction);
 		return coordinates;
 	}
 	
 	private static Map<String, Object> makeJsonMap(SubgoalGraph graph) {
 		Map<String, Object> jsonMap = new HashMap<String, Object>();
-		List<Point> subgoalTable = graph.getSubgoalTable();
+		List<ObstacleCorner> subgoalTable = graph.getSubgoalTable();
 		List<List<Integer>> jsonSubgoals =
 				new ArrayList<List<Integer>>(subgoalTable.size());
 		List<List<Integer>> adjacencyTable =

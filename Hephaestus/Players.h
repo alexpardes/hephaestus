@@ -1,11 +1,11 @@
-#ifndef PLAYERS_
-#define PLAYERS_
+#pragma once
 
 #include "GameUnit.h"
 #include "GameState.h"
+#include <deque>
 
 class Command;
-class UnitAction;
+class UnitCommand;
 typedef std::vector<const Command*> CommandTurn;
 
 class Player {
@@ -16,7 +16,7 @@ class Player {
     void ExecuteTurn();
     void ClearSelection();
     void AddToSelection(UnitId id);
-    void GiveOrder(UnitAction *action);
+    void GiveOrder(const UnitCommand *command);
 
 	private:
     void DeselectDeadUnits();
@@ -35,5 +35,3 @@ class Players {
 	private:
 		Player player1_, player2_;
 };
-
-#endif

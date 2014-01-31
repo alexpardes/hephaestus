@@ -1,5 +1,5 @@
-#include "stdafx.h"
 #include "PathFinder.h"
+#include <cmath>
 
 float PathingGrid::OctileDistance(const Vector2i &p1,
                                         const Vector2i &p2) {

@@ -144,8 +144,10 @@ public class TestPathing {
 	@Test
 	public void distanceComparator() {
 		SubgoalComparator comparator = new SubgoalComparator(new Point(3, 3));
-		Node<Point> s1 = new Node<Point>(new Point(10, 10));
-		Node<Point> s2 = new Node<Point>(new Point(3, 10));
+		Node<ObstacleCorner> s1 = new Node<ObstacleCorner>(
+				new ObstacleCorner(new Point(10, 10), Direction.UP_LEFT));
+		Node<ObstacleCorner> s2 = new Node<ObstacleCorner>(
+				new ObstacleCorner(new Point(3, 10), Direction.UP_LEFT));
 		Assert.assertEquals(1, comparator.compare(s1, s2));
 	}
 	
@@ -204,12 +206,12 @@ public class TestPathing {
 		SubgoalGraph processor = new SubgoalGraph(grid);
 		processor.connectSubgoals();
 //		Collection<Node<Point>> subgoals = processor.getSubgoals();
-		List<Point> subgoals = processor.getSubgoalTable();
+		List<ObstacleCorner> subgoals = processor.getSubgoalTable();
 		
 		Assert.assertEquals(17, subgoals.size());
 		int goalIndex = -1;
 		for (int i = 0; i < subgoals.size(); ++i) {
-			Point subgoal = subgoals.get(i);
+			Point subgoal = subgoals.get(i).getPoint(1);
 			if (subgoal.equals(new Point(4, 6))) {
 				goalIndex = i;
 				break;

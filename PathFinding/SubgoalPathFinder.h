@@ -1,30 +1,18 @@
 #pragma once
-#include <Hephaestus/PathFinder.h>
+#include "PathFinder.h"
+
+class Subgoal;
 
 class SubgoalPathFinder : public PathFinder {
   public:
     SubgoalPathFinder(const PathingGrid *grid,
-        const std::vector<const Vector2i> &subgoalPoints,
+        const std::vector<Subgoal*> &subgoals,
         const std::vector<const std::vector<int>> &adjacencyLists);
 
-    virtual std::vector<Vector2i> GetPath(const Vector2i &start,
+    virtual std::vector<Subgoal*> GetPath(const Vector2i &start,
         const Vector2i &end);
+    virtual const PathingGrid *GetPathingGrid() const { return grid; }
     virtual ~SubgoalPathFinder();
-
-    class Subgoal {
-      public:
-        Subgoal(const Vector2i &point) : point(point) { }
-        void AddAdjacency(Subgoal *subgoal) {
-          adjacencyList.push_back(subgoal);
-        }
-
-        const std::vector<Subgoal*> &AdjacencyList() { return adjacencyList; }
-        const Vector2i &Point() { return point; }
-
-    private:
-      Vector2i point;
-      std::vector<Subgoal*> adjacencyList;      
-    };
 
 
     class SearchNode {

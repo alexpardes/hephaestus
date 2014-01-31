@@ -41,6 +41,13 @@ bld/
 *.pidb
 *.svclog
 *.scc
+*.tlog
+*.idb
+*.lastbuildstate
+*.unsuccessfulbuild
+*.cache
+*.lib
+*.exe
 
 # Visual C++ cache files
 ipch/

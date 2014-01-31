@@ -3,10 +3,14 @@
 #include <Hephaestus/Simulator.h>
 #include <Hephaestus/GameUnit.h>
 #include <Hephaestus/MoveAction.h>
+#include <Hephaestus/DirectedSegment.h>
+#include <Hephaestus/Rectangle.h>
+#include <Hephaestus/Line.h>
 
 #include <PathFinding/SubgoalPathFinder.h>
 #include <PathFinding/VectorPathingGrid.h>
 #include <PathFinding/GridRegion.h>
+#include <PathFinding/Subgoal.h>
 
 #include <cmath>
 
@@ -29,7 +33,38 @@ bool IsApprox(const Vector2f &a, CONST Vector2f &b, double tolerance) {
   return IsApprox(a.x, b.x, tolerance) && IsApprox(a.y, b.y, tolerance);
 }
 
-#define REQUIRE_EQUAL(x,y,z) REQUIRE(IsApprox(x,y,z))
+#define REQUIRE_EQUAL(a,b,tol) REQUIRE(IsApprox(a,b,tol))
+
+TEST_CASE("Line-Point Distance") {
+  Line line(Vector2f(2, 3), Vector2f(5, 0));
+  REQUIRE_EQUAL(line.Distance(Vector2f(5, 6)), 3, 0.01);
+}
+
+TEST_CASE("Circle-Segment Collision") {
+  DirectedSegment path(Vector2f(3, 2), Vector2f(6, 2));
+  LineSegment segment(Vector2f(5, 0), Vector2f(5, 5));
+  float collisionDist = path.CollisionDistance(segment, 0.5);
+  REQUIRE_EQUAL(collisionDist, 1.5, 0.01);
+
+  path = DirectedSegment(Vector2f(3, 10), Vector2f(6, 10));
+  collisionDist = path.CollisionDistance(segment, 0.5);
+  REQUIRE(collisionDist > 1000);
+}
+
+TEST_CASE("Circle-Rectangle Collision") {
+  Rect rectangle(Vector2f(2, 2), Vector2f(4, 4));
+  DirectedSegment segment(Vector2f(0, 3), Vector2f(5, 3));
+  Vector2f *point = segment.CollisionPoint(rectangle, 1);
+  REQUIRE(point);
+  REQUIRE_EQUAL(*point, Vector2f(1, 3), 0.1);
+  segment = DirectedSegment(Vector2f(0, 6), Vector2f(3, 3));
+  point = segment.CollisionPoint(rectangle, 1);
+  REQUIRE(point);
+  REQUIRE_EQUAL(*point, *segment.CollisionPoint(Vector2f(2, 4), 1), 0.1);
+  segment = DirectedSegment(Vector2f(5, 5), Vector2f(20, 20));
+  point = segment.CollisionPoint(rectangle, 1);
+  REQUIRE(!point);
+}
 
 TEST_CASE("Path Finding") {
   PathingGrid *grid = new VectorPathingGrid(5, 5);
@@ -40,13 +75,13 @@ TEST_CASE("Path Finding") {
   grid->SetBlocked(2, 3);
   grid->SetBlocked(3, 0);
   grid->SetBlocked(3, 3);
-  std::vector<const Vector2i> subgoals;
-  subgoals.push_back(Vector2i(0, 0));
-  subgoals.push_back(Vector2i(0, 2));
-  subgoals.push_back(Vector2i(3, 2));
-  subgoals.push_back(Vector2i(4, 1));
-  subgoals.push_back(Vector2i(4, 2));
-  subgoals.push_back(Vector2i(4, 4));
+  std::vector<Subgoal*> subgoals;
+  subgoals.push_back(new Subgoal(Vector2i(0, 0), Vector2i(0, 0)));
+  subgoals.push_back(new Subgoal(Vector2i(0, 2), Vector2i(0, 0)));
+  subgoals.push_back(new Subgoal(Vector2i(3, 2), Vector2i(0, 0)));
+  subgoals.push_back(new Subgoal(Vector2i(4, 1), Vector2i(0, 0)));
+  subgoals.push_back(new Subgoal(Vector2i(4, 2), Vector2i(0, 0)));
+  subgoals.push_back(new Subgoal(Vector2i(4, 4), Vector2i(0, 0)));
   std::vector<const std::vector<int>> adjacencyLists;
   std::vector<int> list1;
   list1.push_back(1);
@@ -73,15 +108,15 @@ TEST_CASE("Path Finding") {
   list6.push_back(4);
   adjacencyLists.push_back(list6);
   SubgoalPathFinder pather(grid, subgoals, adjacencyLists);
-  std::vector<Vector2i> path = pather.GetPath(Vector2i(2, 0), Vector2i(0, 4));
+  std::vector<Subgoal*> path = pather.GetPath(Vector2i(2, 0), Vector2i(0, 4));
   REQUIRE(path.size() == 6);
 }
 
 TEST_CASE("Empty Grid") {
   PathingGrid *grid = new VectorPathingGrid(3, 3);
-  SubgoalPathFinder pather(grid, std::vector<const Vector2i>(),
+  SubgoalPathFinder pather(grid, std::vector<Subgoal*>(),
       std::vector<const std::vector<int>>());
-  std::vector<Vector2i> path = pather.GetPath(Vector2i(0, 0), Vector2i(2, 2));
+  std::vector<Subgoal*> path = pather.GetPath(Vector2i(0, 0), Vector2i(2, 2));
   REQUIRE(path.size() == 1);
 }
 
@@ -267,3 +302,29 @@ TEST_CASE("Indirect Region") {
 //  Vector2f direction = unit->position() - Vector2f(25, 225);
 //  REQUIRE_EQUAL(direction, Vector2f(0, -50), 1);
 //}
+
+TEST_CASE("Circle-Circle Collision") {
+  Vector2f start(3, 3);
+  Vector2f end(10, 3);
+  Vector2f p(7, 3);
+  float radius = 2.f;
+  DirectedSegment segment(start, end);
+  Vector2f *collision = segment.CollisionPoint(p, radius);
+  REQUIRE(collision);
+  REQUIRE_EQUAL(*collision, Vector2f(5, 3), 0.1);
+  delete collision;
+  collision = segment.CollisionPoint(Vector2f(5, 5), 1);
+  REQUIRE(!collision);
+}
+
+TEST_CASE("Angle Interpolation") {
+  UnitAttributes attributes;
+  GameUnit unit(1, attributes, kPlayer1, Vector2f(0, 0), M_PI / 4);
+  UnitModel state1(unit);
+  unit.SetRotation(7*M_PI / 4);
+  UnitModel state2(unit);
+  UnitModel interp(state1, state2, 0.1);
+  REQUIRE_EQUAL(interp.rotation(), Util::Radians(36), 0.01);
+  interp = UnitModel(state1, state2, 0.8);
+  REQUIRE_EQUAL(interp.rotation(), Util::Radians(333), 0.01);
+}

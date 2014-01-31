@@ -91,71 +91,7 @@ void GameManager::RunGame() {
 	}
 }
 
-void GameManager::IssueMoveCommand(const std::list<GameUnit *> &units,
-								   const Vector2i &location) {
-	for (std::list<GameUnit *>::const_iterator p_unit =
-			units.begin(); p_unit != units.end();
-			++p_unit) {
-		(*p_unit)->set_destination(Util::GetVector2f(location));
-		(*p_unit)->set_target(NULL);
-		(*p_unit)->ClearPath();
-	}
-}
-
-void GameManager::IssueAttackCommand(const std::list<GameUnit *> &units,
-									 UnitId target_id) {
-	GameUnit *target = game_state_->GetUnit(target_id);
-	if (target) {
-		for (std::list<GameUnit *>::const_iterator p_unit =
-				units.begin(); p_unit != units.end();
-				++p_unit) {
-			(*p_unit)->set_target(target);
-			(*p_unit)->set_destination((*p_unit)->position());
-			(*p_unit)->ClearPath();
-		}
-	}
-}
-
 void GameManager::ApplyCommands(PlayerNumber player_number) {
 	Player &player = players_->GetPlayer(player_number);
   player.ExecuteTurn();
-	//player.DeselectDeadUnits();
-
-	//const CommandTurn *commands = player.PopCommandTurn();	
-	//if (commands) {
-	//	for (int i = 0; i < commands->size(); ++i) {
-	//		const Command *command = (*commands)[i];
-			//switch (command->type()) {
-			//	case Command::kMove: {
-			//		const Vector2i &location =
-			//				static_cast<const MoveCommand *>(command)->location();
-			//		IssueMoveCommand(player.selected_units(), location);
-			//		break;
-			//	}
-			//	case Command::kAttack: {
-			//		unitId target_id =
-			//				static_cast<const AttackCommand *>(command)->target();
-			//		IssueAttackCommand(player.selected_units(), target_id);
-			//		break;
-			//	}
-			//	case Command::kSelect: {
-			//		std::list<GameUnit *> selected_units;
-			//		std::list<unitId> unit_ids =
-			//				static_cast<const SelectCommand *>(command)->targets();
-			//		std::list<GameUnit *> units;
-			//		for (std::list<unitId>::iterator id = unit_ids.begin();
-			//				id != unit_ids.end(); ++id) {
-			//			GameUnit *unit = game_state_->GetUnit(*id);
-			//			if (unit) {
-			//				selected_units.push_back(unit);
-			//			}
-			//		}
-			//		player.set_selected_units(selected_units);
-			//		break;
-			//	}
-			//}
-	//		delete command;
-	//	}
-	//	delete commands;
-	//}
 }

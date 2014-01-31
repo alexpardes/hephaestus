@@ -1,9 +1,11 @@
 #ifndef GAMESTATE_
 #define GAMESTATE_
 
+#include <unordered_map>
 #include "GameUnit.h"
 #include "Projectile.h"
-#include "PathFinder.h"
+#include "Rectangle.h"
+#include <PathFinding/PathFinder.h>
 
 
 const float kTileSize = 50.f;
@@ -33,7 +35,7 @@ class GameState {
 		void UpdateUnitGrid(GameUnit &unit);
 		std::vector<GameUnit *> GetUnitsInRectangle(const Vector2f &corner1,
 				const Vector2f &corner2) const;
-		std::list<GameUnit *> GetUnitsInCircle(const Vector2f &center,
+		std::vector<GameUnit *> GetUnitsInCircle(const Vector2f &center,
 				float radius) const;
 		int **pathing_grid() {return pathing_grid_;}
 		int pathing_width() {return pathing_width_;}
@@ -50,10 +52,12 @@ class GameState {
     void ExecuteTurn();
     void MoveUnit(UnitId id, Vector2f location);
     Vector2f GetUnitPosition(UnitId id) const;
+    std::vector<Rect> GetWallsInRectangle(const Rect &rectangle) const;
 
 	private:
     // Returns the closest point which is on the map.
-    Vector2f Constrain(Vector2f location);
+    Vector2f Constrain(Vector2f location) const;
+    Vector2i Constrain(Vector2i location) const;
 		void AdjustPathingGrid(const GameUnit &unit, int value);
 		std::list<GameUnit *> units_;
 		std::list<Projectile *> projectiles_;

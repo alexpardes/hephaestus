@@ -44,97 +44,97 @@ void Simulator::ProcessProjectiles(const std::list<Projectile *> &projectiles) {
 }
 
 void Simulator::ProcessUnits(const std::list<GameUnit *> &units) {
-	std::list<GameUnit *> dead_units;
-	for (std::list<GameUnit *>::const_iterator unit_iterator = units.begin();
-			unit_iterator != units.end(); ++unit_iterator) {
-		GameUnit &unit = **unit_iterator;
-		if (!unit.IsAlive()) {
-			dead_units.push_back(*unit_iterator);
-		} else if (unit.current_health() <= 0) {
-			unit.Kill();
-		} else {
-			if (unit.target()) {
-				if (!unit.target()->IsAlive()) {
-					unit.set_target(NULL);
-					unit.set_destination(unit.position());
-					unit.ClearPath();
-				} else if (unit.target()->position()
-						!= unit.destination()) {
-					unit.set_destination(unit.target()->position());
-					unit.ClearPath();
-				}
-			}
-			if (/*unit.pathing_destination() ==
-					unit.position() &&*/
-					unit.destination() !=
-					unit.position()) {
-				float distance = 0.f;
-				if (unit.target()) {
-					distance = unit.Attributes().attack_range() +
-							unit.target()->Attributes().collision_radius();
-				}
-				pathfinder_.PathUnit(unit, distance);
-			}
-			if (unit.pathing_destination() !=
-					unit.position()) {
-				//MoveUnit(*unit_iterator);
-				//behavior_.SteerUnit(unit);
-				game_state_.RemoveFromPathingGrid(unit);
-				float movement_distance = unit.Attributes().speed() * timestep_;
-				Vector2f new_position = unit.position();
-				while (unit.pathing_destination() != unit.position()) {
-					float waypoint_distance = Util::Distance(new_position,
-							unit.pathing_destination());
-					if (waypoint_distance >= movement_distance) {
-						Vector2f movement = unit.pathing_destination() -
-								unit.position();
-						Util::Scale(movement, unit.Attributes().speed() * timestep_);
-						new_position = unit.position() + movement;
-						break;
-					} else {
-						new_position = unit.pathing_destination();
-						unit.pop_path();
-						movement_distance -= waypoint_distance;
-					}
-				}
-				unit.SetRotation(unit.GetHeading());
-				unit.SetPosition(new_position);
-				/*unit.set_position(unit.position() +
-						timestep_ * unit.velocity());*/
-				game_state_.AddToPathingGrid(unit);
-				if (Util::Distance(unit.position(),
-						unit.pathing_destination()) <= 10.f) {
-					unit.pop_path();
-					if (unit.pathing_destination() ==
-							unit.position()) {
-						unit.set_is_stationary(true);
-						unit.set_destination(unit.position());
-						//game_state_.AddToPathingGrid(*unit_iterator);
-					}
-				}
-				game_state_.UpdateUnitGrid(unit);
-			}
-			if (!unit.IsLoaded()) {
-				unit.ReduceReloadTime(timestep_);
-			}
-			if (unit.target()) {
-				if (unit.IsLoaded() &&
-						Util::Distance(unit.target()->position(),
-						unit.position()) <=
-						unit.Attributes().attack_range() +
-						unit.target()->Attributes().collision_radius()) {
-					game_state_.AddProjectile(unit.position(),
-							unit.target(),
-							unit.Attributes().attack_damage());
-					unit.ResetReload();
-				}
-			}
-		}
-	}
-	for (std::list<GameUnit *>::iterator unit_iterator = dead_units.begin();
-			unit_iterator != dead_units.end(); ++unit_iterator) {
-		game_state_.RemoveUnit(*unit_iterator);
-	}
+	//std::list<GameUnit *> dead_units;
+	//for (std::list<GameUnit *>::const_iterator unit_iterator = units.begin();
+	//		unit_iterator != units.end(); ++unit_iterator) {
+	//	GameUnit &unit = **unit_iterator;
+	//	if (!unit.IsAlive()) {
+	//		dead_units.push_back(*unit_iterator);
+	//	} else if (unit.current_health() <= 0) {
+	//		unit.Kill();
+	//	} else {
+	//		if (unit.target()) {
+	//			if (!unit.target()->IsAlive()) {
+	//				unit.set_target(NULL);
+	//				unit.set_destination(unit.position());
+	//				unit.ClearPath();
+	//			} else if (unit.target()->position()
+	//					!= unit.destination()) {
+	//				unit.set_destination(unit.target()->position());
+	//				unit.ClearPath();
+	//			}
+	//		}
+	//		if (/*unit.pathing_destination() ==
+	//				unit.position() &&*/
+	//				unit.destination() !=
+	//				unit.position()) {
+	//			float distance = 0.f;
+	//			if (unit.target()) {
+	//				distance = unit.Attributes().attack_range() +
+	//						unit.target()->Attributes().collision_radius();
+	//			}
+	//			pathfinder_.PathUnit(unit, distance);
+	//		}
+	//		if (unit.pathing_destination() !=
+	//				unit.position()) {
+	//			//MoveUnit(*unit_iterator);
+	//			//behavior_.SteerUnit(unit);
+	//			game_state_.RemoveFromPathingGrid(unit);
+	//			float movement_distance = unit.Attributes().speed() * timestep_;
+	//			Vector2f new_position = unit.position();
+	//			while (unit.pathing_destination() != unit.position()) {
+	//				float waypoint_distance = Util::Distance(new_position,
+	//						unit.pathing_destination());
+	//				if (waypoint_distance >= movement_distance) {
+	//					Vector2f movement = unit.pathing_destination() -
+	//							unit.position();
+	//					Util::Scale(movement, unit.Attributes().speed() * timestep_);
+	//					new_position = unit.position() + movement;
+	//					break;
+	//				} else {
+	//					new_position = unit.pathing_destination();
+	//					unit.pop_path();
+	//					movement_distance -= waypoint_distance;
+	//				}
+	//			}
+	//			unit.SetRotation(unit.GetHeading());
+	//			unit.SetPosition(new_position);
+	//			/*unit.set_position(unit.position() +
+	//					timestep_ * unit.velocity());*/
+	//			game_state_.AddToPathingGrid(unit);
+	//			if (Util::Distance(unit.position(),
+	//					unit.pathing_destination()) <= 10.f) {
+	//				unit.pop_path();
+	//				if (unit.pathing_destination() ==
+	//						unit.position()) {
+	//					unit.set_is_stationary(true);
+	//					unit.set_destination(unit.position());
+	//					//game_state_.AddToPathingGrid(*unit_iterator);
+	//				}
+	//			}
+	//			game_state_.UpdateUnitGrid(unit);
+	//		}
+	//		if (!unit.IsLoaded()) {
+	//			unit.ReduceReloadTime(timestep_);
+	//		}
+	//		if (unit.target()) {
+	//			if (unit.IsLoaded() &&
+	//					Util::Distance(unit.target()->position(),
+	//					unit.position()) <=
+	//					unit.Attributes().attack_range() +
+	//					unit.target()->Attributes().collision_radius()) {
+	//				game_state_.AddProjectile(unit.position(),
+	//						unit.target(),
+	//						unit.Attributes().attack_damage());
+	//				unit.ResetReload();
+	//			}
+	//		}
+	//	}
+	//}
+	//for (std::list<GameUnit *>::iterator unit_iterator = dead_units.begin();
+	//		unit_iterator != dead_units.end(); ++unit_iterator) {
+	//	game_state_.RemoveUnit(*unit_iterator);
+	//}
 }
 
 //void Simulator::MoveUnit(GameUnit &unit) {

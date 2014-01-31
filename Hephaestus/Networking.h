@@ -1,6 +1,8 @@
-#ifndef NETWORKING_
-#define NETWORKING_
+#pragma once
+#pragma warning( disable : 4250 )
 
+#include <boost/asio/io_service.hpp>
+#include <boost/asio/ip/tcp.hpp>
 #include "Command.h"
 #include "Util.h"
 
@@ -22,5 +24,3 @@ class NetworkConnection {
 		int port_;
 		std::string hostname_, service_;
 };
-
-#endif

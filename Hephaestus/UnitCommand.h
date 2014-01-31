@@ -9,8 +9,6 @@
 class UnitCommand : public Command {
 	public:   
 		virtual void Execute(Player &player) const;
-
-  protected:
     virtual UnitAction *MakeUnitAction() const = 0;
 
 	private:
