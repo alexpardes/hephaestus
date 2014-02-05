@@ -8,6 +8,7 @@
 #include <fstream>
 #include <iostream>
 #include <list>
+#include <memory>
 #include <mutex>
 #include <queue>
 #include <set>

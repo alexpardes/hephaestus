@@ -17,3 +17,7 @@ float Line::Distance(const Vector2f &point) const {
 Vector2f Line::Perpendicular() const {
   return Util::Perpendicular(direction);
 }
+
+float Line::NearestPointParam(const Vector2f &point) const {
+  return Util::Dot(point - this->point, direction);
+}

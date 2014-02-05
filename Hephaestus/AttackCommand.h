@@ -1,24 +1,22 @@
-#ifndef ATTACK_COMMAND_
-#define ATTACK_COMMAND_
+#pragma once
 
-#include "Command.h"
+#include "UnitCommand.h"
 
-class AttackCommand : public Command {
+class GameState;
+
+class AttackCommand : public UnitCommand {
 	public:
 		AttackCommand() { }
-		AttackCommand(UnitId target): target_(target) { }
-		~AttackCommand() { }
-		virtual void Execute(Player &player) { }
+		AttackCommand(UnitId target): target(target) { }
+		virtual UnitAction *MakeUnitAction(GameState &gameState) const;
 
 	private:
 		friend class boost::serialization::access;
-		UnitId target_;
+		UnitId target;
 
 		template<class Archive>
 		void serialize(Archive & ar, const unsigned int version) {
 			ar & boost::serialization::base_object<Command>(*this);
-			ar & target_;
+			ar & target;
 		}
 };
-
-#endif

@@ -46,8 +46,10 @@ void Player::ExecuteTurn() {
 void Player::GiveOrder(const UnitCommand *command) {
   for (std::list<UnitId>::const_iterator it = selected_units_.begin();
       it != selected_units_.end(); ++it) {
-    GameUnit *unit = gameState.GetUnit(*it);
-    unit->SetAction(command->MakeUnitAction());
+    std::shared_ptr<GameUnit> unit = gameState.GetUnit(*it);
+    if (unit) {
+      unit->SetAction(command->MakeUnitAction(gameState));
+    }
   }
 }
 

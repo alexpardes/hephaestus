@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "GameUnit.h"
 #include "UnitAction.h"
+#include "UnitAbility.h"
 #include "Util.h"
 
 GameUnit::GameUnit(UnitId id,
@@ -15,27 +16,40 @@ GameUnit::GameUnit(UnitId id,
 	current_health_ = attributes_.max_health();
 	owner_ = owner;
 	rotation_ = rotation;
-  ability = NULL;
   action = NULL;
 }
 
 void GameUnit::SetAction(UnitAction *action) {
   this->action = action;
-  action->Start(ability);
+  action->Start(*this);
+}
+
+void GameUnit::AddAbility(UnitAbility *ability) {
+  abilities[ability->Name()] = ability;
+}
+
+UnitAbility *GameUnit::GetAbility(const std::string &name) {
+  UnitAbility *result = NULL;
+  if (abilities.count(name)) {
+    result = abilities[name];
+  }
+  return result;
 }
 
 void GameUnit::PerformAction() {
-  if (action) {
-    action->Execute();
+  if (current_health_ <= 0) {
+    is_alive_ = false;
+  } else if (action) {
+    action->Execute(*this);
   }
 }
 
 UnitModel::UnitModel(const GameUnit &unit) {
 	current_health_ = unit.current_health();
-	position_ = unit.position();
+	position_ = unit.Position();
 	rotation_ = unit.Rotation();
 	id_ = unit.Id();
-	name_ = unit.Attributes().name();
+	name = unit.Attributes().name();
 	owner_ = unit.Owner();
 	radius_ = unit.Attributes().selection_radius();
 }
@@ -47,16 +61,11 @@ UnitModel::UnitModel(const UnitModel &unit1,
 	float a = 1 - weight;
 	current_health_ = a*unit1.current_health() + b*unit2.current_health();
 	position_ = a*unit1.position() + b*unit2.position();
-  if (std::abs(unit1.rotation() - unit2.rotation()) > M_PI) {
-    rotation_ = a*Util::Angle(unit1.rotation(), M_PI / 2)
-        + b*Util::Angle(unit2.rotation(), M_PI / 2);
-    rotation_ = Util::Angle(rotation_, 0.f);
-  } else {
-    	rotation_ = a*unit1.rotation() + b*unit2.rotation();
-  }
+  rotation_ = Util::InterpolateAngles(unit1.rotation(),
+      unit2.rotation(), weight);
 
 	id_ = unit1.id();
-	name_ = unit1.name();
+	name = unit1.Name();
 	owner_ = unit1.owner();
 	radius_ = unit1.radius();
 }

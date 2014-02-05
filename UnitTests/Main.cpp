@@ -6,6 +6,7 @@
 #include <Hephaestus/DirectedSegment.h>
 #include <Hephaestus/Rectangle.h>
 #include <Hephaestus/Line.h>
+#include <Hephaestus/Waypoint.h>
 
 #include <PathFinding/SubgoalPathFinder.h>
 #include <PathFinding/VectorPathingGrid.h>
@@ -34,6 +35,37 @@ bool IsApprox(const Vector2f &a, CONST Vector2f &b, double tolerance) {
 }
 
 #define REQUIRE_EQUAL(a,b,tol) REQUIRE(IsApprox(a,b,tol))
+
+TEST_CASE("Line Nearest Point") {
+  Line line(Vector2f(5, 5), Vector2f(1, 0));
+  Vector2f point = line.Evaluate(line.NearestPointParam(Vector2f(3, 2)));
+  REQUIRE_EQUAL(point, Vector2f(3, 5), 0.01);
+}
+
+TEST_CASE("Line Segment Nearest Point") {
+  LineSegment segment(Vector2f(5, 5), Vector2f(7, 5));
+  Vector2f point = segment.NearestPoint(Vector2f(3, 2));
+  REQUIRE_EQUAL(point, Vector2f(5, 5), 0.01);
+  point = segment.NearestPoint(Vector2f(6, 7));
+  REQUIRE_EQUAL(point, Vector2f(6, 5), 0.01);
+}
+
+TEST_CASE("Rectangle Nearest Point") {
+  Rect rectangle(Vector2f (1, 1), Vector2f(3, 2));
+  Vector2f nearest = rectangle.NearestPoint(Vector2f(2, 3));
+  REQUIRE_EQUAL(nearest, Vector2f(2, 2), 0.01);
+  nearest = rectangle.NearestPoint(Vector2f(10, 10));
+  REQUIRE_EQUAL(nearest, Vector2f(3, 2), 0.01);
+}
+
+TEST_CASE("Waypoint") {
+  Subgoal *subgoal = new Subgoal(Vector2i(5, 3), Vector2i(-1, 1));
+  Waypoint waypoint(subgoal, Vector2f(50, 50));
+  REQUIRE_EQUAL(waypoint.Position(0), Vector2f(250, 200), 0.01);
+  REQUIRE_EQUAL(waypoint.Position(25), Vector2f(225, 225), 0.1);
+  REQUIRE(waypoint.IsReached(Vector2f(224, 230), 25));
+  REQUIRE(!waypoint.IsReached(Vector2f(226, 230), 25));
+}
 
 TEST_CASE("Line-Point Distance") {
   Line line(Vector2f(2, 3), Vector2f(5, 0));
@@ -88,7 +120,7 @@ TEST_CASE("Path Finding") {
   adjacencyLists.push_back(list1);
   std::vector<int> list2;
   list2.push_back(0);
-  list2.push_back(1);
+  list2.push_back(2);
   adjacencyLists.push_back(list2);
   std::vector<int> list3;
   list3.push_back(1);
@@ -107,16 +139,20 @@ TEST_CASE("Path Finding") {
   std::vector<int> list6;
   list6.push_back(4);
   adjacencyLists.push_back(list6);
-  SubgoalPathFinder pather(grid, subgoals, adjacencyLists);
-  std::vector<Subgoal*> path = pather.GetPath(Vector2i(2, 0), Vector2i(0, 4));
+  SubgoalPathFinder pather(grid, Vector2f(50, 50), subgoals, adjacencyLists);
+  std::vector<Waypoint*> path =
+      pather.GetPath(Vector2f(125, 25), Vector2f(25, 225));
+  REQUIRE(path.size() == 6);
+  path = pather.GetPath(Vector2f(25, 225), Vector2f(125, 25));
   REQUIRE(path.size() == 6);
 }
 
 TEST_CASE("Empty Grid") {
   PathingGrid *grid = new VectorPathingGrid(3, 3);
-  SubgoalPathFinder pather(grid, std::vector<Subgoal*>(),
+  SubgoalPathFinder pather(grid, Vector2f(50, 50), std::vector<Subgoal*>(),
       std::vector<const std::vector<int>>());
-  std::vector<Subgoal*> path = pather.GetPath(Vector2i(0, 0), Vector2i(2, 2));
+  std::vector<Waypoint*> path =
+      pather.GetPath(Vector2f(25, 25), Vector2f(125, 125));
   REQUIRE(path.size() == 1);
 }
 
@@ -195,7 +231,7 @@ TEST_CASE("Indirect Region") {
 //  GameState state(unitDefinitions, Vector2i(5, 5), &pather);
 //  REQUIRE(state.GetTile(Vector2f(1, 1)) == Vector2i(0, 0));
 //  state.AddUnit("unit a", PlayerNumber::kPlayer1, Vector2f(101, 1), 0);
-//  GameUnit *unit = state.GetUnit(1);
+//  std::shared_ptr<GameUnit> unit = state.GetUnit(1);
 //  REQUIRE(unit != NULL);
 //  REQUIRE(state.GetTile(unit->Id()) == Vector2i(2, 0));
 //
@@ -244,7 +280,7 @@ TEST_CASE("Indirect Region") {
 //
 //  GameState state(unitDefinitions, Vector2i(5, 5), &pather);
 //  state.AddUnit("unit a", PlayerNumber::kPlayer1, Vector2f(225, 125), 0);
-//  GameUnit *unit = state.GetUnit(1);
+//  std::shared_ptr<GameUnit> unit = state.GetUnit(1);
 //  REQUIRE(unit != NULL);
 //  REQUIRE(state.GetTile(unit->Id()) == Vector2i(4, 2));
 //
@@ -292,7 +328,7 @@ TEST_CASE("Indirect Region") {
 //
 //  GameState state(unitDefinitions, Vector2i(4, 5), &pather);
 //  state.AddUnit("unit a", PlayerNumber::kPlayer1, Vector2f(25, 225), 0);
-//  GameUnit *unit = state.GetUnit(1);
+//  std::shared_ptr<GameUnit> unit = state.GetUnit(1);
 //  REQUIRE(unit != NULL);
 //  REQUIRE(state.GetTile(unit->Id()) == Vector2i(0, 4));
 //

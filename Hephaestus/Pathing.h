@@ -87,7 +87,7 @@ class Pathfinder {
 		//				 bool choice);
 		//void RayCastPathUnit(GameUnit &unit) const;
 		void PathUnit(GameUnit &unit, float range) const;
-		//GameUnit *FindFirstObstacle(const GameUnit &unit,
+		//std::shared_ptr<GameUnit> FindFirstObstacle(const GameUnit &unit,
 		//							const Vector2f &start,
 		//							const Vector2f &end) const;
 		//Vector2f FindPathAround(const GameUnit &unit,
@@ -137,7 +137,7 @@ class Pathfinder {
 		//	private:
 		//		Vector2f position;
 		//		RayCastPathNode *parent;
-		//		GameUnit *obstacle;
+		//		std::shared_ptr<GameUnit> obstacle;
 		//		bool choice;
 		//		float distance_from_root;
 		//		float min_path_length;
@@ -160,7 +160,7 @@ class Pathfinder {
 		std::stack<Vector2f> FindAStarPath(const GameUnit &unit,
 										   float range) const;
 		//RayCastPathNode *MakeNode(const GameUnit &unit,
-		//				   GameUnit *obstacle,
+		//				   std::shared_ptr<GameUnit> obstacle,
 		//				   RayCastPathNode *parent,
 		//				   const Vector2f &destination,
 		//				   bool choice) const;

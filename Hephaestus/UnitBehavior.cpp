@@ -25,12 +25,12 @@
 //
 //Vector2f UnitBehavior::GetAvoidVector(const GameUnit &unit) const {
 //	Vector2f desired_velocity(0.f, 0.f);
-//	std::list<GameUnit *> nearby_units =
+//	std::list<std::shared_ptr<GameUnit> > nearby_units =
 //			game_state_.GetUnitsInCircle(unit.position() + unit.velocity(),
 //			unit.kCollisionRadius + Util::Length(unit.velocity()));
 //
 //	int n_units_avoided = 0;
-//	for (std::list<GameUnit *>::iterator nearby_unit = nearby_units.begin();
+//	for (std::list<std::shared_ptr<GameUnit> >::iterator nearby_unit = nearby_units.begin();
 //			nearby_unit != nearby_units.end(); ++nearby_unit) {
 //		if (*nearby_unit != &unit) {
 //			Vector2f separation = (*nearby_unit)->position() +

@@ -4,7 +4,6 @@
 #include "Networking.h"
 #include "Players.h"
 #include "ResourceManager.h"
-#include "Simulator.h"
 
 enum GameType {kSinglePlayer, kHost, kJoin};
 
@@ -39,7 +38,7 @@ class GameManager {
 			return scene;
 		}
 
-		//std::list<GameUnit *> GetSelectedUnits() {
+		//std::list<std::shared_ptr<GameUnit> > GetSelectedUnits() {
 		//	return players_.GetPlayer(self_).selected_units();
 		//}
 
@@ -51,7 +50,6 @@ class GameManager {
 		ResourceManager &resource_manager_;
 		GameState *game_state_;
 		GameScene *last_scene_;
-		Simulator *simulator_;
 		NetworkConnection network_connection_;
 		CommandTurn *buffered_commands_;
 		const float timestep_;

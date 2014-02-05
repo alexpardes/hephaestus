@@ -172,7 +172,7 @@ const bool Pathfinder::kClockwise = false;
 const bool Pathfinder::kCounterClockwise = true;
 
 //Pathfinder::RayCastPathNode *Pathfinder::MakeNode(const GameUnit &unit,
-//										   GameUnit *obstacle,
+//										   std::shared_ptr<GameUnit> obstacle,
 //										   RayCastPathNode *parent,
 //										   const Vector2f &destination,
 //										   bool choice) const {
@@ -192,16 +192,16 @@ const bool Pathfinder::kCounterClockwise = true;
 //		return node;
 //}
 
-//GameUnit *Pathfinder::FindFirstObstacle(const GameUnit &unit,
+//std::shared_ptr<GameUnit> Pathfinder::FindFirstObstacle(const GameUnit &unit,
 //										const Vector2f &start,
 //										const Vector2f &end) const {
-//	GameUnit *first_obstacle = NULL;
+//	std::shared_ptr<GameUnit> first_obstacle = NULL;
 //	float distance_to_obstacle = FLT_MAX;
 //	if (end != start) {
 //		CollisionArea collision_area(start,
 //									 end,
 //									 unit.Attributes().collision_radius());
-//		for (std::list<GameUnit *>::const_iterator unit_iterator =
+//		for (std::list<std::shared_ptr<GameUnit> >::const_iterator unit_iterator =
 //			 game_state_.units().begin();
 //			 unit_iterator != game_state_.units().end();
 //			 ++unit_iterator) {
@@ -329,7 +329,7 @@ const bool Pathfinder::kCounterClockwise = true;
 //	if (unit.destination() == unit.position()) return;
 //	std::priority_queue<RayCastPathNode*, std::vector<RayCastPathNode*>, RayCastGreater> queue;
 //	std::vector<RayCastPathNode*> node_list;
-//	std::set<GameUnit*> obstacle_list;
+//	std::set<std::shared_ptr<GameUnit>> obstacle_list;
 //	RayCastPathNode *root = new RayCastPathNode;
 //	root->position = unit.position();
 //	root->distance_from_root = 0;
@@ -345,7 +345,7 @@ const bool Pathfinder::kCounterClockwise = true;
 //	while (!solution_found && !queue.empty()) {
 //		RayCastPathNode *node = queue.top();
 //		queue.pop();
-//		GameUnit *obstacle = NULL;
+//		std::shared_ptr<GameUnit> obstacle = NULL;
 //		if (node->parent) {
 //			obstacle = FindFirstObstacle(unit,
 //										 node->parent->position,

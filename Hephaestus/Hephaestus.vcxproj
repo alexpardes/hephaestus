@@ -162,12 +162,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AttackAbility.cpp" />
+    <ClCompile Include="AttackAction.cpp" />
+    <ClCompile Include="AttackCommand.cpp" />
+    <ClCompile Include="AttackMoveAbility.cpp" />
+    <ClCompile Include="AttackMoveAction.cpp" />
+    <ClCompile Include="AttackMoveCommand.cpp" />
     <ClCompile Include="DirectedSegment.cpp" />
     <ClCompile Include="GameManager.cpp" />
     <ClCompile Include="GameUnit.cpp" />
     <ClCompile Include="Graphics.cpp" />
     <ClCompile Include="Hephaestus.cpp" />
     <ClCompile Include="Line.cpp" />
+    <ClCompile Include="LineSegment.cpp" />
     <ClCompile Include="MoveAbility.cpp" />
     <ClCompile Include="MoveAction.cpp" />
     <ClCompile Include="MoveCommand.cpp" />
@@ -188,13 +195,20 @@
     <ClCompile Include="GameInterface.cpp" />
     <ClCompile Include="UnitCommand.cpp" />
     <ClCompile Include="Util.cpp" />
+    <ClCompile Include="Waypoint.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AttackAbility.h" />
+    <ClInclude Include="AttackAction.h" />
     <ClInclude Include="AttackCommand.h" />
+    <ClInclude Include="AttackMoveAbility.h" />
+    <ClInclude Include="AttackMoveAction.h" />
+    <ClInclude Include="AttackMoveCommand.h" />
     <ClInclude Include="Command.h" />
     <ClInclude Include="Commands.h" />
     <ClInclude Include="DirectedSegment.h" />
     <ClInclude Include="GameManager.h" />
+    <ClInclude Include="GameObject.h" />
     <ClInclude Include="GameState.h" />
     <ClInclude Include="GameUnit.h" />
     <ClInclude Include="Graphics.h" />
@@ -217,12 +231,14 @@
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="UnitAbility.h" />
     <ClInclude Include="UnitAction.h" />
+    <ClInclude Include="UnitAttributes.h" />
     <ClInclude Include="UnitBehavior.h" />
     <ClInclude Include="GameInterface.h" />
     <ClInclude Include="UnitCommand.h" />
     <ClInclude Include="Util.h" />
     <ClInclude Include="Vector2.h" />
     <ClInclude Include="VectorSerialization.h" />
+    <ClInclude Include="Waypoint.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="projectile.png" />

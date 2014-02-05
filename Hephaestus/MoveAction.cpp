@@ -1,12 +1,15 @@
 #include "stdafx.h"
 #include "MoveAction.h"
+#include "MoveAbility.h"
+#include "GameUnit.h"
 
-void MoveAction::Start(UnitAbility *ability) {
+void MoveAction::Start(GameUnit &unit) {
+  UnitAbility *ability = unit.GetAbility("Move");
   this->ability = dynamic_cast<MoveAbility*>(ability);
-  this->ability->SetDestination(location_);
+  this->ability->SetDestination(location);
 }
 
-void MoveAction::Execute() {
+void MoveAction::Execute(GameUnit &unit) {
   ability->Execute();
 }
 

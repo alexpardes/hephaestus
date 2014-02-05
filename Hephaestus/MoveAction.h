@@ -1,23 +1,21 @@
-#ifndef MOVE_ACTION_
-#define MOVE_ACTION_
+#pragma once
 
-#include "Util.h"
 #include "UnitAction.h"
-#include "MoveAbility.h"
+#include "Vector2.h"
+
+class MoveAbility;
 
 class MoveAction : public UnitAction {
 	public:
 		MoveAction(const Vector2f &location) {
-      location_ = location;
+      this->location = location;
     }
 
-    virtual void Start(UnitAbility *ability);
-    virtual void Execute();
+    virtual void Start(GameUnit &unit);
+    virtual void Execute(GameUnit &unit);
     virtual std::string Name();
 
 	private:
-		Vector2f location_;
+		Vector2f location;
     MoveAbility *ability;
 };
-
-#endif

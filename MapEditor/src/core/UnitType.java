@@ -3,7 +3,7 @@ package core;
 import java.util.*;
 
 public class UnitType {
-	public String name, imageSource1, imageSource2;
+	public String name, imageSource1, imageSource2, projectileSource;
 	public int maxHealth;
 	public double attackDamage, attackRange, attackSpeed, collisionRadius,
 			selectionRadius, speed;
@@ -22,19 +22,25 @@ public class UnitType {
 		maxHealth = (int)jsonMap.get("health");
 		selectionRadius = (double)jsonMap.get("sradius");
 		speed = (double)jsonMap.get("mspeed");
+		
+		projectileSource = "";
+		if (jsonMap.containsKey("projectilesource")) {
+			projectileSource = (String)jsonMap.get("projectilesource");
+		}
 	}
 	
 	public void setType(UnitType type) {
 		name = type.name;
 		imageSource1 = type.imageSource1;
 		imageSource2 = type.imageSource2;
+		projectileSource = type.projectileSource;
 		attackDamage = type.attackDamage;
 		attackRange = type.attackRange;
 		attackSpeed = type.attackSpeed;
 		collisionRadius = type.collisionRadius;
 		maxHealth = type.maxHealth;
 		selectionRadius = type.selectionRadius;
-		speed = type.speed;
+		speed = type.speed;		
 	}
 	
 	public Map<String, Object> getJsonMap() {
@@ -42,6 +48,7 @@ public class UnitType {
 		result.put("name", name);
 		result.put("source1", imageSource1);
 		result.put("source2", imageSource2);
+		result.put("projectilesource", projectileSource);
 		result.put("damage", attackDamage);
 		result.put("range", attackRange);
 		result.put("aspeed", attackSpeed);

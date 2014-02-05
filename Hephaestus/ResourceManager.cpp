@@ -64,8 +64,8 @@ PathFinder *ResourceManager::LoadPathingInfo(const Json::Value &pathingInfo,
                                              int height) {
 
   PathingGrid *grid = new VectorPathingGrid(width, height);
-  for (size_t x = 0; x < width; ++x) {
-    for (size_t y = 0; y < height; ++y) {
+  for (int x = 0; x < width; ++x) {
+    for (int y = 0; y < height; ++y) {
       grid->SetBlocked(x, y, !traversability_[tile_table_.at(terrain_[x][y])]);
     }
   }
@@ -107,10 +107,12 @@ PathFinder *ResourceManager::LoadPathingInfo(const Json::Value &pathingInfo,
     ++adjacencyList;
   }
 
-  return new SubgoalPathFinder(grid, subgoals, adjacencyLists);
+  // TODO: inject tile size.
+  return new SubgoalPathFinder(grid, Vector2f(50, 50),
+      subgoals, adjacencyLists);
 }
 
-void  ResourceManager::LoadUnitAttributes(const Json::Value &unit) {
+void ResourceManager::LoadUnitAttributes(const Json::Value &unit) {
 	std::string name = unit["name"].asString();
 	float collision_radius = float(unit["cradius"].asDouble());
 	float selection_radius = float(unit["sradius"].asDouble());
@@ -136,16 +138,26 @@ const sf::Texture &ResourceManager::GetImage(const std::string &name,
 	}
 }
 
+const sf::Texture &ResourceManager::GetImage(const std::string &name) const {
+  return projectileImages.at(name);
+}
+
 bool ResourceManager::LoadUnitImages(const Json::Value &unit) {
 	std::string type = unit["name"].asString();
 	std::string source1 = unit["source1"].asString();
 	std::string source2 = unit["source2"].asString();
+  std::string projectileSource = unit["projectilesource"].asString();
 
-	sf::Texture image1, image2;
+	sf::Texture image1, image2, projectileImage;
 	image1.loadFromFile(source1);
 	image2.loadFromFile(source2);
+  projectileImage.loadFromFile(projectileSource);
+  image1.setSmooth(true);
+  image2.setSmooth(true);
+  projectileImage.setSmooth(true);
 	unit_images_[type + "1"] = image1;
 	unit_images_[type + "2"] = image2;
+  projectileImages[type] = projectileImage;
 	return true;
 }
 
@@ -158,7 +170,7 @@ bool ResourceManager::LoadTerrainImage(const Json::Value &tile) {
 	return true;
 }
 
-const sf::Texture &ResourceManager::GetImage(terrainId id) const {	
+const sf::Texture &ResourceManager::GetImage(TerrainId id) const {	
 	return terrain_images_.at(tile_table_.at(id));
 }
 
@@ -176,7 +188,7 @@ void ResourceManager::LoadTiles(const Json::Value &tiles) {
 void ResourceManager::LoadTerrain(const Vector2i &map_size,
 								  const Json::Value &terrain) {
 	for (int x = 0; x < map_size.x; ++x) {
-		terrain_.push_back(std::vector<terrainId>());
+		terrain_.push_back(std::vector<TerrainId>());
 		for (int y = 0; y < map_size.y; ++y) {
 			terrain_[x].push_back(terrain[x][y].asInt());
 		}

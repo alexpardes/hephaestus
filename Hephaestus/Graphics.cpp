@@ -11,7 +11,7 @@ void Graphics::DrawGame(const GameScene &scene) const {
 }
 
 void Graphics::DrawTerrain() const {
-	std::vector<std::vector<terrainId>> terrain =
+	std::vector<std::vector<TerrainId>> terrain =
 			resource_manager_.GetTerrain();
 	for (int i = 0; i < terrain.size(); ++i) {
 		for (int j = 0; j < terrain[i].size(); ++j) {
@@ -23,9 +23,6 @@ void Graphics::DrawTerrain() const {
 			Vector2f position = Vector2f(i*kTileSize, j*kTileSize) -
 					game_interface_.screen_position();
 
-			//position.x = std::floorf(position.x) + 0.6;
-			//position.y = std::floorf(position.y) + 0.6;
-
 			terrain_sprite.setPosition(position);
 			window_.draw(terrain_sprite);
 		}
@@ -36,10 +33,11 @@ void Graphics::DrawUnits(const std::list<UnitModel *> &units) const {
 	for (std::list<UnitModel *>::const_iterator unit_iterator = units.begin();
 			unit_iterator != units.end(); ++unit_iterator) {
 		UnitModel &unit = **unit_iterator;
-		const sf::Texture &unit_image = resource_manager_.GetImage(unit.name(),
+		const sf::Texture &unit_image = resource_manager_.GetImage(unit.Name(),
 				unit.owner());
 		sf::Sprite unit_sprite(unit_image);
-		Vector2f image_center(unit_image.getSize().x * 0.5, unit_image.getSize().y * 0.5);
+		Vector2f image_center(unit_image.getSize().x * 0.5,
+        unit_image.getSize().y * 0.5);
 		unit_sprite.setOrigin(image_center);
 		unit_sprite.setPosition(unit.position() -
 				game_interface_.screen_position());
@@ -53,10 +51,14 @@ void Graphics::DrawProjectiles(const std::list<ProjectileModel *> &projectiles)
 	for (std::list<ProjectileModel *>::const_iterator projectile =
 			projectiles.begin(); projectile != projectiles.end();
 			++projectile) {
-		sf::Sprite projectile_sprite((*projectile)->image());
-		projectile_sprite.setOrigin(Vector2f(3.f, 3.f));
+    const sf::Texture &image =
+        resource_manager_.GetImage((*projectile)->Name());
+		sf::Sprite projectile_sprite(image);
+		Vector2f imageCenter(image.getSize().x * 0.5, image.getSize().y * 0.5);
+		projectile_sprite.setOrigin(imageCenter);
 		projectile_sprite.setPosition((*projectile)->position() -
 				game_interface_.screen_position());
+    projectile_sprite.setRotation(Util::Degrees((*projectile)->Rotation()));
 		window_.draw(projectile_sprite);
 	}
 }

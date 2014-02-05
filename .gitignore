@@ -77,7 +77,10 @@ $RECYCLE.BIN/
 .metadata/
 
 *.ppk
-
+*.psess
+*.rc
+*.vsp
 *.png
 *.map
 *.udf
+MapEditor/build.fxbuild

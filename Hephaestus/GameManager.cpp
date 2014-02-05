@@ -16,7 +16,6 @@ void GameManager::InitializeGame() {
 	game_state_ = resource_manager_.LoadMap("default.map");
   players_ = new Players(*game_state_);
 	last_scene_ = new GameScene(*game_state_);
-	simulator_ = new Simulator(*game_state_, timestep_);
 }
 
 void GameManager::StartSinglePlayerGame() {
@@ -81,7 +80,6 @@ void GameManager::RunGame() {
 			--turn_delay_;
 		}
 
-		//simulator_->StepSimulation();
     game_state_->ExecuteTurn();
 		scene_mutex_.lock();
 		if (last_scene_) delete last_scene_;

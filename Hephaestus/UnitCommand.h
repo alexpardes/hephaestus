@@ -9,7 +9,7 @@
 class UnitCommand : public Command {
 	public:   
 		virtual void Execute(Player &player) const;
-    virtual UnitAction *MakeUnitAction() const = 0;
+    virtual UnitAction *MakeUnitAction(GameState &gameState) const = 0;
 
 	private:
 		friend class boost::serialization::access;

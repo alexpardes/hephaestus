@@ -60,4 +60,5 @@ class Util {
 
     const static Vector2i kLeft, kUp, kRight, kDown;
     static Rect BoundingRectangle(const DirectedSegment &segment);
+    static float InterpolateAngles(float angle1, float angle2, float weight);
 };

@@ -21,7 +21,8 @@ import javafx.stage.StageStyle;
 
 public class UnitDialog extends Stage {
 	private MapEditor editor;
-	private ComboBox<String> imageSourceBox1, imageSourceBox2;
+	private ComboBox<String> imageSourceBox1, imageSourceBox2,
+			projectileSourceBox;
 	
 	public UnitDialog() {
 		this(null);
@@ -59,50 +60,56 @@ public class UnitDialog extends Stage {
 		grid.add(image2Label, 0, 2);
 		
 		imageSourceBox2 = new ComboBox<String>();
-		updateImageSourceBoxes();
 		grid.add(imageSourceBox2, 1, 2);
 		
+		Label projectileLabel = new Label("Projectile Image");
+		grid.add(projectileLabel, 0, 3);
+		
+		projectileSourceBox = new ComboBox<String>();
+		updateImageSourceBoxes();
+		grid.add(projectileSourceBox, 1, 3);
+		
 		Label healthLabel = new Label("Health");
-		grid.add(healthLabel, 0, 3);
+		grid.add(healthLabel, 0, 4);
 		
 		final IntField healthField = new IntField();
-		grid.add(healthField, 1, 3);
+		grid.add(healthField, 1, 4);
 		
 		Label damageLabel = new Label("Damage");
-		grid.add(damageLabel, 0, 4);
+		grid.add(damageLabel, 0, 5);
 		
 		final DoubleField damageField = new DoubleField();
-		grid.add(damageField, 1, 4);
+		grid.add(damageField, 1, 5);
 		
 		Label attackSpeedLabel = new Label("Attack Speed");
-		grid.add(attackSpeedLabel, 0, 5);
+		grid.add(attackSpeedLabel, 0, 6);
 		
 		final DoubleField attackSpeedField = new DoubleField();
-		grid.add(attackSpeedField, 1, 5);
+		grid.add(attackSpeedField, 1, 6);
 		
 		Label rangeLabel = new Label("Range");
-		grid.add(rangeLabel, 0, 6);
+		grid.add(rangeLabel, 0, 7);
 		
 		final DoubleField rangeField = new DoubleField();
-		grid.add(rangeField, 1, 6);
+		grid.add(rangeField, 1, 7);
 		
 		Label speedLabel = new Label("Move Speed");
-		grid.add(speedLabel, 0, 7);
+		grid.add(speedLabel, 0, 8);
 		
 		final DoubleField speedField = new DoubleField();
-		grid.add(speedField, 1, 7);
+		grid.add(speedField, 1, 8);
 		
 		Label collisionRadiusLabel = new Label("Collision Radius");
-		grid.add(collisionRadiusLabel, 0, 8);
+		grid.add(collisionRadiusLabel, 0, 9);
 		
 		final DoubleField collisionRadiusField = new DoubleField();
-		grid.add(collisionRadiusField, 1, 8);
+		grid.add(collisionRadiusField, 1, 9);
 		
 		Label selectionRadiusLabel = new Label("Selection Radius");
-		grid.add(selectionRadiusLabel, 0, 9);
+		grid.add(selectionRadiusLabel, 0, 10);
 		
 		final DoubleField selectionRadiusField = new DoubleField();
-		grid.add(selectionRadiusField, 1, 9);		
+		grid.add(selectionRadiusField, 1, 10);		
 		
 		Button okButton = new Button("OK");
 		okButton.setOnAction(new EventHandler<ActionEvent>() {
@@ -111,6 +118,7 @@ public class UnitDialog extends Stage {
 				newType.name = nameField.getText();
 				newType.imageSource1 = imageSourceBox1.getValue();
 				newType.imageSource2 = imageSourceBox2.getValue();
+				newType.projectileSource = projectileSourceBox.getValue();
 				newType.maxHealth = healthField.getValue();
 				newType.attackDamage = damageField.getValue();
 				newType.attackSpeed = attackSpeedField.getValue();
@@ -142,12 +150,13 @@ public class UnitDialog extends Stage {
 		HBox hBox = new HBox(3);
 		hBox.setAlignment(Pos.BOTTOM_RIGHT);
 		hBox.getChildren().addAll(okButton, cancelButton);
-		grid.add(hBox, 0, 10, 2, 1);
+		grid.add(hBox, 0, 11, 2, 1);
 		
 		if (isEditing) {
 			nameField.setText(type.name);
 			imageSourceBox1.setValue(type.imageSource1);
 			imageSourceBox2.setValue(type.imageSource2);
+			projectileSourceBox.setValue(type.projectileSource);
 			healthField.setValue(type.maxHealth);
 			damageField.setValue(type.attackDamage);
 			attackSpeedField.setValue(type.attackSpeed);
@@ -165,6 +174,8 @@ public class UnitDialog extends Stage {
 		items1.clear();
 		ObservableList<String> items2 = imageSourceBox2.getItems();
 		items2.clear();
+		ObservableList<String> items3 = projectileSourceBox.getItems();
+		items3.clear();
 		
 		File directory = editor.getMapFile().getParentFile();
 		for (File file : directory.listFiles()) {
@@ -181,6 +192,7 @@ public class UnitDialog extends Stage {
 						
 						items1.add(filename);
 						items2.add(filename);
+						items3.add(filename);
 					}
 				}
 			}

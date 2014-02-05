@@ -6,11 +6,12 @@ class Subgoal;
 class SubgoalPathFinder : public PathFinder {
   public:
     SubgoalPathFinder(const PathingGrid *grid,
+        const Vector2f &tileSize,
         const std::vector<Subgoal*> &subgoals,
         const std::vector<const std::vector<int>> &adjacencyLists);
 
-    virtual std::vector<Subgoal*> GetPath(const Vector2i &start,
-        const Vector2i &end);
+    virtual std::vector<Waypoint*> GetPath(const Vector2f &startpoint,
+        const Vector2f &endpoint);
     virtual const PathingGrid *GetPathingGrid() const { return grid; }
     virtual ~SubgoalPathFinder();
 
@@ -51,8 +52,10 @@ class SubgoalPathFinder : public PathFinder {
 
     const PathingGrid *grid;
     std::vector<Subgoal*> subgoals;   
+    Vector2f tileSize;
     bool CanMoveInDirection(const Vector2i &p, const Vector2i &direction);
     bool AreDirectlyConnected(const Vector2i &p1, const Vector2i &p2);
     Vector2i GetDirection(const Vector2i &p1, const Vector2i &p2);
     std::vector<Subgoal*> GetDirectSubgoals(const Vector2i &p);
+    Vector2i GetTile(const Vector2f &position);
 };

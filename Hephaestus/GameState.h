@@ -18,24 +18,25 @@ class GameState {
 				const Vector2i &map_size, PathFinder *pathfinder);
 		void AddUnit(const std::string &type, PlayerNumber owner,
 				const Vector2f &location, float rotation);
-		void RemoveUnit(GameUnit *unit);
-		void AddProjectile(const Vector2f &location,
-				GameUnit *target, float damage);
+		void RemoveUnit(std::shared_ptr<GameUnit> unit);
+		void AddProjectile(const std::string &name, const Vector2f &location,
+        std::shared_ptr<GameUnit> target, float damage, float speed);
 		void RemoveProjectile(Projectile *projectile);
-		const std::list<GameUnit *> &units() const {return units_;}
+		const std::list<std::shared_ptr<GameUnit>> &units() const {return units_;}
 		const std::list<Projectile *> &projectiles() const {
 			return projectiles_;
 		}
 		GameState &operator=(const GameState &game_state);
 		~GameState();
-		void AddToPathingGrid(const GameUnit &unit);
-		void RemoveFromPathingGrid(const GameUnit &unit);
-		void AddToUnitGrid(GameUnit &unit);
-		void RemoveFromUnitGrid(GameUnit &unit);
-		void UpdateUnitGrid(GameUnit &unit);
-		std::vector<GameUnit *> GetUnitsInRectangle(const Vector2f &corner1,
+		void AddToPathingGrid(const std::shared_ptr<GameUnit> unit);
+		void RemoveFromPathingGrid(const std::shared_ptr<GameUnit> unit);
+		void AddToUnitGrid(std::shared_ptr<GameUnit> unit);
+    void RemoveFromUnitGrid(const std::shared_ptr<GameUnit> unit);
+		void RemoveFromUnitGrid(const std::shared_ptr<GameUnit> unit, const Vector2f &position);
+		void UpdateUnitGrid(std::shared_ptr<GameUnit> unit, const Vector2f &previousPosition);
+		std::vector<std::shared_ptr<GameUnit>> GetUnitsInRectangle(const Vector2f &corner1,
 				const Vector2f &corner2) const;
-		std::vector<GameUnit *> GetUnitsInCircle(const Vector2f &center,
+		std::vector<std::shared_ptr<GameUnit>> GetUnitsInCircle(const Vector2f &center,
 				float radius) const;
 		int **pathing_grid() {return pathing_grid_;}
 		int pathing_width() {return pathing_width_;}
@@ -44,7 +45,7 @@ class GameState {
 				const Vector2f &bottom_right);
 		const static float kPathingResolution;
 		const static float kUnitGridResolution;
-		GameUnit *GetUnit(UnitId id) const;
+		std::shared_ptr<GameUnit> GetUnit(UnitId id) const;
 		Vector2i map_size() const {return map_size_;}
     Vector2i GetTile(UnitId id) const;
     Vector2i GetTile(const Vector2f &gameLocation) const;
@@ -58,16 +59,18 @@ class GameState {
     // Returns the closest point which is on the map.
     Vector2f Constrain(Vector2f location) const;
     Vector2i Constrain(Vector2i location) const;
-		void AdjustPathingGrid(const GameUnit &unit, int value);
-		std::list<GameUnit *> units_;
+		void AdjustPathingGrid(const std::shared_ptr<GameUnit> unit, int value);
+		std::list<std::shared_ptr<GameUnit>> units_;
 		std::list<Projectile *> projectiles_;
-		std::list<GameUnit *> **unit_grid_;
+
+    // TODO: change to vectors.
+		std::list<std::shared_ptr<GameUnit>> **unit_grid_;
 		int unit_grid_width_, unit_grid_height_;
 		int **pathing_grid_;
 		int pathing_width_, pathing_height_;
 		float max_unit_radius_;
-		const UnitDictionary &unit_dictionary_;
-		std::unordered_map<UnitId, GameUnit *> unit_table_;
+		const UnitDictionary &unitDefinitions;
+		std::unordered_map<UnitId, std::shared_ptr<GameUnit>> unit_table_;
 		Vector2i map_size_;
     PathFinder *pathfinder;
     int lastUnitId;

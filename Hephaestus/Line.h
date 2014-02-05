@@ -8,6 +8,7 @@ class Line {
     Vector2f Direction() const { return direction; }
     Vector2f Perpendicular() const;
     Vector2f Evaluate(float t) const { return point + t*direction; }
+    float NearestPointParam(const Vector2f &point) const;
 
   private:
     Vector2f point, direction;

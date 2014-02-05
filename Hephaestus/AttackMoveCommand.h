@@ -1,19 +1,18 @@
-#ifndef ATTACK_MOVE_COMMAND_
-#define ATTACK_MOVE_COMMAND_
+#pragma once
 
-#include "Command.h"
+#include "UnitCommand.h"
 
-class AttackMoveCommand : public Command {
+class GameState;
+
+class AttackMoveCommand : public UnitCommand {
 	public:
 		AttackMoveCommand() { }
-		AttackMoveCommand(const Vector2i &location): location_(location) { }
-		~AttackMoveCommand() { }
-		const Vector2i &location() const {return location_;}
-		virtual void Execute(const std::vector<GameUnit> *units) { }
+		AttackMoveCommand(const Vector2f &location): location_(location) { }
+		virtual UnitAction *MakeUnitAction(GameState &gameState) const;
 
 	private:
 		friend class boost::serialization::access;
-		Vector2i location_;
+		Vector2f location_;
 
 		template<class Archive>
 		void serialize(Archive & ar, const unsigned int version) {
@@ -21,5 +20,3 @@ class AttackMoveCommand : public Command {
 			ar & location_;
 		}
 };
-
-#endif

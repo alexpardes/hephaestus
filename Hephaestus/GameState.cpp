@@ -1,7 +1,9 @@
 #include "stdafx.h"
 #include "GameState.h"
-
+#include "Util.h"
 #include "MoveAbility.h"
+#include "AttackAbility.h"
+#include "AttackMoveAbility.h"
 
 const float GameState::kPathingResolution = 25.f;
 const float GameState::kUnitGridResolution = 25.f;
@@ -9,7 +11,7 @@ const float GameState::kUnitGridResolution = 25.f;
 GameState::GameState(const UnitDictionary &unit_dictionary, 
                      const Vector2i &map_size,
                      PathFinder *pathfinder) : 
-    unit_dictionary_(unit_dictionary) {
+    unitDefinitions(unit_dictionary) {
   this->pathfinder = pathfinder;
 	max_unit_radius_ = 0.f;
 	map_size_ = map_size;
@@ -25,9 +27,9 @@ GameState::GameState(const UnitDictionary &unit_dictionary,
 	}
 	unit_grid_width_ = (int) std::ceilf(map_pixel_size.x / kUnitGridResolution);
 	unit_grid_height_ = (int) std::ceilf(map_pixel_size.y / kUnitGridResolution);
-	unit_grid_ = new std::list<GameUnit*>*[unit_grid_width_];
+	unit_grid_ = new std::list<std::shared_ptr<GameUnit>>*[unit_grid_width_];
 	for (int i = 0; i < unit_grid_width_; ++i) {
-		unit_grid_[i] = new std::list<GameUnit*>[unit_grid_height_];
+		unit_grid_[i] = new std::list<std::shared_ptr<GameUnit>>[unit_grid_height_];
 	}
 
   lastUnitId = 0;
@@ -46,11 +48,6 @@ GameState::~GameState() {
 
 	delete[] unit_grid_;
 
-	for (std::list<GameUnit *>::iterator unit = units_.begin();
-			unit != units_.end(); ++unit) {
-		delete *unit;
-	}
-
 	for (std::list<Projectile *>::iterator projectile = projectiles_.begin();
 			projectile != projectiles_.end(); ++projectile) {
 		delete *projectile;
@@ -58,13 +55,14 @@ GameState::~GameState() {
 }
 
 Vector2f GameState::GetUnitPosition(UnitId id) const {
-  return GetUnit(id)->position();
+  return GetUnit(id)->Position();
 }
 
 void GameState::MoveUnit(UnitId id, Vector2f location) {
-  GameUnit *unit = GetUnit(id);
+  std::shared_ptr<GameUnit> unit = GetUnit(id);
+  Vector2f previousPosition = unit->Position();
   unit->SetPosition(Constrain(location));
-  UpdateUnitGrid(*unit);
+  UpdateUnitGrid(unit, previousPosition);
 }
 
 Vector2f GameState::Constrain(Vector2f location) const {
@@ -95,50 +93,77 @@ Vector2i GameState::Constrain(Vector2i location) const {
   return location;
 }
 
+//TODO: remove duplication.
 void GameState::ExecuteTurn() {
-  std::list<GameUnit*>::iterator it = units_.begin();
-  while (it != units_.end()) {
-    (**it++).PerformAction();
+  std::list<Projectile*>::iterator it1 = projectiles_.begin();
+  while (it1 != projectiles_.end()) {
+    Projectile *projectile = *it1++;
+    if (projectile->IsAlive()) {
+      projectile->PerformAction();
+    } else {
+      RemoveProjectile(projectile);
+    }
+  }
+
+  std::list<std::shared_ptr<GameUnit>>::iterator it2 = units_.begin();
+  while (it2 != units_.end()) {
+    std::shared_ptr<GameUnit> unit = *it2++;
+    if (unit->IsAlive()) {
+      unit->PerformAction();
+    } else {
+      RemoveUnit(unit);
+    }
   }
 }
 
 
 void GameState::AddUnit(const std::string &type,
-						PlayerNumber owner,
-						const Vector2f &location,
-						float rotation) {
-	const UnitAttributes &attributes = unit_dictionary_.at(type);
-	GameUnit *unit = new GameUnit(++lastUnitId, attributes, owner, location, rotation);
-  UnitAbility *ability = new MoveAbility(unit, pathfinder, this, attributes.speed());
-  unit->SetAbility(ability);
+                        PlayerNumber owner,
+                        const Vector2f &location,
+                        float rotation) {
+	const UnitAttributes &attributes = unitDefinitions.at(type);
+	std::shared_ptr<GameUnit> unit(new GameUnit(++lastUnitId, attributes, owner, location, rotation));
+
+  // TODO: remove the order dependency.
+  UnitAbility *move = new MoveAbility(unit, pathfinder, this, attributes.speed());
+  unit->AddAbility(move);
+
+  UnitAbility *attack = new AttackAbility(unit, this,
+      attributes.attack_damage(), attributes.attack_speed(), attributes.attack_range());
+  unit->AddAbility(attack);
+
+  UnitAbility *attackMove = new AttackMoveAbility(*unit, *this, 400, 450);
+  unit->AddAbility(attackMove);
 
 	units_.push_back(unit);
-	AddToUnitGrid(*unit);
-	AddToPathingGrid(*unit);
-	if (unit->Attributes().collision_radius() > max_unit_radius_) {
-		max_unit_radius_ = unit->Attributes().collision_radius();
+	AddToUnitGrid(unit);
+	AddToPathingGrid(unit);
+	if (unit->Attributes().CollisionRadius() > max_unit_radius_) {
+		max_unit_radius_ = unit->Attributes().CollisionRadius();
 	}
 	unit_table_[unit->Id()] = unit;
 }
 
-void GameState::RemoveUnit(GameUnit *unit) {
+void GameState::RemoveUnit(std::shared_ptr<GameUnit> unit) {
 	units_.remove(unit);
 	unit_table_.erase(unit->Id());
-	RemoveFromUnitGrid(*unit);
-	RemoveFromPathingGrid(*unit);
-	delete unit;
+	RemoveFromUnitGrid(unit);
+	RemoveFromPathingGrid(unit);
 }
 
-GameUnit *GameState::GetUnit(UnitId id) const {
-	GameUnit *unit = NULL;
+std::shared_ptr<GameUnit> GameState::GetUnit(UnitId id) const {
+	std::shared_ptr<GameUnit> unit = NULL;
 	if (unit_table_.count(id)) unit = unit_table_.at(id);
 	return unit;
 }
 
-void GameState::AddProjectile(const Vector2f &location,
-							  GameUnit *target,
-							  float damage) {
-	Projectile *projectile = new Projectile(location, target, damage);
+void GameState::AddProjectile(const std::string &name,
+                              const Vector2f &location,
+                              std::shared_ptr<GameUnit> target,
+                              float damage,
+                              float speed) {
+	Projectile *projectile = new Projectile(name, location, target,
+      damage, speed);
 	projectiles_.push_back(projectile);
 }
 
@@ -153,42 +178,45 @@ void GameState::RemoveProjectile(Projectile *projectile) {
 	}
 }
 
-void GameState::AddToUnitGrid(GameUnit &unit) {
-	int x = (int) (unit.position().x / kUnitGridResolution);
-	int y = (int) (unit.position().y / kUnitGridResolution);
-	unit_grid_[x][y].push_back(&unit);
-	unit.set_unit_grid_x(x);
-	unit.set_unit_grid_y(y);
+void GameState::AddToUnitGrid(std::shared_ptr<GameUnit> unit) {
+	int x = (int) (unit->Position().x / kUnitGridResolution);
+	int y = (int) (unit->Position().y / kUnitGridResolution);
+	unit_grid_[x][y].push_back(unit);
 }
 
-void GameState::RemoveFromUnitGrid(GameUnit &unit) {
-	int x = unit.unit_grid_x();
-	int y = unit.unit_grid_y();
-	for (std::list<GameUnit*>::iterator i =
+void GameState::RemoveFromUnitGrid(const std::shared_ptr<GameUnit> unit) {
+  RemoveFromUnitGrid(unit, unit->Position());
+}
+
+void GameState::RemoveFromUnitGrid(const std::shared_ptr<GameUnit> unit, const Vector2f &position) {
+	int x = int(position.x / kUnitGridResolution);
+	int y = int(position.y / kUnitGridResolution);
+	for (std::list<std::shared_ptr<GameUnit>>::iterator i =
 			unit_grid_[x][y].begin();
 			i != unit_grid_[x][y].end();
 			++i) {
-		if (*i == &unit) {
+		if (*i == unit) {
 			unit_grid_[x][y].erase(i);
 			break;
 		}
 	}
 }
 
-void GameState::UpdateUnitGrid(GameUnit &unit) {
-	int prev_x = unit.unit_grid_x();
-	int prev_y = unit.unit_grid_y();
-	int x = (int) (unit.position().x / kUnitGridResolution);
-	int y = (int) (unit.position().y / kUnitGridResolution);
-	if (x != unit.unit_grid_x() || y != unit.unit_grid_y()) {
-		RemoveFromUnitGrid(unit);
+void GameState::UpdateUnitGrid(std::shared_ptr<GameUnit> unit,
+                               const Vector2f &previousPosition) {
+	int prevX = int(previousPosition.x / kUnitGridResolution);
+	int prevY = int(previousPosition.y / kUnitGridResolution);
+	int x = (int) (unit->Position().x / kUnitGridResolution);
+	int y = (int) (unit->Position().y / kUnitGridResolution);
+	if (x != prevX || y != prevY) {
+		RemoveFromUnitGrid(unit, previousPosition);
 		AddToUnitGrid(unit);
 	}
 }
 
-std::vector<GameUnit *> GameState::GetUnitsInRectangle(const Vector2f &corner1,
+std::vector<std::shared_ptr<GameUnit> > GameState::GetUnitsInRectangle(const Vector2f &corner1,
 		const Vector2f &corner2) const {
-	std::vector<GameUnit *> units;
+	std::vector<std::shared_ptr<GameUnit> > units;
 	int margin = int(max_unit_radius_ / kUnitGridResolution + 1);
 	float left = std::min(corner1.x, corner2.x);
 	float right = std::max(corner1.x, corner2.x);
@@ -204,13 +232,13 @@ std::vector<GameUnit *> GameState::GetUnitsInRectangle(const Vector2f &corner1,
 	if (end_y >= unit_grid_height_) end_y = unit_grid_height_ - 1;
 	for (int i = start_x; i <= end_x; ++i) {
 		for (int j = start_y; j <= end_y; ++j) {
-			for (std::list<GameUnit*>::iterator unit =
+			for (std::list<std::shared_ptr<GameUnit>>::iterator unit =
 					unit_grid_[i][j].begin();
 					unit != unit_grid_[i][j].end();
 					++unit) {
 				float r = (*unit)->Attributes().selection_radius();
-				float x = (*unit)->position().x;
-				float y = (*unit)->position().y;
+				float x = (*unit)->Position().x;
+				float y = (*unit)->Position().y;
 				if (x + r >= left && x - r <= right &&
 						y + r >= top && y - r <= bottom) {
 					units.push_back(*unit);
@@ -221,9 +249,9 @@ std::vector<GameUnit *> GameState::GetUnitsInRectangle(const Vector2f &corner1,
 	return units;
 }
 
-std::vector<GameUnit *> GameState::GetUnitsInCircle(const Vector2f &center,
+std::vector<std::shared_ptr<GameUnit>> GameState::GetUnitsInCircle(const Vector2f &center,
 		float radius) const {
-	std::vector<GameUnit *> units;
+	std::vector<std::shared_ptr<GameUnit>> units;
 	float effectiveRadius = radius + max_unit_radius_;
 
   Vector2i topLeft;
@@ -240,11 +268,11 @@ std::vector<GameUnit *> GameState::GetUnitsInCircle(const Vector2f &center,
 
   for (int i = topLeft.x; i <= bottomRight.x; ++i) {
     for (int j = topLeft.y; j <= bottomRight.y; ++j) {
-			for (std::list<GameUnit *>::iterator unit =
+			for (std::list<std::shared_ptr<GameUnit>>::iterator unit =
 					unit_grid_[i][j].begin();
 					unit != unit_grid_[i][j].end();
 					++unit) {
-				float distance = Util::Distance((*unit)->position(), center);
+				float distance = Util::Distance((*unit)->Position(), center);
 				if (distance <= effectiveRadius) {
 					units.push_back(*unit);
 				}
@@ -273,27 +301,27 @@ GameState::GetWallsInRectangle(const Rect &rectangle) const {
   return walls;
 }
 
-void GameState::AddToPathingGrid(const GameUnit &unit) {
+void GameState::AddToPathingGrid(const std::shared_ptr<GameUnit> unit) {
 	AdjustPathingGrid(unit, 1);
 }
 
-void GameState::RemoveFromPathingGrid(const GameUnit &unit) {
+void GameState::RemoveFromPathingGrid(const std::shared_ptr<GameUnit> unit) {
 	AdjustPathingGrid(unit, -1);
 }
 
-void GameState::AdjustPathingGrid(const GameUnit &unit, int value) {
-	int center_x = (int) (unit.position().x / kPathingResolution);
-	int center_y = (int) (unit.position().y / kPathingResolution);
-	int start_x = (int) ((unit.position().x -
-			unit.Attributes().collision_radius()) /	kPathingResolution);
-	int end_x =	(int) ((unit.position().x +
-			unit.Attributes().collision_radius()) / kPathingResolution);
-	int start_y = (int) ((unit.position().y -
-			unit.Attributes().collision_radius()) / kPathingResolution);
-	int end_y =	(int) ((unit.position().y +
-			unit.Attributes().collision_radius()) / kPathingResolution);
-	float radius2 = unit.Attributes().collision_radius() *
-			unit.Attributes().collision_radius();
+void GameState::AdjustPathingGrid(const std::shared_ptr<GameUnit> unit, int value) {
+	int center_x = (int) (unit->Position().x / kPathingResolution);
+	int center_y = (int) (unit->Position().y / kPathingResolution);
+	int start_x = (int) ((unit->Position().x -
+			unit->Attributes().CollisionRadius()) /	kPathingResolution);
+	int end_x =	(int) ((unit->Position().x +
+			unit->Attributes().CollisionRadius()) / kPathingResolution);
+	int start_y = (int) ((unit->Position().y -
+			unit->Attributes().CollisionRadius()) / kPathingResolution);
+	int end_y =	(int) ((unit->Position().y +
+			unit->Attributes().CollisionRadius()) / kPathingResolution);
+	float radius2 = unit->Attributes().CollisionRadius() *
+			unit->Attributes().CollisionRadius();
 	for (int i = start_x; i <= end_x; ++i) {
 		if (i == center_x) {
 			for (int j = start_y; j <= end_y; ++j) {
@@ -309,7 +337,7 @@ void GameState::AdjustPathingGrid(const GameUnit &unit, int value) {
 					float y_coord = kPathingResolution * j;
 					if (j < center_y) y_coord += kPathingResolution;
 					if (Util::Distance2(Vector2f(x_coord, y_coord),
-										unit.position()) <= radius2) {
+										unit->Position()) <= radius2) {
 						pathing_grid_[i][j] += value;
 					}
 				}
@@ -336,7 +364,7 @@ void GameState::AddTerrain(const Vector2f &top_left,
 }
 
 Vector2i GameState::GetTile(UnitId id) const {
-  return GetTile(GetUnit(id)->position());
+  return GetTile(GetUnit(id)->Position());
 }
 
 Vector2i GameState::GetTile(const Vector2f &gameLocation) const {
@@ -362,7 +390,7 @@ GameScene::GameScene(GameState &game_state) {
 	}
 
 	max_unit_radius_ = 0;
-	for (std::list<GameUnit *>::const_iterator unit_iterator =
+	for (std::list<std::shared_ptr<GameUnit>>::const_iterator unit_iterator =
 			game_state.units().begin();
 			unit_iterator != game_state.units().end();
 			++unit_iterator) {
@@ -377,19 +405,21 @@ GameScene::GameScene(GameState &game_state) {
 	}
 }
 
+
+// TODO: remove duplicated code.
 GameScene::GameScene(GameScene &scene1,
 					 GameScene &scene2,
 					 float weight) {
 	unit_grid_width_ = scene1.unit_grid_width_;
 	unit_grid_height_ = scene2.unit_grid_height_;
-	unit_grid_ = new std::list<const UnitModel *> *[unit_grid_width_];
+	unit_grid_ = new std::list<const UnitModel*> *[unit_grid_width_];
 	for (int i = 0; i < unit_grid_width_; ++i) {
-		unit_grid_[i] = new std::list<const UnitModel *>[unit_grid_height_];
+		unit_grid_[i] = new std::list<const UnitModel*>[unit_grid_height_];
 	}
 	max_unit_radius_ = 0;
-	std::list<UnitModel *>::const_iterator unit_iterator1 =
+	std::list<UnitModel*>::const_iterator unit_iterator1 =
 			scene1.units().begin();
-	std::list<UnitModel *>::const_iterator unit_iterator2 =
+	std::list<UnitModel*>::const_iterator unit_iterator2 =
 			scene2.units().begin();
 	while (unit_iterator1 != scene1.units().end()) {
 		UnitModel &unit1 = **unit_iterator1;

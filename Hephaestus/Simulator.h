@@ -14,7 +14,7 @@ class Simulator {
 
 	private:
 		GameState &game_state_;
-		void ProcessUnits(const std::list<GameUnit *> &units);
+		void ProcessUnits(const std::list<std::shared_ptr<GameUnit> > &units);
 		void ProcessProjectiles(const std::list<Projectile *> &projectiles);
 		const float timestep_;
 		Pathfinder pathfinder_;

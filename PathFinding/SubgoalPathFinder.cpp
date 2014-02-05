@@ -1,16 +1,19 @@
 #include "SubgoalPathFinder.h"
 #include <queue>
-#include <boost/unordered_set.hpp>
+#include <unordered_set>
 #include <Hephaestus/Vector2.h>
 #include <Hephaestus/Util.h>
+#include <Hephaestus/Waypoint.h>
 #include "GridRegion.h"
 #include "Subgoal.h"
 
 SubgoalPathFinder::SubgoalPathFinder(
     const PathingGrid *grid,
+    const Vector2f &tileSize,
     const std::vector<Subgoal*> &subgoals,
     const std::vector<const std::vector<int>> &adjacencyLists) : grid(grid) {
 
+  this->tileSize = tileSize;
   this->subgoals = subgoals;
 
   for (int i = 0; i < subgoals.size(); ++i) {
@@ -93,14 +96,24 @@ std::vector<Subgoal*> SubgoalPathFinder::GetDirectSubgoals(const Vector2i &p) {
   return result;
 }
 
+Vector2i SubgoalPathFinder::GetTile(const Vector2f &position) {
+  Vector2i result;
+  result.x = int(position.x / tileSize.x);
+  result.y = int(position.y / tileSize.y);
+  return result;
+}
+
 // Adds the start and end points to the subgoal graph, and then A* searches through it.
 // Returns an empty path if no path exists. Returns the endpoint if start and
 // end are directly connected.
-std::vector<Subgoal*> SubgoalPathFinder::GetPath(const Vector2i &start,
-                                                 const Vector2i &end) {
+std::vector<Waypoint*> SubgoalPathFinder::GetPath(const Vector2f &startpoint,
+                                                 const Vector2f &endpoint) {
 
-  boost::unordered_set<Vector2i, Vector2iHash> endGoals;
-  boost::unordered_set<Vector2i, Vector2iHash> visitedList;
+  std::unordered_set<Vector2i, Vector2iHash> endGoals;
+  std::unordered_set<Vector2i, Vector2iHash> visitedList;
+
+  // Keeps track of all the nodes created so we can delete them.
+  std::vector<SearchNode*> usedNodes;
 
   std::priority_queue<SearchNode*,
                       std::vector<SearchNode*>,
@@ -108,15 +121,21 @@ std::vector<Subgoal*> SubgoalPathFinder::GetPath(const Vector2i &start,
 
   // We search from end to start so that when we trace back the path, it is
   // already in the correct order.
-  // TODO: fix memory leaks
-  std::vector<Subgoal*> startSubgoals = GetDirectSubgoals(end);
-  Subgoal *startGoal = new Subgoal(end, Vector2i(0, 0));
-  SearchNode *startNode = new SearchNode(NULL, startGoal, start);
+  Vector2i start = GetTile(endpoint);
+  Vector2i end = GetTile(startpoint);
+
+  std::vector<Subgoal*> startSubgoals = GetDirectSubgoals(start);
+  Subgoal *startGoal = new Subgoal(start, Vector2i(0, 0));
+
+  SearchNode *startNode = new SearchNode(NULL, startGoal, end);
+  usedNodes.push_back(startNode);
   for (int i = 0; i < startSubgoals.size(); ++i) {
-    openList.push(new SearchNode(startNode, startSubgoals.at(i), start));
+    SearchNode *node = new SearchNode(startNode, startSubgoals.at(i), end);
+    openList.push(node);
+    usedNodes.push_back(node);
   }
 
-  std::vector<Subgoal*> endSubgoals = GetDirectSubgoals(start);
+  std::vector<Subgoal*> endSubgoals = GetDirectSubgoals(end);
   for (int i = 0; i < endSubgoals.size(); ++i) { 
     endGoals.insert(endSubgoals.at(i)->Point());
   }
@@ -141,25 +160,35 @@ std::vector<Subgoal*> SubgoalPathFinder::GetPath(const Vector2i &start,
     for (int i = 0; i < subgoal->AdjacencyList().size(); ++i) {
       Subgoal *neighbor = subgoal->AdjacencyList().at(i);
       if (!visitedList.count(neighbor->Point())) {
-        openList.push(new SearchNode(node, neighbor, start));
+        SearchNode *neighborNode = new SearchNode(node, neighbor, end);
+        openList.push(neighborNode);
+        usedNodes.push_back(neighborNode);
       }
     }
   }
 
-  std::vector<Subgoal*> path;
+  std::vector<Waypoint*> path;
 
-  if (AreDirectlyConnected(start, end) && (!endNode ||
-      endNode->MinDist() > PathingGrid::OctileDistance(start, end))) {
-    path.push_back(new Subgoal(end, Vector2i(0, 0)));
+  if (AreDirectlyConnected(end, start) && (!endNode ||
+      endNode->MinDist() > PathingGrid::OctileDistance(end, start))) {
+    path.push_back(new Waypoint(endpoint));
   } else {
     while (endNode) {
-      path.push_back(endNode->GetSubgoal());
       SearchNode *parent = endNode->Parent();
+      if (parent) {
+        path.push_back(new Waypoint(endNode->GetSubgoal(), tileSize));
+      } else {
+        path.push_back(new Waypoint(endpoint));
+      }
       endNode = parent;
     }
   }
 
   delete startGoal;
+  for (SearchNode *node : usedNodes) {
+    delete node;
+  }
+
   return path;
 }
 

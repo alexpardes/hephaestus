@@ -6,7 +6,7 @@
 
 typedef std::unordered_map<std::string, sf::Texture> ImageDictionary;
 typedef std::unordered_map<std::string, bool> BoolDictionary;
-typedef unsigned char terrainId;
+typedef unsigned char TerrainId;
 
 class PathFinder;
 
@@ -15,8 +15,9 @@ class ResourceManager {
 		GameState *LoadMap(const std::string &filename);
 		const sf::Texture &GetImage(const std::string &name,
 				PlayerNumber owner) const;
-		const sf::Texture &GetImage(terrainId) const;
-		const std::vector<std::vector<terrainId>> &GetTerrain() const {
+		const sf::Texture &GetImage(TerrainId id) const;
+    const sf::Texture &GetImage(const std::string &name) const;
+		const std::vector<std::vector<TerrainId>> &GetTerrain() const {
 			return terrain_;
 		}
 		Vector2i GetMapSize() const {
@@ -35,9 +36,10 @@ class ResourceManager {
 		UnitDictionary unit_dictionary_;
 		std::vector<std::string> tile_table_;
 		ImageDictionary unit_images_;
+    ImageDictionary projectileImages;
 		ImageDictionary terrain_images_;
 		BoolDictionary traversability_;
-		std::vector<std::vector<terrainId>> terrain_;
+		std::vector<std::vector<TerrainId>> terrain_;
 };
 
 #endif

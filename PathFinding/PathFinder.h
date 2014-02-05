@@ -3,6 +3,7 @@
 #include <Hephaestus/Vector2.h>
 
 class Subgoal;
+class Waypoint;
 
 class PathingGrid {
   public:
@@ -21,8 +22,8 @@ class PathingGrid {
 
 class PathFinder {
   public:
-    virtual std::vector<Subgoal*> GetPath(const Vector2i &start,
-        const Vector2i &end) = 0;
+    virtual std::vector<Waypoint*> GetPath(const Vector2f &startpoint,
+        const Vector2f &endpoint) = 0;
     virtual ~PathFinder() { }
     virtual const PathingGrid *GetPathingGrid() const = 0;
 };

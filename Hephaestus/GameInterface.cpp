@@ -22,9 +22,9 @@ Command *GameInterface::ProcessEvent(const sf::Event &event) {
 						case kAttack:
 							const UnitModel *unit = GetUnit(location);
 							if (unit) {
-								//command = new AttackCommand(unit->id());
+								command = new AttackCommand(unit->id());
 							} else {
-								//command = new AttackMoveCommand(location);
+								command = new AttackMoveCommand(Util::GetVector2f(location));
 							}
 							cursor_action_ = kSelect;
 							break;
@@ -34,7 +34,7 @@ Command *GameInterface::ProcessEvent(const sf::Event &event) {
 					if (cursor_action_ == kSelect) {
 						const UnitModel *unit = GetUnit(location);
 						if (unit && unit->owner() != player_) {
-							//command = new AttackCommand(unit->id());
+							command = new AttackCommand(unit->id());
 						} else {
 							command = new MoveCommand(Util::GetVector2f(location));
 						}
@@ -58,8 +58,8 @@ Command *GameInterface::ProcessEvent(const sf::Event &event) {
 						selected_unit_ids_.clear();
             std::vector<UnitId> ids = GetUnitIds(selection_corner1_,
 								selection_corner2_);
-            for (size_t i = 0; i < ids.size(); ++i) {
-              selected_unit_ids_.push_back(ids[i]);
+            for (UnitId id : ids) {
+              selected_unit_ids_.push_back(id);
             }
 						command = new SelectCommand(ids);
 						is_selecting_ = false;
@@ -126,13 +126,13 @@ void GameInterface::MoveScreen(float time_step) {
 	//	The last term is to account for the UI size.
 	Vector2f bottom_right = map_size_ - screen_size_ + Vector2f(0.f, 200.f);
 	screen_position_.x += horizontal_move;
-	if (screen_position_.x < 0.f) {
+	if (screen_position_.x <= 0.f) {
 		screen_position_.x = 0.f;
 	} else if (screen_position_.x > bottom_right.x) {
 		screen_position_.x = bottom_right.x;
 	}
 	screen_position_.y += vertical_move;
-	if (screen_position_.y < 0.f) {
+	if (screen_position_.y <= 0.f) {
 		screen_position_.y = 0.f;
 	} else if (screen_position_.y > bottom_right.y) {
 		screen_position_.y = bottom_right.y;
