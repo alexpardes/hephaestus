@@ -4,6 +4,7 @@
 #include "Networking.h"
 #include "Players.h"
 #include "ResourceManager.h"
+#include <mutex>
 
 enum GameType {kSinglePlayer, kHost, kJoin};
 
@@ -14,7 +15,7 @@ class GameManager {
 		void HostGame(int port);
 		void JoinGame(const std::string &hostname, const std::string &port);
 		void BufferCommand(const Command *command);
-		void InitializeGame();
+		void SetGameState(GameState *state);
 		void EndGame() {is_running_ = false;}
 
 		float GetFrameTime() {

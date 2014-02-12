@@ -4,19 +4,21 @@
 
 const float GameInterface::kScrollSpeed = 500.f;
 
-Command *GameInterface::ProcessEvent(const sf::Event &event) {
-	Vector2i location;
+Command *GameInterface::ProcessEvent(const sf::Event &event,
+                                     const sf::RenderWindow &window) {
+	Vector2f location;
 	Command *command = NULL;
 	switch (event.type) {
-		case sf::Event::MouseButtonPressed:
-			location = GetGameLocation(Vector2i(event.mouseButton.x,
-					event.mouseButton.y));
+		case sf::Event::MouseButtonPressed: {
+			Vector2i mouseLocation = Vector2i(event.mouseButton.x,
+					event.mouseButton.y);
+      location = GetGameLocation(window.mapPixelToCoords(mouseLocation));
 			switch (event.mouseButton.button) {
 				case sf::Mouse::Left:
 					switch (cursor_action_) {
 						case kSelect:
-							selection_corner1_ = Util::GetVector2f(location);
-							selection_corner2_ = Util::GetVector2f(location);
+							selection_corner1_ = location;
+							selection_corner2_ = location;
 							is_selecting_ = true;
 							break;
 						case kAttack:
@@ -24,7 +26,7 @@ Command *GameInterface::ProcessEvent(const sf::Event &event) {
 							if (unit) {
 								command = new AttackCommand(unit->id());
 							} else {
-								command = new AttackMoveCommand(Util::GetVector2f(location));
+								command = new AttackMoveCommand(location);
 							}
 							cursor_action_ = kSelect;
 							break;
@@ -36,7 +38,7 @@ Command *GameInterface::ProcessEvent(const sf::Event &event) {
 						if (unit && unit->owner() != player_) {
 							command = new AttackCommand(unit->id());
 						} else {
-							command = new MoveCommand(Util::GetVector2f(location));
+							command = new MoveCommand(location);
 						}
 					} else {
 						cursor_action_ = kSelect;
@@ -44,13 +46,16 @@ Command *GameInterface::ProcessEvent(const sf::Event &event) {
 					break;
 			}
 			break;
-		case sf::Event::MouseMoved:
+    }
+		case sf::Event::MouseMoved: {
 			if (is_selecting_) {
-				location = GetGameLocation(Vector2i(event.mouseMove.x,
-						event.mouseMove.y));
-				selection_corner2_ = Util::GetVector2f(location);
+        Vector2i mouseLocation = Vector2i(event.mouseMove.x,
+            event.mouseMove.y);
+        location = GetGameLocation(window.mapPixelToCoords(mouseLocation));
+				selection_corner2_ = location;
 			}
 			break;
+    }
 		case sf::Event::MouseButtonReleased:
 			switch (event.mouseButton.button) {
 				case sf::Mouse::Left:
@@ -169,11 +174,10 @@ const sf::Drawable *GameInterface::GetInterfaceGrahic() const {
 	return &interface_graphic_;
 }
 
-const UnitModel *GameInterface::GetUnit(const Vector2i &location) const {
+const UnitModel *GameInterface::GetUnit(const Vector2f &location) const {
 	const UnitModel *unit = NULL;
-	Vector2f location_f = Util::GetVector2f(location);
 	std::vector<const UnitModel *> units = game_scene_->
-			GetUnitsInRectangle(location_f, location_f);
+			GetUnitsInRectangle(location, location);
 	if (units.size()) {
 		unit = units.front();
 	}

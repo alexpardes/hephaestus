@@ -3,6 +3,7 @@
 
 #include "GameState.h"
 #include "GameUnit.h"
+#include <json/json.h>
 
 typedef std::unordered_map<std::string, sf::Texture> ImageDictionary;
 typedef std::unordered_map<std::string, bool> BoolDictionary;

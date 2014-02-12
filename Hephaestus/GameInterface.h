@@ -27,7 +27,7 @@ class GameInterface {
 			interface_graphic_.setFillColor(sf::Color(255, 255, 255, 255));
 			game_scene_ = NULL;
 		}
-		Command *ProcessEvent(const sf::Event &event);
+		Command *ProcessEvent(const sf::Event &event, const sf::RenderWindow &window);
 		void MoveScreen(float time_step);
 
 		CommandTurn TakeCommands() {
@@ -54,7 +54,7 @@ class GameInterface {
 		void DeselectDeadUnits();
 
 	private:
-		const UnitModel *GetUnit(const Vector2i &location) const;
+		const UnitModel *GetUnit(const Vector2f &location) const;
 		const std::vector<UnitId> GetUnitIds(const Vector2f &location1,
 				const Vector2f &location2) const;
 		Vector2i selection_corner1() const {return Util::GetVector2i(selection_corner1_);}

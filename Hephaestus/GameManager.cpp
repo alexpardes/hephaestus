@@ -12,8 +12,8 @@ GameManager::GameManager(ResourceManager &resource_manager,
 		players_(NULL),
 		turn_delay_(1) { }
 
-void GameManager::InitializeGame() {
-	game_state_ = resource_manager_.LoadMap("default.map");
+void GameManager::SetGameState(GameState *state) {
+	game_state_ = state;
   players_ = new Players(*game_state_);
 	last_scene_ = new GameScene(*game_state_);
 }
