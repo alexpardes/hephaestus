@@ -1,6 +1,6 @@
 #pragma once
 #include "Vector2.h"
-#include <list>
+#include <map>
 #include "Util.h"
 
 class SectorMap {
@@ -17,62 +17,85 @@ class SectorMap {
     void SetCenter(const Vector2f& center) { this->center = center; }
 
   private:
-    struct Sector;
-    void Remove(Sector* sector);
+    class Sector;
+    //void Remove(Sector* sector);
     Sector* GetSector(float angle);
     const Sector* GetSector(float angle) const;
     float GetSectorDepth(float angle) const;
 
-    // Arbitrary start element in circular list.
-    // TODO: use a tree instead of a linked list.
-    Sector* headSector;
+    std::map<float, float> tree;
     Vector2f center;
 };
 
-struct SectorMap::Sector {
-    Sector(float startAngle, float depth) :
-        startAngle(startAngle), depth(depth) {    
-      next = this;
-      prev = this;
-    }
-    
-    Sector(const Sector& sector) {
-      startAngle = sector.startAngle;
-      depth = sector.depth;
-      next = this;
-      prev = this;
+class SectorMap::Sector {
+  public:
+    Sector(std::map<float, float>* tree) {
+      this->tree = tree;
+      tree->insert(std::pair<float, float>(0.f, FLT_MAX));
+      leaf = tree->begin();
     }
 
-    float StartAngle() const { return startAngle; }
-    float EndAngle() const { return next->startAngle; }
+    Sector(std::map<float, float>* tree, std::map<float, float>::iterator leaf) {
+      this->tree = tree;
+      this->leaf = leaf;
+    }
+
+    void PreInsert(float startAngle, float depth) {
+      std::map<float, float>::iterator it;
+      if (leaf == tree->begin() && startAngle > StartAngle()) {
+        it = tree->end();
+      } else {
+        it = leaf;
+      }
+
+      tree->insert(it, std::pair<float, float>(startAngle, depth));
+    }
+
+    void PostInsert(float startAngle, float depth) {
+      Next()->PreInsert(startAngle, depth);
+    }
+
+    float StartAngle() const { return leaf->first; }
+    float EndAngle() const { return Next()->StartAngle(); }
+    float Depth() const { return leaf->second; }
+
+    void SetDepth(float depth) { leaf->second = depth; }
 
     bool ContainsAngle(float angle) const {
       return Util::IsBetweenAngles(angle, StartAngle(), EndAngle());
     }
 
-    void Clear() {
-      prev = this;
-      next = this;
-      depth = FLT_MAX;
+    const Sector* Next() const {
+      std::map<float, float>::iterator nextLeaf;
+      if (std::next(leaf) == tree->end()) {
+        nextLeaf = tree->begin();
+      } else {
+        nextLeaf = std::next(leaf);
+      }
+
+      return new Sector(tree, nextLeaf);
     }
 
-    void PreInsert(Sector* sector) {
-      sector->prev = prev;
-      sector->next = this;
-      prev->next = sector;
-      prev = sector;
+    Sector* Next() {
+      return const_cast<Sector*>(const_cast<const Sector*>(this)->Next());
     }
 
-    void PostInsert(Sector* sector) {
-      next->PreInsert(sector);
+    const Sector* Prev() const {
+      std::map<float, float>::iterator prevLeaf;
+      if (leaf == tree->begin()) {
+        prevLeaf = std::prev(tree->end());
+      } else {
+        prevLeaf = std::prev(leaf);
+      }
+
+      return new Sector(tree, prevLeaf);
     }
 
-    bool IsContainedIn(float angle1, float angle2) const {
-      return Util::IsBetweenAngles(startAngle, angle1, angle2)
-          && Util::IsBetweenAngles(EndAngle(), angle1, angle2);
+    Sector* Prev() {
+      return const_cast<Sector*>(const_cast<const Sector*>(this)->Prev());
     }
 
-    Sector* prev;
-    Sector* next;
-    float startAngle, depth;
+  private:
+    std::map<float, float>* tree;
+    std::map<float, float>::iterator leaf;
 };

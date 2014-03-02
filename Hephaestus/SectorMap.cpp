@@ -3,28 +3,16 @@
 #include "Util.h"
 
 SectorMap::SectorMap() {
-  headSector = new Sector(0.f, FLT_MAX);
   Clear();
 }
 
 SectorMap::SectorMap(const Vector2f& center) : center(center) {
-  headSector = new Sector(0.f, FLT_MAX);
   Clear();
 }
 
 SectorMap::SectorMap(const SectorMap& map) {
   center = map.center;
-
-  Sector* startSector = map.headSector;
-  headSector = new Sector(*startSector);
-
-  Sector* otherSector = startSector->next;
-  Sector* copiedSector = headSector;
-  while (otherSector != startSector) {
-    copiedSector->PostInsert(new Sector(*otherSector));
-    copiedSector = copiedSector->next;
-    otherSector = otherSector->next;
-  }
+  tree = map.tree;
 }
 
 bool SectorMap::Contains(const Vector2f& point) const {
@@ -34,18 +22,8 @@ bool SectorMap::Contains(const Vector2f& point) const {
 }
 
 void SectorMap::Clear() {
-  headSector->Clear();  
-}
-
-void SectorMap::Remove(Sector* sector) {
-  sector->next->prev = sector->prev;
-  sector->prev->next = sector->next;
-
-  if (sector == headSector) {
-    headSector = sector->next;
-  }
-
-  delete sector;
+  tree.clear();
+  Sector sector(&tree);
 }
 
 
@@ -58,25 +36,25 @@ void SectorMap::Add(float startAngle, float endAngle, float depth) {
   bool containsNewSector = Util::IsBetweenAngles(endAngle,
       startSector->StartAngle(), startSector->EndAngle());
 
-  float originalDepth = startSector->depth;
+  float originalDepth = startSector->Depth();
   if (depth < originalDepth) {
     Sector* newSector = nullptr;
-    if (startAngle != startSector->startAngle) {
-      newSector = new Sector(startAngle, depth);
-      startSector->PostInsert(newSector);
+    if (startAngle != startSector->StartAngle()) {
+      startSector->PostInsert(startAngle, depth);
+      newSector = startSector->Next();
     } else {
       newSector = startSector;
-      newSector->depth = depth;
+      newSector->SetDepth(depth);
     }
 
     // Creates a new sector representing the remainder of the start sector.
     if (containsNewSector) {
-      newSector->PostInsert(new Sector(endAngle, originalDepth));
+      newSector->PostInsert(endAngle, originalDepth);
     } else {
-      nextSector = newSector->next;
+      nextSector = newSector->Next();
     }
   } else {
-    nextSector = startSector->next;
+    nextSector = startSector->Next();
   }
 
   if (!containsNewSector) {
@@ -87,24 +65,21 @@ void SectorMap::Add(float startAngle, float endAngle, float depth) {
 }
 
 SectorMap::Sector* SectorMap::GetSector(float angle) {  
-  Sector* sector = headSector;
-  while (!sector->ContainsAngle(angle)) {
-    sector = sector->next;
-    assert(sector != headSector);
+  std::map<float, float>::iterator it = tree.upper_bound(angle);
+  if (it == tree.end()) {
+    it = tree.begin();
   }
+  Sector* sector = Sector(&tree, it).Prev();
+
   return sector;
 }
 
-// TODO: figure out how to merge with non-const version.
 const SectorMap::Sector* SectorMap::GetSector(float angle) const {
-  Sector* sector = headSector;
-  while (!sector->ContainsAngle(angle)) {
-    sector = sector->next;
-    assert(sector != headSector);
-  }
-  return sector;
+  // Because the non-const version should not modify anything, this should be
+  // safe.
+  return const_cast<SectorMap*>(this)->GetSector(angle);
 }
 
 float SectorMap::GetSectorDepth(float angle) const {
-  return GetSector(angle)->depth;
+  return GetSector(angle)->Depth();
 }
