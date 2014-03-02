@@ -17,6 +17,8 @@ class DirectedSegment {
     float CollisionDistance(const LineSegment &segment, float radius) const;
     Vector2f Start() const { return start; }
     Vector2f End() const { return start + length*direction; }
+    float Length() const { return length; }
+    void Resize(float newLength) { length = newLength; }
 
   private:
     Vector2f start, direction;

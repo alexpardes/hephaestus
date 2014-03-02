@@ -6,6 +6,7 @@
 #include "Vector2.h"
 #include "GameObject.h"
 #include "UnitAttributes.h"
+#include "SectorMap.h"
 
 class UnitAction;
 class UnitAbility;
@@ -24,6 +25,9 @@ class GameUnit : public GameObject {
 		static std::vector<Vector2i> pathing_offsets(int x, int y) {
 			return pathing_offsets_[3*x + y + 4];
 		}
+
+    SectorMap& SightMap() { return sightMap; }
+    const SectorMap& SightMap() const { return sightMap; }
 
 		void modify_health(float health) {
 			current_health_ += health;
@@ -51,6 +55,7 @@ class GameUnit : public GameObject {
 
 	private:
 		bool is_alive_;
+    SectorMap sightMap;
 		static std::vector<Vector2i>* pathing_offsets_;
 		float current_health_;
 		UnitId id_;
@@ -72,9 +77,11 @@ class UnitModel {
 		void set_position(const Vector2f &position) {position_ = position;}
 		void set_rotation(float rotation) {rotation_ = rotation;}
 		float rotation() const {return rotation_;}
-		PlayerNumber owner() const {return owner_;}
+		PlayerNumber Owner() const {return owner_;}
 		const std::string &Name() const {return name;}
-		int id() const {return id_;}
+		int Id() const {return id_;}
+    void SetSightMap(SectorMap* map) { sightMap = map; }
+    const SectorMap* SightMap() const { return sightMap; }
 
 	private:
 		Vector2f position_;
@@ -84,4 +91,5 @@ class UnitModel {
 		int id_;
 		PlayerNumber owner_;
 		std::string name;
+    SectorMap* sightMap;
 };

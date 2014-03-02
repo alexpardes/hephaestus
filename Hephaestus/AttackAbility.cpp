@@ -3,6 +3,7 @@
 #include "GameState.h"
 #include "Util.h"
 #include "MoveAbility.h"
+#include <Scripting/LuaUtilities.h>
 
 AttackAbility::AttackAbility(std::shared_ptr<GameUnit> owner,
                              GameState *gameState,
@@ -16,10 +17,11 @@ AttackAbility::AttackAbility(std::shared_ptr<GameUnit> owner,
 }
 
 void AttackAbility::Execute() {
+
   std::shared_ptr<GameUnit> unit = gameState->GetUnit(target);
   if (!unit) return;
 
-  if (IsInRange()) {
+  if (IsInRange() && IsUnobstructed()) {
     owner->SetRotation(Util::FindAngle(unit->Position()
       - owner->Position()));
 
@@ -44,4 +46,14 @@ bool AttackAbility::IsInRange() const {
     }
   }
   return result;
+}
+
+bool AttackAbility::IsUnobstructed() const {
+  std::shared_ptr<GameUnit> unit = gameState->GetUnit(target);
+  float distanceToTarget = Util::Distance(owner->Position(), unit->Position())
+      - unit->Attributes().CollisionRadius();
+  float distanceToObstacle = gameState->DistanceToObstacle(*owner,
+      unit->Position(), 0.f);
+  float tolerance = 0.01f;
+  return distanceToObstacle >= distanceToTarget - tolerance;
 }

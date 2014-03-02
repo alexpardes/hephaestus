@@ -4,6 +4,7 @@
 #include "MoveAbility.h"
 #include "AttackAbility.h"
 #include "AttackMoveAbility.h"
+#include "SectorMap.h"
 
 const float GameState::kPathingResolution = 25.f;
 const float GameState::kUnitGridResolution = 25.f;
@@ -13,6 +14,7 @@ GameState::GameState(const UnitDictionary &unit_dictionary,
                      PathFinder *pathfinder) : 
     unitDefinitions(unit_dictionary) {
   this->pathfinder = pathfinder;
+  pathfinder->SetTileSize(Vector2f(kTileSize, kTileSize));
 	max_unit_radius_ = 0.f;
 	map_size_ = map_size;
 	Vector2f map_pixel_size = kTileSize * Util::GetVector2f(map_size);
@@ -27,9 +29,9 @@ GameState::GameState(const UnitDictionary &unit_dictionary,
 	}
 	unit_grid_width_ = (int) std::ceilf(map_pixel_size.x / kUnitGridResolution);
 	unit_grid_height_ = (int) std::ceilf(map_pixel_size.y / kUnitGridResolution);
-	unit_grid_ = new std::list<std::shared_ptr<GameUnit>>*[unit_grid_width_];
+  unit_grid_ = UnitGrid(unit_grid_width_);  
 	for (int i = 0; i < unit_grid_width_; ++i) {
-		unit_grid_[i] = new std::list<std::shared_ptr<GameUnit>>[unit_grid_height_];
+    unit_grid_[i] = std::vector<std::list<std::shared_ptr<GameUnit>>>(unit_grid_height_);
 	}
 
   lastUnitId = 0;
@@ -41,12 +43,6 @@ GameState::~GameState() {
 	}
 
 	delete[] pathing_grid_;
-
-	for (int i = 0; i < unit_grid_width_; ++i) {
-		delete[] unit_grid_[i];
-	}
-
-	delete[] unit_grid_;
 
 	for (std::list<Projectile *>::iterator projectile = projectiles_.begin();
 			projectile != projectiles_.end(); ++projectile) {
@@ -93,8 +89,9 @@ Vector2i GameState::Constrain(Vector2i location) const {
   return location;
 }
 
-//TODO: remove duplication.
+//TODO: remove duplication; don't modify lists during iteration.
 void GameState::ExecuteTurn() {
+
   std::list<Projectile*>::iterator it1 = projectiles_.begin();
   while (it1 != projectiles_.end()) {
     Projectile *projectile = *it1++;
@@ -109,11 +106,27 @@ void GameState::ExecuteTurn() {
   while (it2 != units_.end()) {
     std::shared_ptr<GameUnit> unit = *it2++;
     if (unit->IsAlive()) {
+      UpdateSightMap(*unit);
       unit->PerformAction();
     } else {
       RemoveUnit(unit);
     }
   }
+}
+
+void GameState::UpdateSightMap(GameUnit& unit) {
+  unit.SightMap().Clear();
+  unit.SightMap().SetCenter(unit.Position());
+  std::vector<Rect> walls = GetWalls();
+
+  for (Rect wall : walls) {
+    std::vector<Vector2f> widestPoints = wall.WidestPoints(unit.Position());
+    float startAngle = Util::FindAngle(widestPoints[0] - unit.Position());
+    float endAngle = Util::FindAngle(widestPoints[1] - unit.Position());
+    float distance = Util::Distance((widestPoints[0] + widestPoints[1])/2.f,
+      unit.Position());
+    unit.SightMap().Add(startAngle, endAngle, distance);
+  }  
 }
 
 
@@ -168,14 +181,7 @@ void GameState::AddProjectile(const std::string &name,
 }
 
 void GameState::RemoveProjectile(Projectile *projectile) {
-	for (std::list<Projectile *>::iterator projectile_iterator =
-			projectiles_.begin(); projectile_iterator != projectiles_.end();
-			++projectile_iterator) {
-		if (*projectile_iterator == projectile) {
-			projectiles_.erase(projectile_iterator);
-			break;
-		}
-	}
+  projectiles_.remove(projectile);
 }
 
 void GameState::AddToUnitGrid(std::shared_ptr<GameUnit> unit) {
@@ -191,15 +197,8 @@ void GameState::RemoveFromUnitGrid(const std::shared_ptr<GameUnit> unit) {
 void GameState::RemoveFromUnitGrid(const std::shared_ptr<GameUnit> unit, const Vector2f &position) {
 	int x = int(position.x / kUnitGridResolution);
 	int y = int(position.y / kUnitGridResolution);
-	for (std::list<std::shared_ptr<GameUnit>>::iterator i =
-			unit_grid_[x][y].begin();
-			i != unit_grid_[x][y].end();
-			++i) {
-		if (*i == unit) {
-			unit_grid_[x][y].erase(i);
-			break;
-		}
-	}
+
+  unit_grid_[x][y].remove(unit);
 }
 
 void GameState::UpdateUnitGrid(std::shared_ptr<GameUnit> unit,
@@ -232,7 +231,7 @@ std::vector<std::shared_ptr<GameUnit> > GameState::GetUnitsInRectangle(const Vec
 	if (end_y >= unit_grid_height_) end_y = unit_grid_height_ - 1;
 	for (int i = start_x; i <= end_x; ++i) {
 		for (int j = start_y; j <= end_y; ++j) {
-			for (std::list<std::shared_ptr<GameUnit>>::iterator unit =
+			for (std::list<std::shared_ptr<GameUnit>>::const_iterator unit =
 					unit_grid_[i][j].begin();
 					unit != unit_grid_[i][j].end();
 					++unit) {
@@ -264,22 +263,38 @@ std::vector<std::shared_ptr<GameUnit>> GameState::GetUnitsInCircle(const Vector2
   bottomRight.x = int((center.x + effectiveRadius) / kUnitGridResolution);
   bottomRight.y = int((center.y + effectiveRadius) / kUnitGridResolution);
   bottomRight = Util::Constrain2(bottomRight, Vector2i(0, 0),
-      Vector2i(unit_grid_width_, unit_grid_height_));
+      Vector2i(unit_grid_width_ - 1, unit_grid_height_ - 1));
 
   for (int i = topLeft.x; i <= bottomRight.x; ++i) {
     for (int j = topLeft.y; j <= bottomRight.y; ++j) {
-			for (std::list<std::shared_ptr<GameUnit>>::iterator unit =
-					unit_grid_[i][j].begin();
-					unit != unit_grid_[i][j].end();
-					++unit) {
-				float distance = Util::Distance((*unit)->Position(), center);
-				if (distance <= effectiveRadius) {
-					units.push_back(*unit);
-				}
-			}
+      for (std::shared_ptr<GameUnit> unit : unit_grid_[i][j]) {
+        float distance = Util::Distance(unit->Position(), center);
+        if (distance <= effectiveRadius) {
+          units.push_back(unit);
+        }
+      }
 		}
 	}
 	return units;
+}
+
+Rect GameState::GetWall(const Vector2i& tile) const {
+  Rect wall;
+  wall.topLeft = Vector2f(tile.x*kTileSize, tile.y*kTileSize);
+  wall.bottomRight = Vector2f((tile.x + 1)*kTileSize, (tile.y + 1)*kTileSize);
+  return wall;
+}
+
+std::vector<Rect> GameState::GetWalls() const {
+  std::vector<Rect> walls;
+  for (int x = 0; x < map_size_.x; ++x) {
+    for (int y = 0; y < map_size_.y; ++y) {
+      if (pathfinder->GetPathingGrid()->IsBlocked(x, y)) {
+        walls.push_back(GetWall(Vector2i(x, y)));
+      }
+    }
+  }
+  return walls;
 }
 
 std::vector<Rect>
@@ -291,14 +306,16 @@ GameState::GetWallsInRectangle(const Rect &rectangle) const {
   for (int x = topLeft.x; x <= bottomRight.x; ++x) {
     for (int y = topLeft.y; y <= bottomRight.y; ++y) {
       if (pathfinder->GetPathingGrid()->IsBlocked(x, y)) {
-        Rect wall;
-        wall.topLeft = Vector2f(x*kTileSize, y*kTileSize);
-        wall.bottomRight = Vector2f((x + 1)*kTileSize, (y + 1)*kTileSize);
-        walls.push_back(wall);
+        walls.push_back(GetWall(Vector2i(x, y)));
       }
     }
   }
   return walls;
+}
+
+std::vector<std::shared_ptr<GameUnit>> GameState::GetUnitsInRectangle(
+  const Rect& rectangle) const {
+    return GetUnitsInRectangle(rectangle.topLeft, rectangle.bottomRight);
 }
 
 void GameState::AddToPathingGrid(const std::shared_ptr<GameUnit> unit) {
@@ -377,9 +394,105 @@ Vector2f GameState::GetLocation(const Vector2i &gridLocation) const {
       (gridLocation.y + 0.5) * kTileSize);
 }
 
+float GameState::DistanceToUnit(const GameUnit& unit,
+                                const Vector2f& end,
+                                float radius) const {
+  DirectedSegment movement(unit.Position(), end);
+  float movementDist = Util::Length(unit.Position() - end);
+
+  if (movementDist != 0) {
+    Rect boundingRectangle = Util::BoundingRectangle(movement);
+    boundingRectangle.Grow(radius);
+
+    std::vector<std::shared_ptr<GameUnit>> nearbyUnits =
+        GetUnitsInRectangle(boundingRectangle);
+
+    for (std::shared_ptr<GameUnit> otherUnit : nearbyUnits) {
+      if (*otherUnit != unit) {
+        float totalRadius = radius
+            + otherUnit->Attributes().CollisionRadius();
+        Vector2f *collisionPoint =
+          movement.CollisionPoint(otherUnit->Position(), totalRadius);
+
+        if (collisionPoint) {
+          float distance = Util::Distance(*collisionPoint, unit.Position());
+          movement.Resize(distance);
+          delete collisionPoint;
+        }
+      }
+    }
+  }
+
+  return movement.Length();  
+}
+
+float GameState::DistanceToWall(const GameUnit& unit,
+                                const Vector2f& end,
+                                float radius) const {
+  DirectedSegment movement(unit.Position(), end);
+  float movementDist = Util::Length(unit.Position() - end);
+  if (movementDist != 0) {
+    Rect boundingRect = Util::BoundingRectangle(movement);
+    float radius = unit.Attributes().CollisionRadius();
+    boundingRect.topLeft -= Vector2f(radius, radius);
+    boundingRect.bottomRight += Vector2f(radius, radius);
+    std::vector<Rect> walls = GetWallsInRectangle(boundingRect);
+    std::vector<Rect>::const_iterator it = walls.begin();
+    while (it != walls.end()) {
+      Rect wall = *it++;
+      Vector2f *collisionPoint = movement.CollisionPoint(wall, radius);
+      if (collisionPoint) {
+        movement = DirectedSegment(unit.Position(), *collisionPoint);
+      }
+    }
+  }
+
+  return movement.Length();  
+}
+
+float GameState::DistanceToObstacle(const GameUnit& unit,
+                                     const Vector2f& end) const {
+  return DistanceToObstacle(unit, end, unit.Attributes().CollisionRadius());
+}
+
+float GameState::DistanceToObstacle(const GameUnit& unit,
+                                    const Vector2f& end,
+                                    float radius) const {
+  float distanceToUnit = DistanceToUnit(unit, end, radius);
+  float distanceToWall = DistanceToWall(unit, end, radius);
+  return std::min(distanceToUnit, distanceToWall);
+}
+
+std::vector<sf::ConvexShape> GameState::FindOccludedAreas(
+    const GameUnit& unit) const {
+  std::vector<sf::ConvexShape> result;
+  std::vector<Rect> walls = GetWalls();
+
+  for (Rect wall : walls) {
+    std::vector<Vector2f> widestPoints = wall.WidestPoints(unit.Position());
+    Vector2f direction1 = widestPoints[0] - unit.Position();
+    Util::Resize(direction1, 1000);
+    Vector2f farPoint1 = unit.Position() + direction1;
+
+    Vector2f direction2 = widestPoints[1] - unit.Position();
+    Util::Resize(direction2, 1000);
+    Vector2f farPoint2 = unit.Position() + direction2;
+
+    sf::ConvexShape area(4);
+    area.setPoint(0, widestPoints[0]);
+    area.setPoint(1, widestPoints[1]);
+    area.setPoint(2, farPoint1);
+    area.setPoint(3, farPoint2);
+    result.push_back(area);
+  }
+
+  return result;
+}
+
 const float GameScene::kUnitGridResolution = 25.f;
 
 GameScene::GameScene(GameState &game_state) {
+  mapSize = game_state.map_size();
 	unit_grid_width_ = int(game_state.map_size().x * kTileSize /
 			kUnitGridResolution);
 	unit_grid_height_ = int(game_state.map_size().y * kTileSize /
@@ -390,19 +503,40 @@ GameScene::GameScene(GameState &game_state) {
 	}
 
 	max_unit_radius_ = 0;
-	for (std::list<std::shared_ptr<GameUnit>>::const_iterator unit_iterator =
-			game_state.units().begin();
-			unit_iterator != game_state.units().end();
-			++unit_iterator) {
-		CreateUnit(**unit_iterator);
+
+	for (std::shared_ptr<GameUnit> unit : game_state.units()) {
+		CreateUnit(*unit);
 	}
 
-	for (std::list<Projectile *>::const_iterator projectile =
-			game_state.projectiles().begin();
-			projectile != game_state.projectiles().end();
-			++projectile) {
-		projectiles_.push_back(new ProjectileModel(**projectile));
+	for (Projectile*projectile : game_state.projectiles()) {
+		projectiles_.push_back(new ProjectileModel(*projectile));
 	}
+}
+
+void GameScene::ComputeVisibility(PlayerNumber playerID) {
+  std::vector<const SectorMap*> unitViews;
+  for (UnitModel* unit : units()) {
+    if (unit->Owner() == playerID) {
+      unitViews.push_back(unit->SightMap());
+    }
+  }
+
+  for (int x = 0; x < mapSize.x; ++x) {
+    isVisible.push_back(std::vector<bool>());
+    for (int y = 0; y < mapSize.y; ++y) {
+      bool isTileVisible = false;
+      Vector2f tileCenter(kTileSize*(x + 0.5), kTileSize*(y + 0.5));
+      for (const SectorMap* view : unitViews) {
+        if (view->Contains(tileCenter)) {
+          isTileVisible = true;
+          break;
+        }
+      }
+
+      isVisible.back().push_back(isTileVisible);
+    }
+  }
+
 }
 
 
@@ -425,11 +559,11 @@ GameScene::GameScene(GameScene &scene1,
 		UnitModel &unit1 = **unit_iterator1;
 		if (unit_iterator2 != scene2.units().end()) {
 			UnitModel &unit2 = **unit_iterator2;
-			if (unit1.id() == unit2.id()) {
+			if (unit1.Id() == unit2.Id()) {
 				CreateUnit(unit1, unit2, weight);
 				++unit_iterator1;
 				++unit_iterator2;
-			} else if (unit1.id() < unit2.id()) {
+			} else if (unit1.Id() < unit2.Id()) {
 				CreateUnit(unit1);
 				++unit_iterator1;
 			} else {
@@ -439,6 +573,8 @@ GameScene::GameScene(GameScene &scene1,
 			units_.push_back(new UnitModel(unit1));
 			++unit_iterator1;
 		}
+
+    isVisible = scene2.isVisible;
 	}
 	std::list<ProjectileModel *>::const_iterator projectile_iterator1,
 			projectile_iterator2;
@@ -486,7 +622,7 @@ void GameScene::AddUnit(UnitModel *model) {
 	units_.push_back(model);
 	AddToUnitGrid(*model);
 	if (model->radius() > max_unit_radius_) max_unit_radius_ = model->radius();
-	unit_table_[model->id()] = model;
+	unit_table_[model->Id()] = model;
 }
 
 void GameScene::CreateUnit(const GameUnit &unit) {

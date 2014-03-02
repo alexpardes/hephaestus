@@ -6,9 +6,13 @@ const Vector2i Util::kUp = Vector2i(0, -1);
 const Vector2i Util::kRight = Vector2i(1, 0);
 const Vector2i Util::kDown = Vector2i(0, 1);
 
+int Util::Sign(int x) {
+  return (x > 0) - (x < 0);
+}
+
 void Util::Limit(Vector2f &v, float length) {
   if (Length(v) > length) {
-    Scale(v, length);
+    Resize(v, length);
   }
 }
 
@@ -60,7 +64,7 @@ float Util::FindAngle(const Vector2f &vector) {
 }
 
 
-//	Returns the angle in radians from vector1 counterclockwise to vector2.
+// Returns the angle in radians from vector1 counterclockwise to vector2.
 float Util::FindAngle(const Vector2f &vector1, const Vector2f &vector2) {
 	float angle = std::acosf(Dot(vector1, vector2) / Length(vector1) / Length(vector2));
 	if (Cross(vector1, vector2) < 0) angle = 2*M_PI - angle;
@@ -69,6 +73,19 @@ float Util::FindAngle(const Vector2f &vector1, const Vector2f &vector2) {
 
 float Util::FindAngleDegrees(const Vector2f &vector1, const Vector2f &vector2) {
   return Degrees(FindAngle(vector1, vector2));
+}
+
+// Returns if testAngle is in the angular interval [angle1, angle2).
+bool Util::IsBetweenAngles(float testAngle, float angle1, float angle2) {
+  bool result = false;
+
+  if (angle2 > angle1) {
+    result = testAngle >= angle1 && testAngle < angle2;
+  } else {
+    result = testAngle < angle2 || testAngle >= angle1;
+  }
+
+  return result;
 }
 
 // Returns the vector rotated by 90 degrees CCW.
@@ -88,7 +105,7 @@ Vector2f Util::Normalized(const Vector2f &vector) {
   return copy;
 }
 
-void Util::Scale(Vector2f &vector, float length) {
+void Util::Resize(Vector2f &vector, float length) {
 	Normalize(vector);
 	vector *= length;
 }
@@ -141,4 +158,16 @@ float Util::InterpolateAngles(float angle1, float angle2, float weight) {
   }
 
   return result;
+}
+
+float Util::AngleCCW(float angle1, float angle2) {
+  float angle = angle2 - angle1;
+  if (angle1 > angle2) {
+    angle = 2 * M_PI + angle;
+  }
+  return angle;
+}
+
+float Util::AngleCW(float angle1, float angle2) {
+  return AngleCCW(angle2, angle1);
 }

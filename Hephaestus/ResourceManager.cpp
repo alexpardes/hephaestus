@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "Coloring.h"
 #include "ResourceManager.h"
 #include <PathFinding/SubgoalPathFinder.h>
 #include <PathFinding/VectorPathingGrid.h>
@@ -14,6 +15,9 @@ GameState *ResourceManager::LoadMap(const std::string &filename) {
 	Json::Value map;
 	reader.parse(map_file, map);
 	map_file.close();
+
+  Json::Value players = map["players"];
+  LoadPlayerColors(players);
 
 	Json::Value tiles = map["tiles"];
 	LoadTiles(tiles);
@@ -57,6 +61,31 @@ GameState *ResourceManager::LoadMap(const std::string &filename) {
 	}
 
 	return state;
+}
+
+// Assumes hexadecimal string formatted as 0xRRGGBBAA.
+sf::Color ResourceManager::CreateColor(std::string& rgb) {
+  int red, green, blue, alpha;
+  std::stringstream stringStream;
+  stringStream << std::hex << rgb.substr(2, 2);
+  stringStream >> red;
+  stringStream.clear();
+  stringStream << std::hex << rgb.substr(4, 2);
+  stringStream >> green;
+  stringStream.clear();
+  stringStream << std::hex << rgb.substr(6, 2);
+  stringStream >> blue;
+  stringStream.clear();
+  stringStream << std::hex << rgb.substr(8, 2);
+  stringStream >> alpha;
+  return sf::Color(red, green, blue, alpha);
+}
+
+void ResourceManager::LoadPlayerColors(const Json::Value& players) {
+  for (Json::Value playerColor : players) {
+    sf::Color color = CreateColor(playerColor.asString());
+    playerColors.push_back(color);
+  }
 }
 
 PathFinder *ResourceManager::LoadPathingInfo(const Json::Value &pathingInfo,
@@ -131,10 +160,9 @@ const sf::Texture &ResourceManager::GetImage(const std::string &name,
 										   PlayerNumber owner) const {
 	switch (owner) {
 		case kPlayer2:
-			return unit_images_.at(name + "2");
-			break;
+			return unit_images_.at(name)[1];
 		default:
-			return unit_images_.at(name + "1");
+			return unit_images_.at(name)[0];
 	}
 }
 
@@ -148,15 +176,20 @@ bool ResourceManager::LoadUnitImages(const Json::Value &unit) {
 	std::string source2 = unit["source2"].asString();
   std::string projectileSource = unit["projectilesource"].asString();
 
-	sf::Texture image1, image2, projectileImage;
-	image1.loadFromFile(source1);
-	image2.loadFromFile(source2);
+  sf::Image base, mask;
+	base.loadFromFile(source1);
+	mask.loadFromFile(source2);
+
+  for (sf::Color color : playerColors) {
+    sf::Texture unitImage;
+    unitImage.loadFromImage(Coloring::ColorImage(base, mask, color));
+    unitImage.setSmooth(true);
+    unit_images_[type].push_back(unitImage);
+  }
+
+  sf::Texture projectileImage;
   projectileImage.loadFromFile(projectileSource);
-  image1.setSmooth(true);
-  image2.setSmooth(true);
   projectileImage.setSmooth(true);
-	unit_images_[type + "1"] = image1;
-	unit_images_[type + "2"] = image2;
   projectileImages[type] = projectileImage;
 	return true;
 }

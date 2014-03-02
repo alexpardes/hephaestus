@@ -1,14 +1,15 @@
-#ifndef GAMESTATE_
-#define GAMESTATE_
+#pragma once
 
 #include <unordered_map>
 #include "GameUnit.h"
 #include "Projectile.h"
 #include "Rectangle.h"
 #include <PathFinding/PathFinder.h>
+#include <SFML/Graphics/Shape.hpp>
 
+class SectorMap;
 
-const float kTileSize = 50.f;
+const float kTileSize = 10.f;
 typedef std::pair<std::string, UnitAttributes> UnitDefinition;
 typedef std::unordered_map<std::string, const UnitAttributes> UnitDictionary;
 
@@ -32,12 +33,17 @@ class GameState {
 		void RemoveFromPathingGrid(const std::shared_ptr<GameUnit> unit);
 		void AddToUnitGrid(std::shared_ptr<GameUnit> unit);
     void RemoveFromUnitGrid(const std::shared_ptr<GameUnit> unit);
-		void RemoveFromUnitGrid(const std::shared_ptr<GameUnit> unit, const Vector2f &position);
-		void UpdateUnitGrid(std::shared_ptr<GameUnit> unit, const Vector2f &previousPosition);
-		std::vector<std::shared_ptr<GameUnit>> GetUnitsInRectangle(const Vector2f &corner1,
+		void RemoveFromUnitGrid(const std::shared_ptr<GameUnit> unit,
+        const Vector2f &position);
+		void UpdateUnitGrid(std::shared_ptr<GameUnit> unit,
+        const Vector2f &previousPosition);
+		std::vector<std::shared_ptr<GameUnit>> GetUnitsInRectangle(
+        const Vector2f &corner1,
 				const Vector2f &corner2) const;
-		std::vector<std::shared_ptr<GameUnit>> GetUnitsInCircle(const Vector2f &center,
-				float radius) const;
+    std::vector<std::shared_ptr<GameUnit>> GetUnitsInRectangle(
+        const Rect& rectangle) const;
+		std::vector<std::shared_ptr<GameUnit>> GetUnitsInCircle(
+        const Vector2f &center, float radius) const;
 		int **pathing_grid() {return pathing_grid_;}
 		int pathing_width() {return pathing_width_;}
 		int pathing_height() {return pathing_height_;}
@@ -54,8 +60,23 @@ class GameState {
     void MoveUnit(UnitId id, Vector2f location);
     Vector2f GetUnitPosition(UnitId id) const;
     std::vector<Rect> GetWallsInRectangle(const Rect &rectangle) const;
+    std::vector<Rect> GetWalls() const;
+
+    // Gives the distance the unit can travel towards the end point before
+    // it would collide with an obstacle.
+    float DistanceToObstacle(const GameUnit& unit, const Vector2f& end) const;
+    float DistanceToObstacle(const GameUnit& unit, const Vector2f& end,
+        float radius) const;
+
+    std::vector<sf::ConvexShape> FindOccludedAreas(const GameUnit& unit) const;
 
 	private:
+    Rect GetWall(const Vector2i& tile) const;
+    float DistanceToWall(const GameUnit& unit, const Vector2f& end,
+      float radius) const;
+    float DistanceToUnit(const GameUnit& unit, const Vector2f& end,
+        float radius) const;
+
     // Returns the closest point which is on the map.
     Vector2f Constrain(Vector2f location) const;
     Vector2i Constrain(Vector2i location) const;
@@ -64,7 +85,8 @@ class GameState {
 		std::list<Projectile *> projectiles_;
 
     // TODO: change to vectors.
-		std::list<std::shared_ptr<GameUnit>> **unit_grid_;
+    typedef std::vector<std::vector<std::list<std::shared_ptr<GameUnit>>>> UnitGrid;
+		UnitGrid unit_grid_;
 		int unit_grid_width_, unit_grid_height_;
 		int **pathing_grid_;
 		int pathing_width_, pathing_height_;
@@ -74,12 +96,12 @@ class GameState {
 		Vector2i map_size_;
     PathFinder *pathfinder;
     int lastUnitId;
-    
+    void UpdateSightMap(GameUnit& unit);
 };
 
 class GameScene {
 	public:
-		explicit GameScene(GameState &game_state);
+		GameScene(GameState &game_state);
 		GameScene(GameScene &scene1, GameScene &scene2,
 				float weight);
 		~GameScene();
@@ -88,14 +110,19 @@ class GameScene {
 			return projectiles_;
 		}
 
+    std::vector<const UnitModel *> GetUnitsInRectangle(
+        const Rect& rectangle) const;
 		std::vector<const UnitModel *> GetUnitsInRectangle(
 				const Vector2f &corner1, const Vector2f &corner2) const;
 		UnitModel *GetUnit(UnitId id) const;
+    bool IsVisible(int x, int y) const { return isVisible[x][y]; }
+    void ComputeVisibility(PlayerNumber playerID);
+
 		const static float kUnitGridResolution;
 
 	private:
-		void CreateUnit(const GameUnit &unit);
-		void CreateUnit(const UnitModel &unit1, const UnitModel &unit2,
+		void CreateUnit(const GameUnit& unit);
+		void CreateUnit(const UnitModel& unit1, const UnitModel& unit2,
 				float weight);
 		void CreateUnit(const UnitModel &unit);
 		void AddUnit(UnitModel *unit);
@@ -106,6 +133,6 @@ class GameScene {
 		int unit_grid_width_, unit_grid_height_;
 		float max_unit_radius_;
 		std::unordered_map<UnitId, UnitModel *> unit_table_;
+    std::vector<std::vector<bool>> isVisible;
+    Vector2i mapSize;
 };
-
-#endif

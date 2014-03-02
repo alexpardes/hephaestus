@@ -44,8 +44,16 @@ MainMenu::MainMenu() {
   CEGUI::System::getSingleton().executeScriptFile("Paintball.lua");
 }
 
-void MainMenu::Draw() {
+void MainMenu::Draw() { 
   CEGUI::System::getSingleton().renderAllGUIContexts();
+}
+
+void MainMenu::OnConnectionFailed() {
+  CEGUI::System::getSingleton().executeScriptGlobal("onConnectionFailed");
+}
+
+void MainMenu::OnGameEnded() {
+  CEGUI::System::getSingleton().executeScriptGlobal("onGameEnded");
 }
 
 void MainMenu::HandleEvent(sf::Event &Event) {

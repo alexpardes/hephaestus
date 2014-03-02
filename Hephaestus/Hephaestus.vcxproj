@@ -95,8 +95,8 @@
       <AdditionalLibraryDirectories>..\Lib\boost\lib;..\Lib\jsoncpp\lib\debug;..\Lib\sfml\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>..\Lib\json\lib\debug;..\Lib\sfml\lib;..\Lib\boost\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>sfml-system-s-d.lib;sfml-window-s-d.lib;sfml-graphics-s-d.lib;json_vc71_libmdd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\Lib\lua\lib;..\Lib\json\lib\debug;..\Lib\sfml\lib;..\Lib\boost\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>sfml-system-s-d.lib;sfml-window-s-d.lib;sfml-graphics-s-d.lib;json_vc71_libmdd.lib;lua-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -168,6 +168,10 @@
     <ClCompile Include="AttackMoveAbility.cpp" />
     <ClCompile Include="AttackMoveAction.cpp" />
     <ClCompile Include="AttackMoveCommand.cpp" />
+    <ClCompile Include="Coloring.cpp" />
+    <ClCompile Include="CommandBuffer.cpp" />
+    <ClCompile Include="CommandSink.cpp" />
+    <ClCompile Include="CommandSource.cpp" />
     <ClCompile Include="DirectedSegment.cpp" />
     <ClCompile Include="GameManager.cpp" />
     <ClCompile Include="GameUnit.cpp" />
@@ -178,12 +182,14 @@
     <ClCompile Include="MoveAbility.cpp" />
     <ClCompile Include="MoveAction.cpp" />
     <ClCompile Include="MoveCommand.cpp" />
-    <ClCompile Include="Networking.cpp" />
+    <ClCompile Include="NetworkConnection.cpp" />
+    <ClCompile Include="NetworkManager.cpp" />
     <ClCompile Include="Pathing.cpp" />
-    <ClCompile Include="Players.cpp" />
+    <ClCompile Include="Player.cpp" />
     <ClCompile Include="Projectile.cpp" />
     <ClCompile Include="Rectangle.cpp" />
     <ClCompile Include="ResourceManager.cpp" />
+    <ClCompile Include="SectorMap.cpp" />
     <ClCompile Include="SelectCommand.cpp" />
     <ClCompile Include="Simulator.cpp" />
     <ClCompile Include="GameState.cpp" />
@@ -206,6 +212,8 @@
     <ClInclude Include="AttackMoveCommand.h" />
     <ClInclude Include="Command.h" />
     <ClInclude Include="Commands.h" />
+    <ClInclude Include="CommandSink.h" />
+    <ClInclude Include="CommandSource.h" />
     <ClInclude Include="DirectedSegment.h" />
     <ClInclude Include="GameManager.h" />
     <ClInclude Include="GameObject.h" />
@@ -213,19 +221,24 @@
     <ClInclude Include="GameUnit.h" />
     <ClInclude Include="Graphics.h" />
     <ClInclude Include="Hephaestus.h" />
+    <ClInclude Include="HephaestusObserver.h" />
+    <ClInclude Include="Coloring.h" />
     <ClInclude Include="Interval.h" />
     <ClInclude Include="Line.h" />
     <ClInclude Include="LineSegment.h" />
+    <ClInclude Include="CommandBuffer.h" />
     <ClInclude Include="MoveAbility.h" />
     <ClInclude Include="MoveAction.h" />
     <ClInclude Include="MoveCommand.h" />
-    <ClInclude Include="Networking.h" />
+    <ClInclude Include="NetworkConnection.h" />
+    <ClInclude Include="NetworkManager.h" />
     <ClInclude Include="Pathing.h" />
-    <ClInclude Include="Players.h" />
+    <ClInclude Include="Player.h" />
     <ClInclude Include="Projectile.h" />
     <ClInclude Include="Rectangle.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="ResourceManager.h" />
+    <ClInclude Include="SectorMap.h" />
     <ClInclude Include="SelectCommand.h" />
     <ClInclude Include="Simulator.h" />
     <ClInclude Include="stdafx.h" />
@@ -249,6 +262,11 @@
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
     </Image>
     <Image Include="unit2.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Scripting\Scripting.vcxproj">
+      <Project>{dc09dac5-2b2a-47e3-a300-17f922c0b662}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

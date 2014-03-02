@@ -26,4 +26,5 @@ class PathFinder {
         const Vector2f &endpoint) = 0;
     virtual ~PathFinder() { }
     virtual const PathingGrid *GetPathingGrid() const = 0;
+    virtual void SetTileSize(const Vector2f& newSize) = 0;
 };

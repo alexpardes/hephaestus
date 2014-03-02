@@ -1,20 +1,24 @@
 #define CATCH_CONFIG_MAIN
+
+#include <Hephaestus/Coloring.h>
 #include <Hephaestus/GameState.h>
-#include <Hephaestus/Simulator.h>
+#include <Hephaestus/Util.h>
 #include <Hephaestus/GameUnit.h>
 #include <Hephaestus/MoveAction.h>
 #include <Hephaestus/DirectedSegment.h>
 #include <Hephaestus/Rectangle.h>
 #include <Hephaestus/Line.h>
 #include <Hephaestus/Waypoint.h>
+#include <Hephaestus/SectorMap.h>
 
 #include <PathFinding/SubgoalPathFinder.h>
 #include <PathFinding/VectorPathingGrid.h>
 #include <PathFinding/GridRegion.h>
 #include <PathFinding/Subgoal.h>
 
-#include <cmath>
 
+#include <Hephaestus/Vector2.h>
+#include <cmath>
 #include "catch.hpp"
 
 bool IsApprox(double x, double y, double tolerance) {
@@ -35,6 +39,112 @@ bool IsApprox(const Vector2f &a, CONST Vector2f &b, double tolerance) {
 }
 
 #define REQUIRE_EQUAL(a,b,tol) REQUIRE(IsApprox(a,b,tol))
+
+TEST_CASE("SectorMap") {
+  SectorMap sectors(Vector2f(1, 1));
+  REQUIRE(sectors.Contains(Vector2f(3, 4)));
+
+  sectors.Add(M_PI/2, M_PI, 10);
+  REQUIRE(sectors.Contains(Vector2f(-2, 2)));
+  REQUIRE(!sectors.Contains(Vector2f(-15, 15)));
+  REQUIRE(sectors.Contains(Vector2f(50, 50)));
+
+  REQUIRE(sectors.Contains(Vector2f(25, 30)));
+  sectors.Add(M_PI/4, 3*M_PI/4, 20);
+  REQUIRE(!sectors.Contains(Vector2f(25, 30)));
+  REQUIRE(!sectors.Contains(Vector2f(-8, 10)));
+}
+
+TEST_CASE("SectorMap 2") {
+  SectorMap sectors(Vector2f(0, 0));
+  sectors.Add(M_PI/4, M_PI/2, 5);
+  sectors.Add(0, M_PI, 10);
+
+  REQUIRE(sectors.Contains(Vector2f(6, 1)));
+  REQUIRE(sectors.Contains(Vector2f(-6, 1)));
+  REQUIRE(!sectors.Contains(Vector2f(5, 6)));
+}
+
+TEST_CASE("SectorMap 3") {
+  SectorMap sectors(Vector2f(164, 562));
+  sectors.Add(5.48, 5.54, 253);
+  sectors.Add(5.54, 5.59, 254);
+
+  REQUIRE(sectors.Contains(Vector2f(1000, 500)));
+}
+
+TEST_CASE("SectorMap 4") {
+  SectorMap sectors(Vector2f(0, 0));
+  sectors.Add(3.05, 3.10, 11);
+  sectors.Add(3.00, 3.05, 10);
+
+  REQUIRE(sectors.Contains(Vector2f(-100, -100)));
+}
+
+TEST_CASE("SectorMap 5") {
+  SectorMap sectors(Vector2f(0, 0));
+  sectors.Clear();
+  sectors.Add(6.14, 6.19, 1);
+  sectors.Add(6.24, 0.005, 2);
+  REQUIRE(sectors.Contains(Vector2f(-100, -100)));
+
+  sectors.Clear();
+  sectors.Add(6.14, 6.19, 1);
+  sectors.Add(6.24, 0.005, 2);
+  REQUIRE(sectors.Contains(Vector2f(-100, -100)));
+}
+
+TEST_CASE("Overwrite Sector") {
+  SectorMap sectors(Vector2f(0, 0));
+  sectors.Add(M_PI/4, M_PI/2, 10);
+  sectors.Add(M_PI/4, M_PI/2, 20);
+  REQUIRE(!sectors.Contains(Vector2f(6, 10)));
+  REQUIRE(sectors.Contains(Vector2f(4, 5)));
+
+  sectors.Add(0, M_PI, 5);
+  REQUIRE(!sectors.Contains(Vector2f(4, 5)));
+}
+
+TEST_CASE("Rectangle Widest Points") {
+  Rect rect(Vector2f(1, -1), Vector2f(2, 1));
+  std::vector<Vector2f> widestPoints = rect.WidestPoints(Vector2f(0, 0));
+  REQUIRE(widestPoints.size() == 2);
+  REQUIRE_EQUAL(widestPoints[1], Vector2f(1, 1), 0.01);
+  REQUIRE_EQUAL(widestPoints[0], Vector2f(1, -1), 0.01);
+}
+
+TEST_CASE("RGB-HSL Conversion - Red") {
+  sf::Color rgbRed = sf::Color::Red;
+  HslColor hslRed = Coloring::ConvertToHsl(rgbRed);
+  REQUIRE_EQUAL(hslRed.hue, 0, 0.01);
+  REQUIRE_EQUAL(hslRed.saturation, 1, 0.01);
+  REQUIRE_EQUAL(hslRed.lightness, 0.5, 0.01);
+
+  rgbRed = Coloring::ConvertToRgb(hslRed);
+  REQUIRE(rgbRed.r == 255);
+  REQUIRE(rgbRed.g == 0);
+  REQUIRE(rgbRed.b == 0);
+}
+
+TEST_CASE("Coloring") {
+  sf::Color blue = sf::Color::Blue;
+  sf::Color red = sf::Color::Red;
+  sf::Color newColor = Coloring::AdjustLightness(Coloring::ConvertToHsl(blue),
+      Coloring::Lightness(red));
+  REQUIRE(newColor.r == 0);
+  REQUIRE(newColor.g == 0);
+  REQUIRE(newColor.b == 255);
+}
+
+TEST_CASE("More Coloring") {
+  sf::Color blue = sf::Color::Blue;
+  sf::Color base(223, 107, 107, 255);
+  HslColor hslBlue = Coloring::ConvertToHsl(blue);
+  sf::Color result = Coloring::AdjustLightness(hslBlue, Coloring::Lightness(base));
+  REQUIRE(result.r == 75);
+  REQUIRE(result.g == 75);
+  REQUIRE(result.b == 255);
+}
 
 TEST_CASE("Line Nearest Point") {
   Line line(Vector2f(5, 5), Vector2f(1, 0));

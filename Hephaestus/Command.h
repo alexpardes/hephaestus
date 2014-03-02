@@ -1,12 +1,10 @@
-#ifndef COMMAND_
-#define COMMAND_
+#pragma once
 
 #include "Util.h"
-#include "Players.h"
 #include "VectorSerialization.h"
 #include "GameState.h"
 
-class Simulator;
+class Player;
 
 class Command {
   public:
@@ -19,5 +17,3 @@ class Command {
     void serialize(Archive & ar, const unsigned int version) { }
 };
 typedef std::vector<const Command*> CommandTurn;
-
-#endif

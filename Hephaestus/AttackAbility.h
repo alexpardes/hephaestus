@@ -16,6 +16,7 @@ class AttackAbility : public UnitAbility {
 
   private:
     bool IsInRange() const;
+    bool IsUnobstructed() const;
     std::shared_ptr<GameUnit> owner;
     MoveAbility *moveAbility;
     GameState *gameState;

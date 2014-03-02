@@ -41,3 +41,33 @@ Vector2f Rect::NearestPoint(const Vector2f &point) const {
 
   return result;
 }
+
+void Rect::Grow(float distance) {
+  Vector2f movement(distance, distance);
+  topLeft -= movement;
+  bottomRight += movement;
+}
+
+std::vector<Vector2f> Rect::WidestPoints(const Vector2f& point) const {
+  std::vector<Vector2f> corners = Corners();
+  Vector2f leftmost = corners[0];
+  Vector2f rightmost = corners[0];
+  float minAngle = Util::FindAngle(corners[0] - point);
+  float maxAngle = minAngle;
+
+  for (int i = 1; i < corners.size(); ++i) {
+    float angle = Util::FindAngle(corners[i] - point);
+    if (Util::AngleCCW(maxAngle, angle) <= M_PI) {
+      maxAngle = angle;
+      leftmost = corners[i];
+    } else if (Util::AngleCW(minAngle, angle) <= M_PI) {
+      minAngle = angle;
+      rightmost = corners[i];
+    }
+  }
+
+  std::vector<Vector2f> result;
+  result.push_back(rightmost);
+  result.push_back(leftmost);
+  return result;
+}

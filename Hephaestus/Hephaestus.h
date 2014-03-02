@@ -1,11 +1,14 @@
 #pragma once
+#include "HephaestusObserver.h"
 
 class GameManager;
 class GameScene;
 class ResourceManager;
 class Graphics;
 class GameInterface;
-enum GameType;
+class CommandBuffer;
+class NetworkManager;
+class NetworkConnection;
 
 namespace std {
   class thread;
@@ -21,12 +24,16 @@ class Hephaestus {
     Hephaestus(sf::RenderWindow *window);
     void StartSinglePlayerGame(const std::string &map);
     void HostGame(const std::string &map, int port);
-    void JoinGame(const std::string &hostname, const std::string &port);
+    void JoinGame(const std::string &hostname, const std::string& port);
+    void CancelHosting();
+    void SetObserver(HephaestusObserver* observer);
 
     void Update();
-    void Quit();
+    bool IsRunning() const;
 
   private:
+    void StartHostedGame(NetworkConnection* connection, const std::string& map);
+    void StartJoinedGame(NetworkConnection* connection);
     void StartGame();
     void LoadMap(const std::string &map);
     static void RunSimulation(GameManager *game_manager);
@@ -37,5 +44,9 @@ class Hephaestus {
     Graphics *graphics;
     ResourceManager *resource_manager;
     GameScene *game_scene1, *game_scene2;
-    std::thread *simulation_thread;
+    CommandBuffer* commandBuffer;
+    NetworkManager* networkManager;
+    NetworkConnection* opponentConnection;
+    HephaestusObserver* observer;
+    bool isRunning;
 };

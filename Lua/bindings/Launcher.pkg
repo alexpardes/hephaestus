@@ -6,8 +6,9 @@ namespace std {
 
 class Launcher {
   public:
-    static void Launch();
-    static void StartSinglePlayerGame(const std::string &map);
-    static void HostGame(const std::string &map, int port);
-    static void JoinGame(const std::string &hostname, const std::string &port);
+    static Launcher* Instance();
+    void StartSinglePlayerGame(const std::string& map);
+    void HostGame(const std::string& map, int port);
+    void JoinGame(const std::string& hostname, const std::string& port);
+	void CancelHosting();
 };

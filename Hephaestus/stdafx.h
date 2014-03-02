@@ -20,7 +20,12 @@
 
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
+
+#pragma warning( push )
+#pragma warning( disable : 4250 )
 #include <boost/asio.hpp>
+#pragma warning( pop )
+
 #include <boost/serialization/export.hpp>
 #include <boost/serialization/list.hpp>
 #include <boost/serialization/vector.hpp>

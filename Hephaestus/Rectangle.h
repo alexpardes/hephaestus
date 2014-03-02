@@ -12,4 +12,11 @@ struct Rect {
     std::vector<LineSegment> Sides() const;
     Vector2f Center() const;
     Vector2f NearestPoint(const Vector2f &point) const;
+
+    // Returns the rightmost and leftmost points (in that order) relative to
+    // the given point.
+    std::vector<Vector2f> WidestPoints(const Vector2f& point) const;
+
+    // Moves each side of the rectangle outward by the given distance.
+    void Grow(float distance);
 };

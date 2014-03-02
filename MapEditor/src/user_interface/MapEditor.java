@@ -31,8 +31,8 @@ import javafx.scene.text.*;
 public class MapEditor extends Application {
 	public static MapEditor instance;
 	
-	static final int TILE_WIDTH = 50;
-	static final int TILE_HEIGHT = 50;
+	static final int TILE_WIDTH = 10;
+	static final int TILE_HEIGHT = 10;
 
 	private File mapFile;
 	private String selectedTile, selectedUnit;

@@ -8,14 +8,14 @@ class MoveAbility;
 
 class AttackAction : public UnitAction {
   public:
-    AttackAction(GameUnit &target) : target(target) { }
+    AttackAction(UnitId target) : target(target) { }
 
     virtual void Start(GameUnit &unit);
     virtual void Execute(GameUnit &unit);
     virtual std::string Name();
 
   private:
-    GameUnit &target;
+    UnitId target;
     MoveAbility *moveAbility;
     AttackAbility *attackAbility;
 };

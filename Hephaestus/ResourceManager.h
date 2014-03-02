@@ -26,6 +26,8 @@ class ResourceManager {
 		}
 
 	private:
+    sf::Color CreateColor(std::string& rgb);
+    void LoadPlayerColors(const Json::Value& players);
 		void LoadUnitAttributes(const Json::Value &unit);
 		bool LoadUnitImages(const Json::Value &unit);
 		void LoadTiles(const Json::Value &tiles);
@@ -36,11 +38,12 @@ class ResourceManager {
 
 		UnitDictionary unit_dictionary_;
 		std::vector<std::string> tile_table_;
-		ImageDictionary unit_images_;
+		std::unordered_map<std::string, std::vector<sf::Texture>> unit_images_;
     ImageDictionary projectileImages;
 		ImageDictionary terrain_images_;
 		BoolDictionary traversability_;
 		std::vector<std::vector<TerrainId>> terrain_;
+    std::vector<sf::Color> playerColors;
 };
 
 #endif

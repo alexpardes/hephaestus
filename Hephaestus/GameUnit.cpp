@@ -20,8 +20,10 @@ GameUnit::GameUnit(UnitId id,
 }
 
 void GameUnit::SetAction(UnitAction *action) {
-  this->action = action;
-  action->Start(*this);
+  if (action) {
+    this->action = action;
+    action->Start(*this);
+  }
 }
 
 void GameUnit::AddAbility(UnitAbility *ability) {
@@ -52,6 +54,7 @@ UnitModel::UnitModel(const GameUnit &unit) {
 	name = unit.Attributes().name();
 	owner_ = unit.Owner();
 	radius_ = unit.Attributes().selection_radius();
+  sightMap = new SectorMap(unit.SightMap());
 }
 
 UnitModel::UnitModel(const UnitModel &unit1,
@@ -64,8 +67,9 @@ UnitModel::UnitModel(const UnitModel &unit1,
   rotation_ = Util::InterpolateAngles(unit1.rotation(),
       unit2.rotation(), weight);
 
-	id_ = unit1.id();
+	id_ = unit1.Id();
 	name = unit1.Name();
-	owner_ = unit1.owner();
+	owner_ = unit1.Owner();
 	radius_ = unit1.radius();
+  sightMap = unit2.sightMap;
 }

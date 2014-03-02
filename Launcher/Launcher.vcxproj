@@ -56,8 +56,8 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>..\Lib\tolua\lib;..\Lib\windows;..\Lib\cegui\lib;..\Lib\boost\lib;..\Lib\wx\lib;..\Lib\json\lib\debug;..\Lib\SFML\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>sfml-system-s-d.lib;sfml-graphics-s-d.lib;sfml-window-s-d.lib;sfml-main-d.lib;CEGUIBase-0_d.lib;CEGUIOpenGLRenderer-0_d.lib;CEGUILuaScriptModule-0_d.lib;toluapp_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\Lib\lua\lib;..\Lib\tolua\lib;..\Lib\windows;..\Lib\cegui\lib;..\Lib\boost\lib;..\Lib\wx\lib;..\Lib\json\lib\debug;..\Lib\SFML\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>sfml-system-s-d.lib;sfml-graphics-s-d.lib;sfml-window-s-d.lib;sfml-main-d.lib;CEGUIBase-0_d.lib;CEGUIOpenGLRenderer-0_d.lib;CEGUILuaScriptModule-0_d.lib;toluapp_d.lib;lua-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

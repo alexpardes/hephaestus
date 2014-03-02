@@ -1,6 +1,4 @@
-#ifndef GRAPHICS_
-#define GRAPHICS_
-
+#pragma once
 #include <SFML/Graphics.hpp>
 #include "GameState.h"
 #include "GameInterface.h"
@@ -13,7 +11,8 @@ class Graphics {
 				const GameInterface &game_interface,
 				const ResourceManager &resource_manager) :
 				window_(window), game_interface_(game_interface),
-				resource_manager_(resource_manager) { }
+				resource_manager_(resource_manager) {
+    }
 		void DrawGame(const GameScene &scene) const;
 	private:
 		sf::RenderWindow &window_;
@@ -22,8 +21,8 @@ class Graphics {
 		void DrawTerrain() const;
 		void DrawUnits(const std::list<UnitModel *> &units) const;
 		void DrawProjectiles(const std::list<ProjectileModel *> &projectiles) const;
-		void DrawGameInterface(const GameScene &scene) const;
+		void DrawGameInterface(const GameScene& scene) const;
+    void DrawSelectionGraphics(const GameScene& scene) const;
+    void DrawVisibilityGraphics(const GameScene& scene) const;
 		void Graphics::DrawMiniMap(const GameScene &scene) const;
 };
-
-#endif

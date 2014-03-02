@@ -9,7 +9,7 @@
 
 class Util {
 	public:
-
+    static int Sign(int x);
     // Returns the angle between origin and origin + 2*pi.
     static float Angle(float angle, float origin);
 		static float Degrees(float radians);
@@ -22,13 +22,24 @@ class Util {
 		static float Length2(const Vector2f &vector);
 		static float Cross(const Vector2f &vector1, const Vector2f &vector2);
 		static float Dot(const Vector2f &vector1, const Vector2f &vector2);
+
+    // Returns the clockwise angle from angle1 to angle2. Assumes input angles
+    // are between 0 and 2*pi.
+    static float AngleCW(float angle1, float angle2);
+    static float AngleCCW(float angle1, float angle2);
+
+    // Returns true if testAngle is in the sector from angle1 counterclockwise
+    // to angle2.
+    static bool IsBetweenAngles(float testAngle, float angle1, float angle2);
+
+    // Returns the angle in radius between the given vector and (1, 0).
     static float FindAngle(const Vector2f &vector);
 		static float FindAngle(const Vector2f &vector1, const Vector2f &vector2);
     static float FindAngleDegrees(const Vector2f &vector1, const Vector2f &vector2);
 		static Vector2f Perpendicular(const Vector2f &vector);
 		static void Normalize(Vector2f &vector);
     static Vector2f Normalized(const Vector2f &vector);
-		static void Scale(Vector2f &vector, float length);
+		static void Resize(Vector2f &vector, float length);
 		static float Square(float x);
 		template <typename T> static int Sign(T val);
 		static int Laterality(const Vector2f &vector1,

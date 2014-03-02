@@ -1,5 +1,4 @@
-#ifndef GameInterface_
-#define GameInterface_
+#pragma once
 
 #include <SFML/Window/Event.hpp>
 #include <SFML/Graphics/Drawable.hpp>
@@ -7,26 +6,27 @@
 #include "Command.h"
 #include "GameState.h"
 #include "GameUnit.h"
-#include "Networking.h"
+#include "NetworkManager.h"
 
 class GameInterface {
 	public:
-		GameInterface(const Vector2f &screen_size,
-				const Vector2f &map_size, PlayerNumber player) {
-			screen_size_ = screen_size;
-			map_size_ = map_size;
-			screen_position_ = Vector2f(0.f, 0.f);
-			horizontal_scroll_ = 0;
-			vertical_scroll_ = 0;
+		GameInterface(sf::RenderWindow& window) : window(window) {
+      keyboardHScroll = 0;
+      keyboardVScroll = 0;
+			mouseHScroll = 0;
+			mouseVScroll = 0;
 			is_selecting_ = false;
 			cursor_action_ = kSelect;
-			player_ = player;
-			interface_graphic_ = sf::RectangleShape(Vector2f(screen_size.x,
-					200.f));
-			interface_graphic_.setPosition(Vector2f(0.f, screen_size.y - 200.f));
-			interface_graphic_.setFillColor(sf::Color(255, 255, 255, 255));
 			game_scene_ = NULL;
+      mainView.setCenter(Vector2f(960, 540));
+      mainView.setSize(Vector2f(1920, 1080));
 		}
+
+    void Resize();
+
+    const sf::View &MainView() const { return mainView; }
+    const sf::View &MinimapView() const { return minimapView; }
+
 		Command *ProcessEvent(const sf::Event &event, const sf::RenderWindow &window);
 		void MoveScreen(float time_step);
 
@@ -36,10 +36,29 @@ class GameInterface {
 			return old_queue;
 		}
 
-		Vector2f screen_position() const {return screen_position_;}
-		void set_screen_position(Vector2f location) {
-			screen_position_ = location;
-		}
+    void SetMapSize(const Vector2f &mapSize) {
+      int screenWidth = window.getSize().x;
+      int screenHeight = window.getSize().y;
+
+      map_size_ = mapSize;
+      minimapView.setCenter(map_size_ / 2.f);
+      minimapView.setSize(map_size_);
+      float mapAspectRatio = map_size_.x / map_size_.y;
+      float screenAspectRatio = float(screenWidth) / screenHeight;
+      minimapView.setViewport(sf::FloatRect(0.01f / screenAspectRatio, 0.69f,
+          0.3f * mapAspectRatio / screenAspectRatio, 0.3f));
+    }
+
+    void SetPlayer(PlayerNumber player) {
+      player_ = player;
+    }
+
+    PlayerNumber Player() const { return player_; }
+
+		//Vector2f screen_position() const {return screen_position_;}
+		//void set_screen_position(Vector2f location) {
+		//	screen_position_ = location;
+		//}
 
 		bool is_selecting() const {return is_selecting_;}
 		sf::Drawable *GetSelectionBoxGraphic() const;
@@ -54,22 +73,24 @@ class GameInterface {
 		void DeselectDeadUnits();
 
 	private:
+    void ConstrainView();
+    void MouseScroll();
 		const UnitModel *GetUnit(const Vector2f &location) const;
 		const std::vector<UnitId> GetUnitIds(const Vector2f &location1,
 				const Vector2f &location2) const;
 		Vector2i selection_corner1() const {return Util::GetVector2i(selection_corner1_);}
 		Vector2i selection_corner2() const {return Util::GetVector2i(selection_corner2_);}
-		Vector2f GetGameLocation(const Vector2f &screen_location) const {
-			return screen_location + screen_position_;
+		Vector2f GetGameLocation(const Vector2i &screen_location) const {
+			return window.mapPixelToCoords(screen_location, mainView);
 		}
 
-		Vector2i GetGameLocation(const Vector2i &screen_location) const {
-			return screen_location + Util::GetVector2i(screen_position_);
-		}
-		//	This is the coordinates of the point of the game world at the top
-		//	left corner of the screen.
-		Vector2f screen_position_;
-		char horizontal_scroll_, vertical_scroll_;
+		//Vector2i GetGameLocation(const Vector2i &screen_location) const {
+		//	return window.mapPixelToCoords(screen_location);
+		//}
+
+    sf::RenderWindow& window;
+    sf::View mainView, minimapView;
+		int mouseHScroll, mouseVScroll, keyboardHScroll, keyboardVScroll;
 		void Select(const Vector2i &corner1, const Vector2i &corner2);
 		Vector2f selection_corner1_;
 		Vector2f selection_corner2_;
@@ -79,10 +100,8 @@ class GameInterface {
 		static const float kScrollSpeed;
 		enum CursorAction {kSelect, kAttack};
 		CursorAction cursor_action_;
-		Vector2f screen_size_, map_size_;
+		Vector2f map_size_;
 		sf::RectangleShape interface_graphic_;
 		GameScene *game_scene_;
 		PlayerNumber player_;
 };
-
-#endif

@@ -14,6 +14,8 @@ class MainMenu {
     MainMenu();
     void Draw();
     void HandleEvent(sf::Event &event);
+    void OnConnectionFailed();
+    void OnGameEnded();
 
   private:
     CEGUI::OpenGLRenderer *renderer;

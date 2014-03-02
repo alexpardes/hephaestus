@@ -184,16 +184,16 @@ Vector2f MoveAbility::AvoidForce(const Vector2f &point) const {
   }
   float weight = Util::Dot(Util::Normalized(direction),
     Util::Normalized(velocity));
-  Util::Scale(desiredDirection, weight);
+  Util::Resize(desiredDirection, weight);
 
   return desiredDirection;
 }
 
 Vector2f MoveAbility::HandleCollisions() {
-  Vector2f newPosition(owner->Position() + velocity);
-  newPosition = HandleUnitCollisions(newPosition);
-  newPosition = HandleTerrainCollisions(newPosition);
-  return newPosition;
+  Vector2f newPosition = owner->Position() + velocity;
+  DirectedSegment movement(owner->Position(), owner->Position() + velocity);
+  movement.Resize(gameState->DistanceToObstacle(*owner, newPosition));
+  return movement.End();
 }
 
 Vector2f MoveAbility::HandleTerrainCollisions(const Vector2f &end) {
@@ -263,18 +263,18 @@ void MoveAbility::Stop() {
 void MoveAbility::ApplyForce(Vector2f &force, bool useMaxAcceleration) {
   float magnitude = Util::Length(force);
   if (magnitude > 0 && (useMaxAcceleration || magnitude > acceleration)) {
-    Util::Scale(force, acceleration);
+    Util::Resize(force, acceleration);
   }
   velocity += force;
   if (Util::Length(velocity) > maxSpeed) {
-    Util::Scale(velocity, maxSpeed);
+    Util::Resize(velocity, maxSpeed);
   }
 }
 
 void MoveAbility::ScaleForce(Vector2f &force, float distance) const {
   if (distance > 0) {
-    Util::Scale(force, 100*acceleration / (distance*distance));
+    Util::Resize(force, 100*acceleration / (distance*distance));
   } else {
-    Util::Scale(force, 1000*acceleration);
+    Util::Resize(force, 1000*acceleration);
   }
 }

@@ -1,95 +1,79 @@
 #include "stdafx.h"
 #include "GameManager.h"
 #include "Commands.h"
+#include "CommandBuffer.h"
+#include "NetworkConnection.h"
 
-GameManager::GameManager(ResourceManager &resource_manager,
-						 float timestep) :
-		resource_manager_(resource_manager),
-		game_state_(NULL),
-		last_scene_(NULL),
-		buffered_commands_(),
-		timestep_(timestep),
-		players_(NULL),
-		turn_delay_(1) { }
+GameManager::GameManager(float timestep) :
+		gameState(NULL),
+		lastScene(NULL),
+		timestep_(timestep) {
+  isRunning = false;
+}
 
 void GameManager::SetGameState(GameState *state) {
-	game_state_ = state;
-  players_ = new Players(*game_state_);
-	last_scene_ = new GameScene(*game_state_);
+	gameState = state;
+  while (players.size() < 2) {
+    players.push_back(new Player(*gameState));
+  }
+
+	lastScene = new GameScene(*gameState);
 }
 
-void GameManager::StartSinglePlayerGame() {
-	is_multiplayer_ = false;
-	self_ = kPlayer1;
+void GameManager::SetCommandSource(int playerNumber, CommandSource* source) {
+  players[playerNumber]->SetCommandSource(source);
 }
 
-void GameManager::HostGame(int port) {
-	network_connection_.AcceptClient(port);
-	is_multiplayer_ = true;
-	self_ = kPlayer1;
-	opponent_ = kPlayer2;
+void GameManager::StartGame() {
+  thread = std::thread(&GameManager::RunGame, this);
 }
 
-void GameManager::JoinGame(const std::string &hostname,
-						   const std::string &port) {
-	network_connection_.Connect(hostname, port);
-	is_multiplayer_ = true;
-	self_ = kPlayer2;
-	opponent_ = kPlayer1;
-}
-
-void GameManager::BufferCommand(const Command *command) {
-	commands_mutex_.lock();
-	buffered_commands_->push_back(command);
-	commands_mutex_.unlock();
-}
 
 void GameManager::RunGame() {
-	Player &home_player = players_->GetPlayer(self_);
-	Player &away_player = players_->GetPlayer(opponent_);
-  buffered_commands_ = new CommandTurn();
-
-	is_running_ = true;
-	while (is_running_) {
+	isRunning = true;
+	while (isRunning) {
 		float elapsed_time = clock_.getElapsedTime().asMilliseconds();
 		while (elapsed_time < timestep_) {
 			boost::this_thread::sleep(boost::posix_time::
 					milliseconds(int64_t(timestep_ - elapsed_time)));
 			elapsed_time = clock_.getElapsedTime().asMilliseconds();
-		};		
+		};
 
-		CommandTurn *last_turn = buffered_commands_;
+    if (!QueueCommands()) {
+      isRunning = false;
+      break;
+    }
 
-		// I don't think mutex is necessary anymore.
-		commands_mutex_.lock();
-		buffered_commands_ = new CommandTurn();
-		commands_mutex_.unlock();
+		ApplyCommands();
 
-		if (is_multiplayer_) {
-			network_connection_.SendCommands(last_turn);
-			if (!turn_delay_) {
-				away_player.AddCommandTurn(network_connection_.ReceiveCommands());
-			}
-		}
-		home_player.AddCommandTurn(last_turn);
-
-		if (!turn_delay_) {
-			ApplyCommands(kPlayer1);
-			ApplyCommands(kPlayer2);
-		} else {
-			--turn_delay_;
-		}
-
-    game_state_->ExecuteTurn();
+    gameState->ExecuteTurn();
 		scene_mutex_.lock();
-		if (last_scene_) delete last_scene_;
-		last_scene_ = new GameScene(*game_state_);
+		if (lastScene) delete lastScene;
+		lastScene = new GameScene(*gameState);
 		scene_mutex_.unlock();
 		clock_.restart();
 	}
+
+  Reset();
 }
 
-void GameManager::ApplyCommands(PlayerNumber player_number) {
-	Player &player = players_->GetPlayer(player_number);
-  player.ExecuteTurn();
+void GameManager::Reset() {
+  players.clear();
+  lastScene = nullptr;
+  gameState = nullptr;
+}
+
+bool GameManager::QueueCommands() {
+  for (Player* player : players) {
+    if (!player->QueueCommandTurn()) {
+      return false;
+    }
+  }
+  return true;
+}
+
+void GameManager::ApplyCommands() {
+  for (Player* player : players) {
+    player->ExecuteTurn();
+  }
 }

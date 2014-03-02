@@ -7,7 +7,7 @@ void AttackAction::Start(GameUnit &unit) {
   UnitAbility *ability = unit.GetAbility("Attack");
   if (ability) {
     attackAbility = dynamic_cast<AttackAbility*>(ability);
-    attackAbility->SetTarget(target.Id());
+    attackAbility->SetTarget(target);
   }
   ability = unit.GetAbility("Move");
   if (ability) {

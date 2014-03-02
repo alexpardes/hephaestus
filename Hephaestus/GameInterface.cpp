@@ -10,9 +10,8 @@ Command *GameInterface::ProcessEvent(const sf::Event &event,
 	Command *command = NULL;
 	switch (event.type) {
 		case sf::Event::MouseButtonPressed: {
-			Vector2i mouseLocation = Vector2i(event.mouseButton.x,
-					event.mouseButton.y);
-      location = GetGameLocation(window.mapPixelToCoords(mouseLocation));
+			Vector2i mouseLocation(event.mouseButton.x, event.mouseButton.y);
+      location = GetGameLocation(mouseLocation);
 			switch (event.mouseButton.button) {
 				case sf::Mouse::Left:
 					switch (cursor_action_) {
@@ -24,7 +23,7 @@ Command *GameInterface::ProcessEvent(const sf::Event &event,
 						case kAttack:
 							const UnitModel *unit = GetUnit(location);
 							if (unit) {
-								command = new AttackCommand(unit->id());
+								command = new AttackCommand(unit->Id());
 							} else {
 								command = new AttackMoveCommand(location);
 							}
@@ -35,8 +34,8 @@ Command *GameInterface::ProcessEvent(const sf::Event &event,
 				case sf::Mouse::Right:
 					if (cursor_action_ == kSelect) {
 						const UnitModel *unit = GetUnit(location);
-						if (unit && unit->owner() != player_) {
-							command = new AttackCommand(unit->id());
+						if (unit && unit->Owner() != player_) {
+							command = new AttackCommand(unit->Id());
 						} else {
 							command = new MoveCommand(location);
 						}
@@ -47,11 +46,15 @@ Command *GameInterface::ProcessEvent(const sf::Event &event,
 			}
 			break;
     }
+    case sf::Event::MouseLeft:
+      MouseScroll();
+      break;
 		case sf::Event::MouseMoved: {
+      MouseScroll();
 			if (is_selecting_) {
         Vector2i mouseLocation = Vector2i(event.mouseMove.x,
             event.mouseMove.y);
-        location = GetGameLocation(window.mapPixelToCoords(mouseLocation));
+        location = GetGameLocation(mouseLocation);
 				selection_corner2_ = location;
 			}
 			break;
@@ -78,41 +81,53 @@ Command *GameInterface::ProcessEvent(const sf::Event &event,
 					cursor_action_ = kAttack;
 					break;
 				case sf::Keyboard::Key::Left:
-					horizontal_scroll_ = -1;
+					keyboardHScroll = -1;
 					break;
 				case sf::Keyboard::Key::Up:
-					vertical_scroll_ = -1;
+					keyboardVScroll = -1;
 					break;
 				case sf::Keyboard::Key::Right:
-					horizontal_scroll_ = 1;
+					keyboardHScroll = 1;
 					break;
 				case sf::Keyboard::Key::Down:
-					vertical_scroll_ = 1;
+					keyboardVScroll = 1;
 					break;
 			}
 			break;
 		case sf::Event::KeyReleased:
 			switch (event.key.code) {
+        // TODO: are these ifs necessary?
 				case sf::Keyboard::Key::Left:
-					if (horizontal_scroll_ == -1)
-							horizontal_scroll_ = 0;
+					if (keyboardHScroll == -1)
+							keyboardHScroll = 0;
 					break;
 				case sf::Keyboard::Key::Up:
-					if (vertical_scroll_ == -1)
-							vertical_scroll_ = 0;
+					if (keyboardVScroll == -1)
+							keyboardVScroll = 0;
 					break;
 				case sf::Keyboard::Key::Right:
-					if (horizontal_scroll_ == 1)
-							horizontal_scroll_ = 0;
+					if (keyboardHScroll == 1)
+							keyboardHScroll = 0;
 					break;
 				case sf::Keyboard::Key::Down:
-					if (vertical_scroll_ == 1)
-							vertical_scroll_ = 0;
+					if (keyboardVScroll == 1)
+							keyboardVScroll = 0;
 					break;
 			}
 			break;
 	}
 	return command;
+}
+
+void GameInterface::Resize() {
+  int screenHeight = window.getDefaultView().getSize().y;
+
+  float graphicSize = 0.32 * screenHeight;
+  interface_graphic_ = sf::RectangleShape(Vector2f(graphicSize,
+    graphicSize));
+  interface_graphic_.setPosition(Vector2f(0,
+    screenHeight - graphicSize));
+  interface_graphic_.setFillColor(sf::Color(0, 0, 0, 255));
 }
 
 const std::list<UnitModel *> GameInterface::GetSelectedUnits() const {
@@ -125,44 +140,91 @@ const std::list<UnitModel *> GameInterface::GetSelectedUnits() const {
 }
 
 void GameInterface::MoveScreen(float time_step) {
-	float horizontal_move = horizontal_scroll_ * kScrollSpeed * time_step;
-	float vertical_move = vertical_scroll_ * kScrollSpeed * time_step;
+  int horizontalDirection = Util::Sign(mouseHScroll + keyboardHScroll);
+  int verticalDirection = Util::Sign(mouseVScroll + keyboardVScroll);
+	float horizontal_move = horizontalDirection * kScrollSpeed * time_step;
+	float vertical_move = verticalDirection * kScrollSpeed * time_step;
+
+  mainView.move(horizontal_move, vertical_move);
+  ConstrainView();
 
 	//	The last term is to account for the UI size.
-	Vector2f bottom_right = map_size_ - screen_size_ + Vector2f(0.f, 200.f);
-	screen_position_.x += horizontal_move;
-	if (screen_position_.x <= 0.f) {
-		screen_position_.x = 0.f;
-	} else if (screen_position_.x > bottom_right.x) {
-		screen_position_.x = bottom_right.x;
-	}
-	screen_position_.y += vertical_move;
-	if (screen_position_.y <= 0.f) {
-		screen_position_.y = 0.f;
-	} else if (screen_position_.y > bottom_right.y) {
-		screen_position_.y = bottom_right.y;
-	}
-	if (is_selecting_) {
-		selection_corner2_.x += horizontal_move;
-		if (selection_corner2_.x < 0.f) {
-			selection_corner2_.x = 0.f;
-		} else if (selection_corner2_.x > map_size_.x) {
-			selection_corner2_.x = map_size_.x;
-		}
-		selection_corner2_.y += vertical_move;
-		if (selection_corner2_.y < 0.f) {
-			selection_corner2_.y = 0.f;
-		} else if (selection_corner2_.y > map_size_.y) {
-			selection_corner2_.y = map_size_.y;
-		}
-		if (selection_corner2_.y < 0) selection_corner2_.y = 0;
-	}
+	//Vector2f bottom_right = map_size_ - screen_size_ + Vector2f(0.f, 200.f);
+	//screen_position_.x += horizontal_move;
+	//if (screen_position_.x <= 0.f) {
+	//	screen_position_.x = 0.f;
+	//} else if (screen_position_.x > bottom_right.x) {
+	//	screen_position_.x = bottom_right.x;
+	//}
+	//screen_position_.y += vertical_move;
+	//if (screen_position_.y <= 0.f) {
+	//	screen_position_.y = 0.f;
+	//} else if (screen_position_.y > bottom_right.y) {
+	//	screen_position_.y = bottom_right.y;
+	//}
+	//if (is_selecting_) {
+	//	selection_corner2_.x += horizontal_move;
+	//	if (selection_corner2_.x < 0.f) {
+	//		selection_corner2_.x = 0.f;
+	//	} else if (selection_corner2_.x > map_size_.x) {
+	//		selection_corner2_.x = map_size_.x;
+	//	}
+	//	selection_corner2_.y += vertical_move;
+	//	if (selection_corner2_.y < 0.f) {
+	//		selection_corner2_.y = 0.f;
+	//	} else if (selection_corner2_.y > map_size_.y) {
+	//		selection_corner2_.y = map_size_.y;
+	//	}
+	//	if (selection_corner2_.y < 0) selection_corner2_.y = 0;
+	//}
+}
+
+void GameInterface::MouseScroll() {
+  int x = sf::Mouse::getPosition(window).x;
+  int y = sf::Mouse::getPosition(window).y;
+
+  int horizontalScrollMargin = 5;
+  int verticalScrollMargin = 5;
+
+  int screenWidth = window.getSize().x;
+  int screenHeight = window.getSize().y;
+
+  if (x < horizontalScrollMargin) {
+    mouseHScroll = -1;
+  } else if (screenWidth - x < horizontalScrollMargin) {
+    mouseHScroll = 1;
+  } else {
+    mouseHScroll = 0;
+  }
+  if (y < verticalScrollMargin) {
+    mouseVScroll = -1;
+  } else if (screenHeight - y < verticalScrollMargin) {
+    mouseVScroll = 1;
+  } else {
+    mouseVScroll = 0;
+  }
+}
+
+void GameInterface::ConstrainView() {
+  float x = mainView.getCenter().x;
+  float y = mainView.getCenter().y;
+  if (x <= 960) {
+    x = 960;
+  } else if (x > map_size_.x - 960) {
+    x = map_size_.x - 960;
+  }
+  if (y <= 540) {
+    y = 540;
+  } else if (y > map_size_.y - 540) {
+    y = map_size_.y - 540;
+  }
+  mainView.setCenter(x, y);
 }
 
 sf::Drawable *GameInterface::GetSelectionBoxGraphic() const {
 	sf::RectangleShape *selection_box =
 			new sf::RectangleShape(selection_corner2_ - selection_corner1_);
-	selection_box->setPosition(selection_corner1_ - screen_position_);
+	selection_box->setPosition(selection_corner1_);
 	selection_box->setFillColor(sf::Color(100, 100, 255, 100));
 	selection_box->setOutlineColor(sf::Color(0, 0, 255, 200));
 	selection_box->setOutlineThickness(1.f);
@@ -189,10 +251,9 @@ const std::vector<UnitId> GameInterface::GetUnitIds(
 	std::vector<UnitId> ids;
 	const std::vector<const UnitModel *> units = game_scene_->
 			GetUnitsInRectangle(location1, location2);
-	for (std::vector<const UnitModel *>::const_iterator unit = units.begin();
-			unit != units.end(); ++unit) {
-		if ((**unit).owner() == player_) {
-			ids.push_back((**unit).id());
+	for (const UnitModel * unit : units) {
+		if (unit->Owner() == player_) {
+			ids.push_back(unit->Id());
 		}
 	}
 	return ids;
@@ -206,7 +267,7 @@ void GameInterface::DeselectDeadUnits() {
 			dead_unit_ids.push_back(unit_id);
 		}
 	}
-	for (int i = 0; i < dead_unit_ids.size(); ++i) {
+	for (size_t i = 0; i < dead_unit_ids.size(); ++i) {
 		selected_unit_ids_.erase(dead_unit_ids[i]);
 	}
 }
