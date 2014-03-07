@@ -4,20 +4,25 @@
 #include "GameInterface.h"
 #include "ResourceManager.h"
 #include "Util.h"
+#include "SectorMap.h"
 
 class Graphics {
 	public:
 		Graphics(sf::RenderWindow &window,
 				const GameInterface &game_interface,
-				const ResourceManager &resource_manager) :
+				ResourceManager &resource_manager) :
 				window_(window), game_interface_(game_interface),
 				resource_manager_(resource_manager) {
     }
-		void DrawGame(const GameScene &scene) const;
+		void DrawGame(const GameScene &scene, float timestep);
 	private:
+    static std::vector<sf::ConvexShape> TessellateSector(SectorMap::Sector& sector);
+    Vector2i MapSize() const { return resource_manager_.MapSize(); }
 		sf::RenderWindow &window_;
-		const ResourceManager &resource_manager_;
+		ResourceManager &resource_manager_;
 		const GameInterface &game_interface_;
+    void DrawFogOfWar(const GameScene& scene);
+    void DrawFramerate(float timestep) const;
 		void DrawTerrain() const;
 		void DrawUnits(const std::list<UnitModel *> &units) const;
 		void DrawProjectiles(const std::list<ProjectileModel *> &projectiles) const;

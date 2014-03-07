@@ -5,62 +5,87 @@
 #include <PathFinding/VectorPathingGrid.h>
 #include <PathFinding/Subgoal.h>
 
-GameState *ResourceManager::LoadMap(const std::string &filename) {
-	std::ifstream map_file(filename);
-	if (!map_file.good()) {
+GameState *ResourceManager::LoadMap(const std::string& filename) {
+  LoadFonts();
+
+	std::ifstream mapFile(filename);
+	if (!mapFile.good()) {
 		assert(0);
 		return NULL;
 	}
 	Json::Reader reader;
 	Json::Value map;
-	reader.parse(map_file, map);
-	map_file.close();
+	reader.parse(mapFile, map);
+	mapFile.close();
 
-  Json::Value players = map["players"];
-  LoadPlayerColors(players);
+  mapSize.x = map["width"].asInt();
+  mapSize.y = map["height"].asInt();
 
-	Json::Value tiles = map["tiles"];
-	LoadTiles(tiles);
+  LoadTiles(map);
+  LoadTerrain(map);
+  RenderMap();
+  SetupFogOfWar();
+  LoadPlayerColors(map);
+  LoadUnits(map);
 
-	int map_width = map["width"].asInt();
-	int map_height = map["height"].asInt();
-	Json::Value terrain = map["terrain"];
-	LoadTerrain(Vector2i(map_width, map_height), terrain);
-  PathFinder *pathfinder = LoadPathingInfo(map["pathinginfo"], map_width, map_height);
-	GameState *state = new GameState(unit_dictionary_,
-      Vector2i(map_width, map_height),
-      pathfinder);
+  PathFinder* pathfinder = LoadPathingInfo(map["pathinginfo"]);
+	GameState* state = new GameState(unit_dictionary_, mapSize, pathfinder);
 
-	Json::Value types = map["types"];
-	for (Json::Value::iterator type = types.begin(); type != types.end();
-			++type) {
-		LoadUnitAttributes(*type);
-		LoadUnitImages(*type);
-	}
-
-	Json::Value units = map["units"];
-	for (Json::Value::iterator unit = units.begin(); unit != units.end();
-			++unit) {
-		std::string unit_type = (*unit)["type"].asString();
-		int owner = (*unit)["owner"].asInt();
-		float x = float((*unit)["x"].asDouble());
-		float y = float((*unit)["y"].asDouble());
-		//float rotation = float((*unit)["rotation"].asDouble());
-		float rotation = 0; // Rotation needs to be added to the map editor.
-		state->AddUnit(unit_type, PlayerNumber(owner), Vector2f(x, y), rotation);
-	}
-
-	for (int x = 0; x < map_width; ++x) {
-		for (int y = 0; y < map_height; ++y) {
-			if (!traversability_[tile_table_.at(terrain_[x][y])]) {
-				Vector2f top_left(x*kTileSize, y*kTileSize);
-				Vector2f bottom_right = top_left + Vector2f(kTileSize, kTileSize);
-				state->AddTerrain(top_left, bottom_right);
-			}
-		}
-	}
+  SetupGameState(map, state);
 
 	return state;
+}
+
+void ResourceManager::SetupFogOfWar() {
+  fogImage.create(mapSize.x * kTileSize, mapSize.y * kTileSize);
+
+  sf::RectangleShape emptyTile(Vector2f(kTileSize, kTileSize));
+  emptyTile.setPosition(0, 0);
+  emptyTile.setFillColor(sf::Color(0, 0, 0, 0));
+  sf::Color fogColor(0, 0, 0, 40);
+  sf::RectangleShape fogTile(Vector2f(kTileSize, kTileSize));
+  fogTile.setPosition(kTileSize, 0);
+  fogTile.setFillColor(fogColor);
+
+  fogTileset.create(2 * kTileSize, kTileSize);
+  fogTileset.draw(emptyTile);
+  fogTileset.draw(fogTile);
+
+  fogTileset.display();
+
+  fogTiles = new TileMap(mapSize, kTileSize);
+  fogTiles->SetTileset(fogTileset.getTexture());
+}
+
+// TODO: handle maps that are larger than the max texture size.
+void ResourceManager::RenderMap() {
+  mapImage.create(kTileSize * mapSize.x, kTileSize * mapSize.y);
+  for (int x = 0; x < mapSize.x; ++x) {
+    for (int y = 0; y < mapSize.y; ++y) {
+      const sf::Texture &terrain_image = GetImage(terrain_[x][y]);
+      sf::Sprite tileSprite;
+      tileSprite.setTexture(terrain_image);
+      Vector2f position = Vector2f(x*kTileSize, y*kTileSize);
+      tileSprite.setPosition(position);
+      mapImage.draw(tileSprite);
+    }
+  }
+
+  mapImage.display();
+  terrain_images_.clear();
+}
+
+void ResourceManager::LoadUnits(const Json::Value& map) {
+  Json::Value types = map["types"];
+  for (Json::Value::iterator type = types.begin(); type != types.end();
+    ++type) {
+      LoadUnitAttributes(*type);
+      LoadUnitImages(*type);
+  }
+}
+
+void ResourceManager::LoadFonts() {
+  defaultFont.loadFromFile("fonts/DejaVuSans.ttf");
 }
 
 // Assumes hexadecimal string formatted as 0xRRGGBBAA.
@@ -81,20 +106,19 @@ sf::Color ResourceManager::CreateColor(std::string& rgb) {
   return sf::Color(red, green, blue, alpha);
 }
 
-void ResourceManager::LoadPlayerColors(const Json::Value& players) {
+void ResourceManager::LoadPlayerColors(const Json::Value& map) {
+  Json::Value players = map["players"];
   for (Json::Value playerColor : players) {
     sf::Color color = CreateColor(playerColor.asString());
     playerColors.push_back(color);
   }
 }
 
-PathFinder *ResourceManager::LoadPathingInfo(const Json::Value &pathingInfo,
-                                             int width,
-                                             int height) {
+PathFinder *ResourceManager::LoadPathingInfo(const Json::Value& pathingInfo) {
 
-  PathingGrid *grid = new VectorPathingGrid(width, height);
-  for (int x = 0; x < width; ++x) {
-    for (int y = 0; y < height; ++y) {
+  PathingGrid *grid = new VectorPathingGrid(mapSize);
+  for (int x = 0; x < mapSize.x; ++x) {
+    for (int y = 0; y < mapSize.y; ++y) {
       grid->SetBlocked(x, y, !traversability_[tile_table_.at(terrain_[x][y])]);
     }
   }
@@ -136,12 +160,11 @@ PathFinder *ResourceManager::LoadPathingInfo(const Json::Value &pathingInfo,
     ++adjacencyList;
   }
 
-  // TODO: inject tile size.
-  return new SubgoalPathFinder(grid, Vector2f(50, 50),
+  return new SubgoalPathFinder(grid, Vector2f(8, 8),
       subgoals, adjacencyLists);
 }
 
-void ResourceManager::LoadUnitAttributes(const Json::Value &unit) {
+void ResourceManager::LoadUnitAttributes(const Json::Value& unit) {
 	std::string name = unit["name"].asString();
 	float collision_radius = float(unit["cradius"].asDouble());
 	float selection_radius = float(unit["sradius"].asDouble());
@@ -156,7 +179,7 @@ void ResourceManager::LoadUnitAttributes(const Json::Value &unit) {
 			attributes));
 }
 
-const sf::Texture &ResourceManager::GetImage(const std::string &name,
+const sf::Texture& ResourceManager::GetImage(const std::string& name,
 										   PlayerNumber owner) const {
 	switch (owner) {
 		case kPlayer2:
@@ -166,11 +189,11 @@ const sf::Texture &ResourceManager::GetImage(const std::string &name,
 	}
 }
 
-const sf::Texture &ResourceManager::GetImage(const std::string &name) const {
+const sf::Texture& ResourceManager::GetImage(const std::string& name) const {
   return projectileImages.at(name);
 }
 
-bool ResourceManager::LoadUnitImages(const Json::Value &unit) {
+bool ResourceManager::LoadUnitImages(const Json::Value& unit) {
 	std::string type = unit["name"].asString();
 	std::string source1 = unit["source1"].asString();
 	std::string source2 = unit["source2"].asString();
@@ -194,36 +217,65 @@ bool ResourceManager::LoadUnitImages(const Json::Value &unit) {
 	return true;
 }
 
-bool ResourceManager::LoadTerrainImage(const Json::Value &tile) {
+bool ResourceManager::LoadTerrainImage(const Json::Value& tile) {
 	std::string type = tile["name"].asString();
 	std::string source = tile["source"].asString();
 	sf::Texture image;
 	image.loadFromFile(source);
 	terrain_images_[type] = image;
+
 	return true;
 }
 
-const sf::Texture &ResourceManager::GetImage(TerrainId id) const {	
+const sf::Texture& ResourceManager::GetImage(TerrainId id) const {	
 	return terrain_images_.at(tile_table_.at(id));
 }
 
-void ResourceManager::LoadTiles(const Json::Value &tiles) {
-	for (Json::Value::iterator tile = tiles.begin(); tile != tiles.end();
-			++tile) {
-		std::string name = (*tile)["name"].asString();
-		bool is_traversable = (*tile)["traversable"].asBool();
+void ResourceManager::LoadTiles(const Json::Value& map) {
+  Json::Value tiles = map["tiles"];
+
+  int tileNumber = 0;
+	for (Json::Value tile : tiles) {    
+		std::string name = tile["name"].asString();
+		bool is_traversable = tile["traversable"].asBool();
 		tile_table_.push_back(name);
 		traversability_[name] = is_traversable;
-		LoadTerrainImage(*tile);
+		LoadTerrainImage(tile);
+    ++tileNumber;
 	}
 }
 
-void ResourceManager::LoadTerrain(const Vector2i &map_size,
-								  const Json::Value &terrain) {
-	for (int x = 0; x < map_size.x; ++x) {
+void ResourceManager::LoadTerrain(const Json::Value& map) {
+	Json::Value terrain = map["terrain"];
+	for (int x = 0; x < mapSize.x; ++x) {
 		terrain_.push_back(std::vector<TerrainId>());
-		for (int y = 0; y < map_size.y; ++y) {
+		for (int y = 0; y < mapSize.y; ++y) {
 			terrain_[x].push_back(terrain[x][y].asInt());
 		}
 	}
+}
+
+void ResourceManager::SetupGameState(const Json::Value& map,
+                                     GameState* state) {
+  for (int x = 0; x < mapSize.x; ++x) {
+    for (int y = 0; y < mapSize.y; ++y) {
+      if (!traversability_[tile_table_.at(terrain_[x][y])]) {
+        Vector2f top_left(x*kTileSize, y*kTileSize);
+        Vector2f bottom_right = top_left + Vector2f(kTileSize, kTileSize);
+        state->AddTerrain(top_left, bottom_right);
+      }
+    }
+  }
+
+  Json::Value units = map["units"];
+  for (Json::Value::iterator unit = units.begin(); unit != units.end();
+    ++unit) {
+      std::string unit_type = (*unit)["type"].asString();
+      int owner = (*unit)["owner"].asInt();
+      float x = float((*unit)["x"].asDouble());
+      float y = float((*unit)["y"].asDouble());
+      //float rotation = float((*unit)["rotation"].asDouble());
+      float rotation = 0; // Rotation needs to be added to the map editor.
+      state->AddUnit(unit_type, PlayerNumber(owner), Vector2f(x, y), rotation);
+  }
 }

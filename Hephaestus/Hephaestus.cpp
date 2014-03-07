@@ -95,8 +95,8 @@ void Hephaestus::StartJoinedGame(NetworkConnection* connection) {
 
 void Hephaestus::LoadMap(const std::string &map) {
 	game_manager->SetGameState(resource_manager->LoadMap("default.map"));
-  Vector2i map_size = resource_manager->GetMapSize(); 
-  game_interface->SetMapSize(kTileSize * Util::GetVector2f(map_size));
+  Vector2i map_size = resource_manager->MapSize(); 
+  game_interface->SetMapSize(kTileSize * Util::ToVector2f(map_size));
   game_interface->Resize();
 }
 
@@ -119,7 +119,7 @@ void Hephaestus::Update() {
     return;
   }
 
-  float time_step = clock->getElapsedTime().asSeconds();
+  float timestep = clock->getElapsedTime().asSeconds();
   clock->restart();
   sf::Event event;
   while (window->pollEvent(event)) {
@@ -132,7 +132,7 @@ void Hephaestus::Update() {
       commandBuffer->AddCommand(command);
     }
   }
-  game_interface->MoveScreen(time_step);
+  game_interface->MoveScreen(timestep);
   GameScene *updated_scene = game_manager->TakeScene();
   if (updated_scene) {
     if (game_scene1) delete game_scene1;
@@ -147,6 +147,6 @@ void Hephaestus::Update() {
       *game_scene2, weight);
     game_interface->set_scene(display_scene);
     game_interface->DeselectDeadUnits();
-    graphics->DrawGame(*display_scene);
+    graphics->DrawGame(*display_scene, timestep);
   }
 }

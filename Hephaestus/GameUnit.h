@@ -82,6 +82,8 @@ class UnitModel {
 		int Id() const {return id_;}
     void SetSightMap(SectorMap* map) { sightMap = map; }
     const SectorMap* SightMap() const { return sightMap; }
+    bool IsVisible() const { return isVisible; }
+    void SetVisible(bool visible) { isVisible = visible; }
 
 	private:
 		Vector2f position_;
@@ -92,4 +94,5 @@ class UnitModel {
 		PlayerNumber owner_;
 		std::string name;
     SectorMap* sightMap;
+    bool isVisible;
 };

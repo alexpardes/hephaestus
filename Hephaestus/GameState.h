@@ -120,7 +120,11 @@ class GameScene {
 
 		const static float kUnitGridResolution;
 
+    std::vector<const SectorMap*> UnitViews() const { return unitViews; }
+
 	private:
+    void ComputeUnitVisibility(PlayerNumber player,
+        std::vector<const SectorMap*> sightMaps);
 		void CreateUnit(const GameUnit& unit);
 		void CreateUnit(const UnitModel& unit1, const UnitModel& unit2,
 				float weight);
@@ -134,5 +138,6 @@ class GameScene {
 		float max_unit_radius_;
 		std::unordered_map<UnitId, UnitModel *> unit_table_;
     std::vector<std::vector<bool>> isVisible;
+    std::vector<const SectorMap*> unitViews;
     Vector2i mapSize;
 };

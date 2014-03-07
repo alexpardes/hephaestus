@@ -1,13 +1,14 @@
 #include "stdafx.h"
 #include "Graphics.h"
-#include "SectorMap.h"
 
-void Graphics::DrawGame(const GameScene &scene) const {
+void Graphics::DrawGame(const GameScene &scene, float timestep) {
 	window_.clear();
   window_.setView(game_interface_.MainView());
 	DrawTerrain();
 	DrawUnits(scene.units());
 	DrawProjectiles(scene.projectiles());
+
+  DrawFogOfWar(scene);
 
   DrawGameInterface(scene);
 
@@ -16,38 +17,111 @@ void Graphics::DrawGame(const GameScene &scene) const {
   DrawUnits(scene.units());
   DrawProjectiles(scene.projectiles());
 
+  DrawFramerate(timestep);
+
+
   window_.setView(game_interface_.MainView());
 	window_.display();
 }
 
+std::vector<sf::ConvexShape> Graphics::TessellateSector(SectorMap::Sector& sector) {
+  std::vector<sf::ConvexShape> result;
+
+  float depth = std::min(sector.Depth(), 100000.f);
+
+  float startAngle = sector.StartAngle();
+  float endAngle = sector.EndAngle();
+  if (endAngle == startAngle || Util::AngleCCW(startAngle, endAngle) > M_PI / 2) {
+    endAngle = startAngle + M_PI / 2;
+  }
+
+  do {
+    sf::ConvexShape visionTriangle(3);
+
+    Vector2f direction1 = Util::MakeUnitVector(startAngle);
+    Vector2f direction2 = Util::MakeUnitVector(endAngle);
+    Vector2f point1 = direction1 * depth;
+    Vector2f point2 = direction2 * depth;
+
+    visionTriangle.setPoint(0, Vector2f(0, 0));
+    visionTriangle.setPoint(1, point1);
+    visionTriangle.setPoint(2, point2);
+
+    result.push_back(visionTriangle);
+
+    startAngle = endAngle;
+    endAngle = sector.EndAngle();
+    if (endAngle == startAngle || Util::AngleCCW(startAngle, endAngle) > M_PI / 2) {
+      endAngle = startAngle + M_PI / 2;
+    }
+  } while (startAngle != sector.EndAngle());
+
+  return result;
+}
+
+void Graphics::DrawFogOfWar(const GameScene& scene) {
+  sf::RenderTexture& fogTexture = resource_manager_.FogTexture();
+  fogTexture.clear(sf::Color(0, 0, 0, 150));
+
+  for (const SectorMap* unitView : scene.UnitViews()) {
+    std::shared_ptr<SectorMap::Sector> startSector = unitView->GetSector(0);
+    std::shared_ptr<SectorMap::Sector> sector = startSector;
+    do {
+      for (sf::ConvexShape visionTriangle : TessellateSector(*sector)) {
+        visionTriangle.setFillColor(sf::Color::Transparent);
+        visionTriangle.setPosition(unitView->Center());
+        fogTexture.draw(visionTriangle, sf::BlendNone);
+      }
+
+      sector = sector->Next();
+    } while (*sector != *startSector);
+  }
+
+  fogTexture.display();
+  window_.draw(sf::Sprite(fogTexture.getTexture()));
+
+  //for (int x = 0; x < MapSize().x; ++x) {
+  //  for (int y = 0; y < MapSize().y; ++y) {
+  //    if (scene.IsVisible(x, y)) {
+  //      resource_manager_.FogOfWar().SetTile(x, y, Vector2i(0, 0));
+  //    } else {
+  //      resource_manager_.FogOfWar().SetTile(x, y, Vector2i(1, 0));
+  //    }
+  //  }
+  //}
+  //window_.draw(resource_manager_.FogOfWar());
+}
+
+void Graphics::DrawFramerate(float timestep) const {
+  window_.setView(window_.getDefaultView());
+  std::string framerate = std::to_string(int(1.f / timestep));
+  sf::Text framerateDisplay(framerate, resource_manager_.GetDefaultFont());
+  framerateDisplay.setColor(sf::Color::White);
+  float width = framerateDisplay.getLocalBounds().width;
+  float left = window_.getSize().x - width - 10;
+  float top = 10;
+  framerateDisplay.setPosition(left, top);
+  window_.draw(framerateDisplay);
+}
+
 void Graphics::DrawTerrain() const {
-	std::vector<std::vector<TerrainId>> terrain =
-			resource_manager_.GetTerrain();
-	for (int i = 0; i < terrain.size(); ++i) {
-		for (int j = 0; j < terrain[i].size(); ++j) {
-			const sf::Texture &terrain_image =
-					resource_manager_.GetImage(terrain[i][j]);
-			sf::Sprite terrain_sprite;
-			terrain_sprite.setTexture(terrain_image);
-			Vector2f position = Vector2f(i*kTileSize, j*kTileSize);
-			terrain_sprite.setPosition(position);
-			window_.draw(terrain_sprite);
-		}
-	}
+  sf::Sprite mapSprite(resource_manager_.GetMapImage());
+  window_.draw(mapSprite);
 }
 
 void Graphics::DrawUnits(const std::list<UnitModel *> &units) const {
   for (UnitModel* unit : units) {
-		const sf::Texture &unit_image = resource_manager_.GetImage(unit->Name(),
-				unit->Owner());
-		sf::Sprite unit_sprite(unit_image);
-		Vector2f image_center(unit_image.getSize().x * 0.5,
-        unit_image.getSize().y * 0.5);
-		unit_sprite.setOrigin(image_center);
-		unit_sprite.setPosition(unit->position());
-      //-game_interface_.screen_position());
-		unit_sprite.setRotation(Util::Degrees(unit->rotation()));
-		window_.draw(unit_sprite);
+    if (unit->IsVisible()) {
+		  const sf::Texture &unit_image = resource_manager_.GetImage(unit->Name(),
+				  unit->Owner());
+		  sf::Sprite unit_sprite(unit_image);
+		  Vector2f image_center(unit_image.getSize().x * 0.5,
+          unit_image.getSize().y * 0.5);
+		  unit_sprite.setOrigin(image_center);
+		  unit_sprite.setPosition(unit->position());
+		  unit_sprite.setRotation(Util::Degrees(unit->rotation()));
+		  window_.draw(unit_sprite);
+    }
 	}
 }
 
@@ -83,19 +157,19 @@ void Graphics::DrawGameInterface(const GameScene &scene) const {
 		window_.draw(*game_interface_.GetSelectionBoxGraphic());
 	}
   
-  Vector2i mapSize = resource_manager_.GetMapSize();
-  sf::Color fogColor(100, 100, 100, 50);
-  sf::RectangleShape fogTile(Vector2f(kTileSize, kTileSize));
-  fogTile.setFillColor(fogColor);
-  for (int x = 0; x < mapSize.x; ++x) {
-    for (int y = 0; y < mapSize.y; ++y) {
-      Vector2f position(x*kTileSize, y*kTileSize);
-      if (!scene.IsVisible(x, y)) {
-        fogTile.setPosition(position);
-        window_.draw(fogTile);
-      }
-    }
-  }
+  //Vector2i mapSize = resource_manager_.MapSize();
+  //sf::Color fogColor(100, 100, 100, 50);
+  //sf::RectangleShape fogTile(Vector2f(kTileSize, kTileSize));
+  //fogTile.setFillColor(fogColor);
+  //for (int x = 0; x < mapSize.x; ++x) {
+  //  for (int y = 0; y < mapSize.y; ++y) {
+  //    Vector2f position(x*kTileSize, y*kTileSize);
+  //    if (!scene.IsVisible(x, y)) {
+  //      fogTile.setPosition(position);
+  //      //window_.draw(fogTile);
+  //    }
+  //  }
+  //}
 
   window_.setView(window_.getDefaultView());
 	window_.draw(*game_interface_.GetInterfaceGrahic());
@@ -108,10 +182,10 @@ void Graphics::DrawMiniMap(const GameScene &scene) const {
   for (UnitModel* unit : scene.units()) {
 		Vector2f position;
 		position.x = unit->position().x * minimap_size.x /
-				resource_manager_.GetMapSize().x / kTileSize;
+				resource_manager_.MapSize().x / kTileSize;
 		position.y = window_.getSize().y - minimap_size.y +
 				unit->position().y * minimap_size.y /
-				resource_manager_.GetMapSize().y / kTileSize;
+				resource_manager_.MapSize().y / kTileSize;
 		sf::CircleShape minimap_graphic(3.f);
 		minimap_graphic.setPosition(position);
 		switch (unit->Owner()) {

@@ -196,12 +196,12 @@ SubgoalPathFinder::SearchNode::SearchNode(SearchNode *parent,
                                           Subgoal *subgoal,
                                           const Vector2i &goal) :
     parent(parent), subgoal(subgoal) {
-  Vector2f myPoint = Util::GetVector2f(GetSubgoal()->Point());
+  Vector2f myPoint = Util::ToVector2f(GetSubgoal()->Point());
   if (parent == NULL) {
     dist = 0;
   } else {
-    Vector2f parentPoint = Util::GetVector2f(parent->GetSubgoal()->Point());
+    Vector2f parentPoint = Util::ToVector2f(parent->GetSubgoal()->Point());
     dist = parent->dist + Util::Distance(parentPoint, myPoint);
   }
-  minDist = dist + Util::Distance(myPoint, Util::GetVector2f(goal));
+  minDist = dist + Util::Distance(myPoint, Util::ToVector2f(goal));
 }

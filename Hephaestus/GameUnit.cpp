@@ -55,6 +55,7 @@ UnitModel::UnitModel(const GameUnit &unit) {
 	owner_ = unit.Owner();
 	radius_ = unit.Attributes().selection_radius();
   sightMap = new SectorMap(unit.SightMap());
+  isVisible = true;
 }
 
 UnitModel::UnitModel(const UnitModel &unit1,
@@ -72,4 +73,5 @@ UnitModel::UnitModel(const UnitModel &unit1,
 	owner_ = unit1.Owner();
 	radius_ = unit1.radius();
   sightMap = unit2.sightMap;
+  isVisible = unit2.isVisible;
 }

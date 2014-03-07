@@ -6,6 +6,10 @@ const Vector2i Util::kUp = Vector2i(0, -1);
 const Vector2i Util::kRight = Vector2i(1, 0);
 const Vector2i Util::kDown = Vector2i(0, 1);
 
+Vector2f Util::MakeUnitVector(float angle) {
+  return Vector2f(std::cosf(angle), std::sinf(angle));
+}
+
 int Util::Sign(int x) {
   return (x > 0) - (x < 0);
 }

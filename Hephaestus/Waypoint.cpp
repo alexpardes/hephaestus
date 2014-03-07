@@ -9,7 +9,7 @@ Waypoint::Waypoint(const Subgoal *subgoal, const Vector2f &tileSize) {
   if (subgoal->Direction().x < 0) position.x += tileSize.x;
   if (subgoal->Direction().y < 0) position.y += tileSize.y;
 
-  direction = Util::GetVector2f(subgoal->Direction());
+  direction = Util::ToVector2f(subgoal->Direction());
 }
 
 Waypoint::Waypoint(const Vector2f &destination) {

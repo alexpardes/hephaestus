@@ -184,19 +184,18 @@
     <ClCompile Include="MoveCommand.cpp" />
     <ClCompile Include="NetworkConnection.cpp" />
     <ClCompile Include="NetworkManager.cpp" />
-    <ClCompile Include="Pathing.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="Projectile.cpp" />
     <ClCompile Include="Rectangle.cpp" />
     <ClCompile Include="ResourceManager.cpp" />
     <ClCompile Include="SectorMap.cpp" />
     <ClCompile Include="SelectCommand.cpp" />
-    <ClCompile Include="Simulator.cpp" />
     <ClCompile Include="GameState.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="TileMap.cpp" />
     <ClCompile Include="UnitBehavior.cpp" />
     <ClCompile Include="GameInterface.cpp" />
     <ClCompile Include="UnitCommand.cpp" />
@@ -210,6 +209,7 @@
     <ClInclude Include="AttackMoveAbility.h" />
     <ClInclude Include="AttackMoveAction.h" />
     <ClInclude Include="AttackMoveCommand.h" />
+    <ClInclude Include="Circle.h" />
     <ClInclude Include="Command.h" />
     <ClInclude Include="Commands.h" />
     <ClInclude Include="CommandSink.h" />
@@ -232,7 +232,6 @@
     <ClInclude Include="MoveCommand.h" />
     <ClInclude Include="NetworkConnection.h" />
     <ClInclude Include="NetworkManager.h" />
-    <ClInclude Include="Pathing.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="Projectile.h" />
     <ClInclude Include="Rectangle.h" />
@@ -240,8 +239,8 @@
     <ClInclude Include="ResourceManager.h" />
     <ClInclude Include="SectorMap.h" />
     <ClInclude Include="SelectCommand.h" />
-    <ClInclude Include="Simulator.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="TileMap.h" />
     <ClInclude Include="UnitAbility.h" />
     <ClInclude Include="UnitAction.h" />
     <ClInclude Include="UnitAttributes.h" />

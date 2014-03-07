@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "SectorMap.h"
 #include "Util.h"
+#include "Circle.h"
 
 SectorMap::SectorMap() {
   Clear();
@@ -21,9 +22,29 @@ bool SectorMap::Contains(const Vector2f& point) const {
   return GetSectorDepth(angle) >= depth;
 }
 
+bool SectorMap::IntersectsCircle(const Vector2f& center, float radius) const {
+  Circle circle(center, radius);
+  std::vector<Vector2f> widestPoints = circle.WidestPoints(this->center);
+  float startAngle = Util::FindAngle(widestPoints[0] - this->center);
+  float endAngle = Util::FindAngle(widestPoints[1] - this->center);
+  float distance = Util::Distance(this->center, center) - radius;
+
+  bool intersectsCircle = false;
+  std::shared_ptr<Sector> sector = GetSector(startAngle);
+  do {
+    if (sector->Depth() > distance) {
+      intersectsCircle = true;
+      break;
+    }
+    sector = sector->Next();
+  } while (!sector->ContainsAngle(endAngle));
+
+  return intersectsCircle;
+}
+
 void SectorMap::Clear() {
   tree.clear();
-  Sector sector(&tree);
+  Sector sector(tree);
 }
 
 
@@ -31,14 +52,14 @@ void SectorMap::Clear() {
 // TODO: combine adjacent sectors of equal depth or otherwise minimize number
 // of sectors.
 void SectorMap::Add(float startAngle, float endAngle, float depth) {
-  Sector* nextSector = nullptr;
-  Sector* startSector = GetSector(startAngle);
+  std::shared_ptr<Sector> nextSector = nullptr;
+  std::shared_ptr<Sector> startSector = GetSector(startAngle);
   bool containsNewSector = Util::IsBetweenAngles(endAngle,
       startSector->StartAngle(), startSector->EndAngle());
 
   float originalDepth = startSector->Depth();
   if (depth < originalDepth) {
-    Sector* newSector = nullptr;
+    std::shared_ptr<Sector> newSector = nullptr;
     if (startAngle != startSector->StartAngle()) {
       startSector->PostInsert(startAngle, depth);
       newSector = startSector->Next();
@@ -64,17 +85,17 @@ void SectorMap::Add(float startAngle, float endAngle, float depth) {
   }
 }
 
-SectorMap::Sector* SectorMap::GetSector(float angle) {  
+std::shared_ptr<SectorMap::Sector> SectorMap::GetSector(float angle) {  
   std::map<float, float>::iterator it = tree.upper_bound(angle);
   if (it == tree.end()) {
     it = tree.begin();
   }
-  Sector* sector = Sector(&tree, it).Prev();
+  std::shared_ptr<Sector> sector = Sector(tree, it).Prev();
 
   return sector;
 }
 
-const SectorMap::Sector* SectorMap::GetSector(float angle) const {
+const std::shared_ptr<SectorMap::Sector> SectorMap::GetSector(float angle) const {
   // Because the non-const version should not modify anything, this should be
   // safe.
   return const_cast<SectorMap*>(this)->GetSector(angle);

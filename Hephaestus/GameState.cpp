@@ -17,7 +17,7 @@ GameState::GameState(const UnitDictionary &unit_dictionary,
   pathfinder->SetTileSize(Vector2f(kTileSize, kTileSize));
 	max_unit_radius_ = 0.f;
 	map_size_ = map_size;
-	Vector2f map_pixel_size = kTileSize * Util::GetVector2f(map_size);
+	Vector2f map_pixel_size = kTileSize * Util::ToVector2f(map_size);
 	pathing_width_ = (int) std::ceilf(map_pixel_size.x / kPathingResolution);
 	pathing_height_ = (int) std::ceilf(map_pixel_size.y / kPathingResolution);
 	pathing_grid_ = new int*[pathing_width_];
@@ -514,29 +514,46 @@ GameScene::GameScene(GameState &game_state) {
 }
 
 void GameScene::ComputeVisibility(PlayerNumber playerID) {
-  std::vector<const SectorMap*> unitViews;
   for (UnitModel* unit : units()) {
     if (unit->Owner() == playerID) {
       unitViews.push_back(unit->SightMap());
     }
   }
 
-  for (int x = 0; x < mapSize.x; ++x) {
-    isVisible.push_back(std::vector<bool>());
-    for (int y = 0; y < mapSize.y; ++y) {
-      bool isTileVisible = false;
-      Vector2f tileCenter(kTileSize*(x + 0.5), kTileSize*(y + 0.5));
-      for (const SectorMap* view : unitViews) {
-        if (view->Contains(tileCenter)) {
-          isTileVisible = true;
+  //for (int x = 0; x < mapSize.x; ++x) {
+  //  isVisible.push_back(std::vector<bool>());
+  //  for (int y = 0; y < mapSize.y; ++y) {
+  //    bool isTileVisible = false;
+  //    Vector2f tileCenter(kTileSize*(x + 0.5), kTileSize*(y + 0.5));
+  //    for (const SectorMap* view : unitViews) {
+  //      if (view->Contains(tileCenter)) {
+  //        isTileVisible = true;
+  //        break;
+  //      }
+  //    }
+
+  //    isVisible.back().push_back(isTileVisible);
+  //  }
+  //}
+
+  ComputeUnitVisibility(playerID, unitViews);
+}
+
+void GameScene::ComputeUnitVisibility(PlayerNumber player,
+                                      std::vector<const SectorMap*> sightMaps) {
+  for (UnitModel* unit : units()) {
+    if (unit->Owner() == player) {
+      unit->SetVisible(true);
+    } else {
+      unit->SetVisible(false);
+      for (const SectorMap* sightMap : sightMaps) {
+        if (sightMap->IntersectsCircle(unit->position(), unit->radius())) {
+          unit->SetVisible(true);
           break;
         }
       }
-
-      isVisible.back().push_back(isTileVisible);
     }
   }
-
 }
 
 
@@ -600,6 +617,8 @@ GameScene::GameScene(GameScene &scene1,
 			++projectile_iterator1;
 		}
 	}
+
+  unitViews = scene2.unitViews;
 }
 
 GameScene::~GameScene() {

@@ -8,8 +8,11 @@
 #define M_PI 3.14159265358979323846f
 
 class Util {
-	public:
+	public:   
+    static Vector2f MakeUnitVector(float angle);
+
     static int Sign(int x);
+
     // Returns the angle between origin and origin + 2*pi.
     static float Angle(float angle, float origin);
 		static float Degrees(float radians);
@@ -48,10 +51,10 @@ class Util {
 		static Vector2i GetVector2i(const Vector2f &vector) {
 			return Vector2i((int) vector.x, (int) vector.y);
 		}
-		static Vector2f GetVector2f(const Vector2i &vector) {
+		static Vector2f ToVector2f(const Vector2i &vector) {
 			return Vector2f((float) vector.x, (float) vector.y);
 		}
-		static Vector2f GetVector2f(const sf::Vector2u &vector) {
+		static Vector2f ToVector2f(const sf::Vector2u &vector) {
 			return Vector2f((float) vector.x, (float) vector.y);
 		}
     static void Limit(Vector2f &v, float length);
