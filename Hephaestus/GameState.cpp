@@ -6,8 +6,8 @@
 #include "AttackMoveAbility.h"
 #include "SectorMap.h"
 
-const float GameState::kPathingResolution = 25.f;
-const float GameState::kUnitGridResolution = 25.f;
+//const float GameState::kPathingResolution = 25.f;
+const float GameState::kUnitGridResolution = 8.f;
 
 GameState::GameState(const UnitDictionary &unit_dictionary, 
                      const Vector2i &map_size,
@@ -18,15 +18,15 @@ GameState::GameState(const UnitDictionary &unit_dictionary,
 	max_unit_radius_ = 0.f;
 	map_size_ = map_size;
 	Vector2f map_pixel_size = kTileSize * Util::ToVector2f(map_size);
-	pathing_width_ = (int) std::ceilf(map_pixel_size.x / kPathingResolution);
-	pathing_height_ = (int) std::ceilf(map_pixel_size.y / kPathingResolution);
-	pathing_grid_ = new int*[pathing_width_];
-	for (int i = 0; i < pathing_width_; ++i) {
-		pathing_grid_[i] = new int[pathing_height_];
-		for (int j = 0; j < pathing_height_; ++j) {
-			pathing_grid_[i][j] = 0;
-		}
-	}
+	//pathing_width_ = (int) std::ceilf(map_pixel_size.x / kPathingResolution);
+	//pathing_height_ = (int) std::ceilf(map_pixel_size.y / kPathingResolution);
+	//pathing_grid_ = new int*[pathing_width_];
+	//for (int i = 0; i < pathing_width_; ++i) {
+	//	pathing_grid_[i] = new int[pathing_height_];
+	//	for (int j = 0; j < pathing_height_; ++j) {
+	//		pathing_grid_[i][j] = 0;
+	//	}
+	//}
 	unit_grid_width_ = (int) std::ceilf(map_pixel_size.x / kUnitGridResolution);
 	unit_grid_height_ = (int) std::ceilf(map_pixel_size.y / kUnitGridResolution);
   unit_grid_ = UnitGrid(unit_grid_width_);  
@@ -38,11 +38,11 @@ GameState::GameState(const UnitDictionary &unit_dictionary,
 }
 
 GameState::~GameState() {
-	for (int i = 0; i < pathing_width_; ++i) {
-		delete[] pathing_grid_[i];
-	}
+	//for (int i = 0; i < pathing_width_; ++i) {
+	//	delete[] pathing_grid_[i];
+	//}
 
-	delete[] pathing_grid_;
+	//delete[] pathing_grid_;
 
 	for (std::list<Projectile *>::iterator projectile = projectiles_.begin();
 			projectile != projectiles_.end(); ++projectile) {
@@ -150,7 +150,7 @@ void GameState::AddUnit(const std::string &type,
 
 	units_.push_back(unit);
 	AddToUnitGrid(unit);
-	AddToPathingGrid(unit);
+	//AddToPathingGrid(unit);
 	if (unit->Attributes().CollisionRadius() > max_unit_radius_) {
 		max_unit_radius_ = unit->Attributes().CollisionRadius();
 	}
@@ -161,7 +161,7 @@ void GameState::RemoveUnit(std::shared_ptr<GameUnit> unit) {
 	units_.remove(unit);
 	unit_table_.erase(unit->Id());
 	RemoveFromUnitGrid(unit);
-	RemoveFromPathingGrid(unit);
+	//RemoveFromPathingGrid(unit);
 }
 
 std::shared_ptr<GameUnit> GameState::GetUnit(UnitId id) const {
@@ -170,12 +170,12 @@ std::shared_ptr<GameUnit> GameState::GetUnit(UnitId id) const {
 	return unit;
 }
 
-void GameState::AddProjectile(const std::string &name,
+void GameState::AddProjectile(const std::string& name,
                               const Vector2f &location,
-                              std::shared_ptr<GameUnit> target,
+                              const Vector2f& destination,
                               float damage,
                               float speed) {
-	Projectile *projectile = new Projectile(name, location, target,
+	Projectile *projectile = new Projectile(*this, name, location, destination,
       damage, speed);
 	projectiles_.push_back(projectile);
 }
@@ -318,68 +318,6 @@ std::vector<std::shared_ptr<GameUnit>> GameState::GetUnitsInRectangle(
     return GetUnitsInRectangle(rectangle.topLeft, rectangle.bottomRight);
 }
 
-void GameState::AddToPathingGrid(const std::shared_ptr<GameUnit> unit) {
-	AdjustPathingGrid(unit, 1);
-}
-
-void GameState::RemoveFromPathingGrid(const std::shared_ptr<GameUnit> unit) {
-	AdjustPathingGrid(unit, -1);
-}
-
-void GameState::AdjustPathingGrid(const std::shared_ptr<GameUnit> unit, int value) {
-	int center_x = (int) (unit->Position().x / kPathingResolution);
-	int center_y = (int) (unit->Position().y / kPathingResolution);
-	int start_x = (int) ((unit->Position().x -
-			unit->Attributes().CollisionRadius()) /	kPathingResolution);
-	int end_x =	(int) ((unit->Position().x +
-			unit->Attributes().CollisionRadius()) / kPathingResolution);
-	int start_y = (int) ((unit->Position().y -
-			unit->Attributes().CollisionRadius()) / kPathingResolution);
-	int end_y =	(int) ((unit->Position().y +
-			unit->Attributes().CollisionRadius()) / kPathingResolution);
-	float radius2 = unit->Attributes().CollisionRadius() *
-			unit->Attributes().CollisionRadius();
-	for (int i = start_x; i <= end_x; ++i) {
-		if (i == center_x) {
-			for (int j = start_y; j <= end_y; ++j) {
-				pathing_grid_[i][j] += value;
-			}
-		} else {
-			float x_coord = kPathingResolution * i;
-			if (i < center_x) x_coord += kPathingResolution;
-			for (int j = start_y; j <= end_y; ++j) {
-				if (j == center_y) {
-					pathing_grid_[i][j] += value;
-				} else {
-					float y_coord = kPathingResolution * j;
-					if (j < center_y) y_coord += kPathingResolution;
-					if (Util::Distance2(Vector2f(x_coord, y_coord),
-										unit->Position()) <= radius2) {
-						pathing_grid_[i][j] += value;
-					}
-				}
-			}
-		}
-	}
-}
-
-void GameState::AddTerrain(const Vector2f &top_left,
-						   const Vector2f &bottom_right) {
-	int top = int(top_left.y / kPathingResolution);
-	if (top < 0) top = 0;
-	int left = int(top_left.x / kPathingResolution);
-	if (left < 0) left = 0;
-	int bottom = int(bottom_right.y / kPathingResolution);
-	if (bottom >= pathing_height_) bottom = pathing_height_ - 1;
-	int right = int(bottom_right.x / kPathingResolution);
-	if (right >= pathing_width_) right = pathing_width_ - 1;
-	for (int x = left; x <= right; ++x) {
-		for (int y = top; y <= bottom; ++y) {
-			++pathing_grid_[x][y];
-		}
-	}
-}
-
 Vector2i GameState::GetTile(UnitId id) const {
   return GetTile(GetUnit(id)->Position());
 }
@@ -394,11 +332,12 @@ Vector2f GameState::GetLocation(const Vector2i &gridLocation) const {
       (gridLocation.y + 0.5) * kTileSize);
 }
 
-float GameState::DistanceToUnit(const GameUnit& unit,
-                                const Vector2f& end,
-                                float radius) const {
-  DirectedSegment movement(unit.Position(), end);
-  float movementDist = Util::Length(unit.Position() - end);
+CollisionTestResult GameState::TestUnitCollision(const Vector2f& start,
+    const Vector2f& end, float radius,
+    std::shared_ptr<const GameUnit> unitToIgnore) const {
+  DirectedSegment movement(start, end);
+  float movementDist = Util::Length(start - end);
+  std::shared_ptr<GameUnit> unitHit = nullptr;
 
   if (movementDist != 0) {
     Rect boundingRectangle = Util::BoundingRectangle(movement);
@@ -408,32 +347,66 @@ float GameState::DistanceToUnit(const GameUnit& unit,
         GetUnitsInRectangle(boundingRectangle);
 
     for (std::shared_ptr<GameUnit> otherUnit : nearbyUnits) {
-      if (*otherUnit != unit) {
+      if (otherUnit != unitToIgnore) {
         float totalRadius = radius
             + otherUnit->Attributes().CollisionRadius();
         Vector2f *collisionPoint =
           movement.CollisionPoint(otherUnit->Position(), totalRadius);
 
         if (collisionPoint) {
-          float distance = Util::Distance(*collisionPoint, unit.Position());
+          float distance = Util::Distance(*collisionPoint, start);
           movement.Resize(distance);
+          unitHit = otherUnit;
           delete collisionPoint;
         }
       }
     }
   }
 
-  return movement.Length();  
+  return CollisionTestResult(movement.End(), unitHit);  
 }
 
-float GameState::DistanceToWall(const GameUnit& unit,
-                                const Vector2f& end,
-                                float radius) const {
-  DirectedSegment movement(unit.Position(), end);
-  float movementDist = Util::Length(unit.Position() - end);
+//CollisionTestResult GameState::TestUnitCollision(const GameUnit& unit,
+//                                                 const Vector2f& end,
+//                                                 float radius) const {
+//  DirectedSegment movement(unit.Position(), end);
+//  float movementDist = Util::Length(unit.Position() - end);
+//  std::shared_ptr<GameUnit> unitHit = nullptr;
+//
+//  if (movementDist != 0) {
+//    Rect boundingRectangle = Util::BoundingRectangle(movement);
+//    boundingRectangle.Grow(radius);
+//
+//    std::vector<std::shared_ptr<GameUnit>> nearbyUnits =
+//        GetUnitsInRectangle(boundingRectangle);
+//
+//    for (std::shared_ptr<GameUnit> otherUnit : nearbyUnits) {
+//      if (*otherUnit != unit) {
+//        float totalRadius = radius
+//            + otherUnit->Attributes().CollisionRadius();
+//        Vector2f *collisionPoint =
+//          movement.CollisionPoint(otherUnit->Position(), totalRadius);
+//
+//        if (collisionPoint) {
+//          float distance = Util::Distance(*collisionPoint, unit.Position());
+//          movement.Resize(distance);
+//          unitHit = otherUnit;
+//          delete collisionPoint;
+//        }
+//      }
+//    }
+//  }
+//
+//  return CollisionTestResult(movement.End(), unitHit);
+//}
+
+CollisionTestResult GameState::TestWallCollision(const Vector2f& start,
+                                                 const Vector2f& end,
+                                                 float radius) const {
+  DirectedSegment movement(start, end);
+  float movementDist = Util::Length(start - end);
   if (movementDist != 0) {
     Rect boundingRect = Util::BoundingRectangle(movement);
-    float radius = unit.Attributes().CollisionRadius();
     boundingRect.topLeft -= Vector2f(radius, radius);
     boundingRect.bottomRight += Vector2f(radius, radius);
     std::vector<Rect> walls = GetWallsInRectangle(boundingRect);
@@ -442,25 +415,41 @@ float GameState::DistanceToWall(const GameUnit& unit,
       Rect wall = *it++;
       Vector2f *collisionPoint = movement.CollisionPoint(wall, radius);
       if (collisionPoint) {
-        movement = DirectedSegment(unit.Position(), *collisionPoint);
+        movement = DirectedSegment(start, *collisionPoint);
       }
     }
   }
 
-  return movement.Length();  
+  return CollisionTestResult(movement.End(), nullptr);  
 }
 
-float GameState::DistanceToObstacle(const GameUnit& unit,
-                                     const Vector2f& end) const {
-  return DistanceToObstacle(unit, end, unit.Attributes().CollisionRadius());
+//CollisionTestResult GameState::TestWallCollision(const GameUnit& unit,
+//                                                 const Vector2f& end) const {
+//  return TestWallCollision(unit.Position(), end,
+//      unit.Attributes().CollisionRadius());
+//}
+
+CollisionTestResult GameState::TestCollision(const Vector2f& start,
+    const Vector2f& end, float radius,
+    std::shared_ptr<const GameUnit> unitToIgnore) const {
+
+  CollisionTestResult unitCollision
+      = TestUnitCollision(start, end, radius, unitToIgnore);
+  CollisionTestResult wallCollision = TestWallCollision(start, end, radius);
+  float distToUnit = Util::Distance(unitCollision.point, start);
+  float distToWall = Util::Distance(wallCollision.point, start);
+  if (distToUnit < distToWall) {
+    return unitCollision;
+  } else {
+    return wallCollision;
+  }
 }
 
-float GameState::DistanceToObstacle(const GameUnit& unit,
-                                    const Vector2f& end,
-                                    float radius) const {
-  float distanceToUnit = DistanceToUnit(unit, end, radius);
-  float distanceToWall = DistanceToWall(unit, end, radius);
-  return std::min(distanceToUnit, distanceToWall);
+CollisionTestResult GameState::TestCollision(
+    std::shared_ptr<const GameUnit> unit, const Vector2f& end) const {
+
+  return TestCollision(unit->Position(), end,
+      unit->Attributes().CollisionRadius(), unit);
 }
 
 std::vector<sf::ConvexShape> GameState::FindOccludedAreas(
@@ -557,10 +546,13 @@ void GameScene::ComputeUnitVisibility(PlayerNumber player,
 }
 
 
-// TODO: remove duplicated code.
+// TODO: remove duplication.
 GameScene::GameScene(GameScene &scene1,
-					 GameScene &scene2,
-					 float weight) {
+                     GameScene &scene2,
+                     float weight) {
+  assert(weight >= 0.f);
+  assert(weight <= 1.f);
+
 	unit_grid_width_ = scene1.unit_grid_width_;
 	unit_grid_height_ = scene2.unit_grid_height_;
 	unit_grid_ = new std::list<const UnitModel*> *[unit_grid_width_];
@@ -650,9 +642,8 @@ void GameScene::CreateUnit(const GameUnit &unit) {
 }
 
 void GameScene::CreateUnit(const UnitModel &unit1,
-						const UnitModel &unit2,
-						float weight) {
-	if (weight > 1.f) weight = 1.f;
+                           const UnitModel &unit2,
+                           float weight) {
 	UnitModel *model = new UnitModel(unit1, unit2, weight);
 	AddUnit(model);
 }

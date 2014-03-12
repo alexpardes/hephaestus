@@ -47,15 +47,13 @@ void SectorMap::Clear() {
   Sector sector(tree);
 }
 
-
-// TODO: make sure there are no remaining edge cases to handle.
-// TODO: combine adjacent sectors of equal depth or otherwise minimize number
-// of sectors.
-void SectorMap::Add(float startAngle, float endAngle, float depth) {
+void SectorMap::Add(std::shared_ptr<Sector> startSector,
+                    float startAngle,
+                    float endAngle,
+                    float depth) {
   std::shared_ptr<Sector> nextSector = nullptr;
-  std::shared_ptr<Sector> startSector = GetSector(startAngle);
   bool containsNewSector = Util::IsBetweenAngles(endAngle,
-      startSector->StartAngle(), startSector->EndAngle());
+    startSector->StartAngle(), startSector->EndAngle());
 
   float originalDepth = startSector->Depth();
   if (depth < originalDepth) {
@@ -80,9 +78,18 @@ void SectorMap::Add(float startAngle, float endAngle, float depth) {
 
   if (!containsNewSector) {
     if (endAngle != nextSector->StartAngle()) {
-      Add(nextSector->StartAngle(), endAngle, depth);
+      Add(nextSector, nextSector->StartAngle(), endAngle, depth);
     }
   }
+}
+
+
+// TODO: make sure there are no remaining edge cases to handle.
+// TODO: combine adjacent sectors of equal depth or otherwise minimize number
+// of sectors.
+void SectorMap::Add(float startAngle, float endAngle, float depth) {
+  std::shared_ptr<Sector> startSector = GetSector(startAngle);
+  Add(startSector, startAngle, endAngle, depth);
 }
 
 std::shared_ptr<SectorMap::Sector> SectorMap::GetSector(float angle) {  

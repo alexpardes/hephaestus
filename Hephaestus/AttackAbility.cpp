@@ -27,7 +27,7 @@ void AttackAbility::Execute() {
 
     if (loadTime <= 0.f) {
       gameState->AddProjectile(owner->Attributes().name(), owner->Position(),
-        unit, damage, 125.f);
+          unit->Position(), damage, 125.f);
       loadTime += 10.f;
     }
   } else {
@@ -50,10 +50,13 @@ bool AttackAbility::IsInRange() const {
 
 bool AttackAbility::IsUnobstructed() const {
   std::shared_ptr<GameUnit> unit = gameState->GetUnit(target);
-  float distanceToTarget = Util::Distance(owner->Position(), unit->Position())
-      - unit->Attributes().CollisionRadius();
-  float distanceToObstacle = gameState->DistanceToObstacle(*owner,
-      unit->Position(), 0.f);
-  float tolerance = 0.01f;
-  return distanceToObstacle >= distanceToTarget - tolerance;
+  return owner->SightMap().IntersectsCircle(unit->Position(), unit->Attributes().CollisionRadius());
+
+  //std::shared_ptr<GameUnit> unit = gameState->GetUnit(target);
+  //float distanceToTarget = Util::Distance(owner->Position(), unit->Position())
+  //    - unit->Attributes().CollisionRadius();
+  //float distanceToObstacle = gameState->DistanceToObstacle(*owner,
+  //    unit->Position(), 0.f);
+  //float tolerance = 0.01f;
+  //return distanceToObstacle >= distanceToTarget - tolerance;
 }

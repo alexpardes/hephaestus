@@ -262,7 +262,7 @@ void ResourceManager::SetupGameState(const Json::Value& map,
       if (!traversability_[tile_table_.at(terrain_[x][y])]) {
         Vector2f top_left(x*kTileSize, y*kTileSize);
         Vector2f bottom_right = top_left + Vector2f(kTileSize, kTileSize);
-        state->AddTerrain(top_left, bottom_right);
+        //state->AddTerrain(top_left, bottom_right);
       }
     }
   }

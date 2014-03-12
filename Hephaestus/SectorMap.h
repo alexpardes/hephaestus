@@ -26,7 +26,8 @@ class SectorMap {
     const std::shared_ptr<Sector> GetSector(float angle) const;
 
   private:
-    std::shared_ptr<Sector> GetSector(float angle);   
+    void Add(std::shared_ptr<Sector> startSector, float startAngle, float endAngle, float depth);
+    std::shared_ptr<Sector> GetSector(float angle);
     float GetSectorDepth(float angle) const;
 
     std::map<float, float> tree;

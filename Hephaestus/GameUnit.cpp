@@ -59,8 +59,8 @@ UnitModel::UnitModel(const GameUnit &unit) {
 }
 
 UnitModel::UnitModel(const UnitModel &unit1,
-					 const UnitModel &unit2,
-					 float weight) {
+                     const UnitModel &unit2,
+                     float weight) {
 	float b = weight;
 	float a = 1 - weight;
 	current_health_ = a*unit1.current_health() + b*unit2.current_health();

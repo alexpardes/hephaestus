@@ -126,10 +126,14 @@ void Hephaestus::Update() {
     if (event.type == sf::Event::Closed) {
         game_manager->EndGame();
         window->close();
-    }
-    Command *command = game_interface->ProcessEvent(event, *window);
-    if (command) {
-      commandBuffer->AddCommand(command);
+    } else if (event.type == sf::Event::KeyPressed
+        && event.KeyPressed == sf::Keyboard::Escape) {
+      game_manager->EndGame();
+    } else {
+      Command *command = game_interface->ProcessEvent(event, *window);
+      if (command) {
+        commandBuffer->AddCommand(command);
+      }
     }
   }
   game_interface->MoveScreen(timestep);
@@ -147,6 +151,8 @@ void Hephaestus::Update() {
       *game_scene2, weight);
     game_interface->set_scene(display_scene);
     game_interface->DeselectDeadUnits();
-    graphics->DrawGame(*display_scene, timestep);
+
+    float framerate = 1 / timestep;
+    graphics->DrawGame(*display_scene, framerate, game_manager->CycleRate());
   }
 }

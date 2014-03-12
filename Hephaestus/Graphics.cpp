@@ -1,7 +1,9 @@
 #include "stdafx.h"
 #include "Graphics.h"
 
-void Graphics::DrawGame(const GameScene &scene, float timestep) {
+void Graphics::DrawGame(const GameScene &scene,
+                        float framerate,
+                        float cycleRate) {
 	window_.clear();
   window_.setView(game_interface_.MainView());
 	DrawTerrain();
@@ -17,15 +19,15 @@ void Graphics::DrawGame(const GameScene &scene, float timestep) {
   DrawUnits(scene.units());
   DrawProjectiles(scene.projectiles());
 
-  DrawFramerate(timestep);
+  DrawFramerate(framerate, cycleRate);
 
 
   window_.setView(game_interface_.MainView());
 	window_.display();
 }
 
-std::vector<sf::ConvexShape> Graphics::TessellateSector(SectorMap::Sector& sector) {
-  std::vector<sf::ConvexShape> result;
+std::vector<sf::Vertex> Graphics::TessellateSector(SectorMap::Sector& sector) {
+  std::vector<sf::Vertex> result;
 
   float depth = std::min(sector.Depth(), 100000.f);
 
@@ -36,18 +38,22 @@ std::vector<sf::ConvexShape> Graphics::TessellateSector(SectorMap::Sector& secto
   }
 
   do {
-    sf::ConvexShape visionTriangle(3);
+    //sf::ConvexShape visionTriangle(3);
 
     Vector2f direction1 = Util::MakeUnitVector(startAngle);
     Vector2f direction2 = Util::MakeUnitVector(endAngle);
     Vector2f point1 = direction1 * depth;
     Vector2f point2 = direction2 * depth;
 
-    visionTriangle.setPoint(0, Vector2f(0, 0));
-    visionTriangle.setPoint(1, point1);
-    visionTriangle.setPoint(2, point2);
+    result.push_back(sf::Vertex(Vector2f(0, 0)));
+    result.push_back(sf::Vertex(point1));
+    result.push_back(sf::Vertex(point2));
 
-    result.push_back(visionTriangle);
+    //visionTriangle.setPoint(0, Vector2f(0, 0));
+    //visionTriangle.setPoint(1, point1);
+    //visionTriangle.setPoint(2, point2);
+
+    //result.push_back(visionTriangle);
 
     startAngle = endAngle;
     endAngle = sector.EndAngle();
@@ -63,19 +69,23 @@ void Graphics::DrawFogOfWar(const GameScene& scene) {
   sf::RenderTexture& fogTexture = resource_manager_.FogTexture();
   fogTexture.clear(sf::Color(0, 0, 0, 150));
 
+  sf::VertexArray visibleArea(sf::Triangles);
+
   for (const SectorMap* unitView : scene.UnitViews()) {
     std::shared_ptr<SectorMap::Sector> startSector = unitView->GetSector(0);
     std::shared_ptr<SectorMap::Sector> sector = startSector;
     do {
-      for (sf::ConvexShape visionTriangle : TessellateSector(*sector)) {
-        visionTriangle.setFillColor(sf::Color::Transparent);
-        visionTriangle.setPosition(unitView->Center());
-        fogTexture.draw(visionTriangle, sf::BlendNone);
+      for (sf::Vertex visionVertex : TessellateSector(*sector)) {
+        visionVertex.color = sf::Color::Transparent;
+        visionVertex.position += unitView->Center();
+        visibleArea.append(visionVertex);
       }
 
       sector = sector->Next();
     } while (*sector != *startSector);
   }
+
+  fogTexture.draw(visibleArea, sf::BlendNone);
 
   fogTexture.display();
   window_.draw(sf::Sprite(fogTexture.getTexture()));
@@ -92,16 +102,29 @@ void Graphics::DrawFogOfWar(const GameScene& scene) {
   //window_.draw(resource_manager_.FogOfWar());
 }
 
-void Graphics::DrawFramerate(float timestep) const {
+void Graphics::DrawFramerate(float framerate, float cycleRate) const {
   window_.setView(window_.getDefaultView());
-  std::string framerate = std::to_string(int(1.f / timestep));
-  sf::Text framerateDisplay(framerate, resource_manager_.GetDefaultFont());
+  sf::Font font = resource_manager_.GetDefaultFont();
+
+  std::string framerateString = std::to_string(int(framerate));
+  sf::Text framerateDisplay(framerateString, font);
+  framerateDisplay.setCharacterSize(15);
   framerateDisplay.setColor(sf::Color::White);
   float width = framerateDisplay.getLocalBounds().width;
   float left = window_.getSize().x - width - 10;
   float top = 10;
   framerateDisplay.setPosition(left, top);
   window_.draw(framerateDisplay);
+
+  std::string cycleRateString = std::to_string(int(cycleRate));
+  sf::Text cycleRateDisplay(cycleRateString, font);
+  cycleRateDisplay.setCharacterSize(15);
+  cycleRateDisplay.setColor(sf::Color::White);
+  width = cycleRateDisplay.getLocalBounds().width;
+  left = window_.getSize().x - width - 10;
+  top = 20 + framerateDisplay.getLocalBounds().height;
+  cycleRateDisplay.setPosition(left, top);
+  window_.draw(cycleRateDisplay);
 }
 
 void Graphics::DrawTerrain() const {

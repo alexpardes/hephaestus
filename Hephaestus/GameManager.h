@@ -18,11 +18,13 @@ class GameManager {
 
 		float GetFrameTime() {
 			float frame_time;
+      scene_mutex_.lock();
 			if (lastScene) {
 				frame_time = 1.f;
 			} else {
-				frame_time = clock_.getElapsedTime().asMilliseconds() / timestep_;
+				frame_time = std::min(clock_.getElapsedTime().asMilliseconds() / timestep_, 1.f);
 			}
+      scene_mutex_.unlock();
 			return frame_time;
 		}
 
@@ -40,6 +42,8 @@ class GameManager {
     void StartGame();
     bool IsRunning() const { return isRunning; }
 
+    float CycleRate() const { return currentStepsPerSecond; }
+
 	private:
 		void ApplyCommands();
     bool QueueCommands();
@@ -53,4 +57,5 @@ class GameManager {
 		std::mutex scene_mutex_;
     std::vector<Player*> players;
     std::thread thread;
+    float currentStepsPerSecond;
 };

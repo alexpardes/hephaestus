@@ -32,12 +32,6 @@ void GameManager::StartGame() {
 void GameManager::RunGame() {
 	isRunning = true;
 	while (isRunning) {
-		float elapsed_time = clock_.getElapsedTime().asMilliseconds();
-		while (elapsed_time < timestep_) {
-			boost::this_thread::sleep(boost::posix_time::
-					milliseconds(int64_t(timestep_ - elapsed_time)));
-			elapsed_time = clock_.getElapsedTime().asMilliseconds();
-		};
 
     if (!QueueCommands()) {
       isRunning = false;
@@ -47,11 +41,22 @@ void GameManager::RunGame() {
 		ApplyCommands();
 
     gameState->ExecuteTurn();
+
+    float elapsed_time = clock_.getElapsedTime().asMilliseconds();
+    while (elapsed_time < timestep_) {
+      boost::this_thread::sleep(boost::posix_time::
+        milliseconds(int64_t(timestep_ - elapsed_time)));
+      elapsed_time = clock_.getElapsedTime().asMilliseconds();
+    }
+
+    //clock_.restart();
+    currentStepsPerSecond = 1000 / elapsed_time;
+
 		scene_mutex_.lock();
+		clock_.restart();
 		if (lastScene) delete lastScene;
 		lastScene = new GameScene(*gameState);
 		scene_mutex_.unlock();
-		clock_.restart();
 	}
 
   Reset();

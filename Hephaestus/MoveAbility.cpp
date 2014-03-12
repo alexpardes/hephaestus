@@ -192,8 +192,7 @@ Vector2f MoveAbility::AvoidForce(const Vector2f &point) const {
 Vector2f MoveAbility::HandleCollisions() {
   Vector2f newPosition = owner->Position() + velocity;
   DirectedSegment movement(owner->Position(), owner->Position() + velocity);
-  movement.Resize(gameState->DistanceToObstacle(*owner, newPosition));
-  return movement.End();
+  return gameState->TestCollision(owner, newPosition).point;
 }
 
 Vector2f MoveAbility::HandleTerrainCollisions(const Vector2f &end) {

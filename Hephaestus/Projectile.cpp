@@ -1,35 +1,42 @@
 #include "stdafx.h"
 #include "Projectile.h"
 #include "Util.h"
+#include "GameState.h"
 
-//const float Projectile::kSpeed = .75f;
 int Projectile::serial_number_ = 0;
 
-Projectile::Projectile(const std::string &name,
-                       const Vector2f &position,
-                       std::shared_ptr<GameUnit> target,
+Projectile::Projectile(GameState& gameState,
+                       const std::string& name,
+                       const Vector2f& position,
+                       const Vector2f& destination,
                        float damage,
-                       float speed) {
+                       float speed) : gameState(gameState) {
   this->name = name;
-  target_ = target;
+  //target_ = target;
   damage_ = damage;
   this->speed = speed;  
   position_ = position;  
 	id_ = serial_number_++;
   isAlive = true;
 
-  rotation_ = Util::FindAngle(target->Position() - position);
+  rotation_ = Util::FindAngle(destination - position);
 }
 
 void Projectile::PerformAction() {
-  Vector2f v = target_->Position() - position_;
-  Util::Limit(v, speed);
-  position_ += v;
-  rotation_ = Util::FindAngle(v);
-  if (Util::Distance(target_->Position(), position_) == 0.f) {
-    target_->modify_health(-damage_);
+  Vector2f v = speed * Util::MakeUnitVector(rotation_);
+
+  CollisionTestResult collision
+      = gameState.TestCollision(position_, position_ + v, 0);
+
+  if (collision.point != position_ + v) {
     isAlive = false;
+
+    if (collision.unitHit != nullptr) {
+      collision.unitHit->modify_health(-damage_);
+    }
   }
+
+  position_ = collision.point;
 }
 
 
