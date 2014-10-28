@@ -11,16 +11,17 @@ class Graphics {
 		Graphics(sf::RenderWindow &window,
 				const GameInterface &game_interface,
 				ResourceManager &resource_manager) :
-				window_(window), game_interface_(game_interface),
+				window_(window), gameInterface(game_interface),
 				resource_manager_(resource_manager) {
     }
 		void DrawGame(const GameScene &scene, float framerate, float cycleRate);
 	private:
-    static std::vector<sf::Vertex> TessellateSector(SectorMap::Sector& sector);
+    static std::vector<sf::Vertex> TessellateSector(
+        const SectorMap::Sector& sector);
     Vector2i MapSize() const { return resource_manager_.MapSize(); }
 		sf::RenderWindow &window_;
 		ResourceManager &resource_manager_;
-		const GameInterface &game_interface_;
+		const GameInterface &gameInterface;
     void DrawFogOfWar(const GameScene& scene);
     void DrawFramerate(float framerate, float cycleRate) const;
 		void DrawTerrain() const;

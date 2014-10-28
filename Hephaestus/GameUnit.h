@@ -7,6 +7,7 @@
 #include "GameObject.h"
 #include "UnitAttributes.h"
 #include "SectorMap.h"
+#include "VisibilityFan.h"
 
 class UnitAction;
 class UnitAbility;
@@ -20,7 +21,7 @@ class GameUnit : public GameObject {
 		GameUnit(UnitId id, const UnitAttributes &attributes, PlayerNumber owner,
 				const Vector2f &position, float rotation);
 
-		Vector2f Position() const {return position_;}
+		Vector2f Position() const {return position;}
 
 		static std::vector<Vector2i> pathing_offsets(int x, int y) {
 			return pathing_offsets_[3*x + y + 4];
@@ -28,16 +29,18 @@ class GameUnit : public GameObject {
 
     SectorMap& SightMap() { return sightMap; }
     const SectorMap& SightMap() const { return sightMap; }
+    VisibilityFan Visibility() const { return VisibilityFan(position, visiblePoints); }
+    void SetVisibility(const std::vector<Vector2f> &visiblePoints) { this->visiblePoints = visiblePoints; }
 
-		void modify_health(float health) {
+		void ModifyHealth(float health) {
 			current_health_ += health;
 			if (current_health_ < 0) current_health_ = 0;
-			if (current_health_ > attributes_.max_health()) {
-				current_health_ = attributes_.max_health();
+			if (current_health_ > attributes_.MaxHealth()) {
+				current_health_ = attributes_.MaxHealth();
 			}
 		}
 
-		float current_health() const {return current_health_;}
+		float CurrentHealth() const {return current_health_;}
 
 		void SetAction(UnitAction *action);
     void PerformAction();
@@ -53,9 +56,12 @@ class GameUnit : public GameObject {
     void AddAbility(UnitAbility *ability);
     UnitAbility *GetAbility(const std::string &name);
 
+    void SetIdleAbility(UnitAbility* ability) { idleAbility = ability; }
+
 	private:
 		bool is_alive_;
     SectorMap sightMap;
+    std::vector<Vector2f> visiblePoints;
 		static std::vector<Vector2i>* pathing_offsets_;
 		float current_health_;
 		UnitId id_;
@@ -63,6 +69,7 @@ class GameUnit : public GameObject {
 		PlayerNumber owner_;
     UnitAction *action;
     std::unordered_map<std::string, UnitAbility*> abilities;
+    UnitAbility* idleAbility;
 };
 typedef std::list<std::shared_ptr<GameUnit>> UnitList;
 
@@ -71,8 +78,9 @@ class UnitModel {
 		explicit UnitModel(const GameUnit &unit);
 		UnitModel(const UnitModel &unit1, const UnitModel &unit2,
 				float weight);
-		float current_health() const {return current_health_;}
-		float radius() const {return radius_;}
+		float CurrentHealth() const { return current_health_; }
+    float MaxHealth() const { return maxHealth; }
+		float Radius() const { return radius_; }
 		Vector2f position() const {return position_;}
 		void set_position(const Vector2f &position) {position_ = position;}
 		void set_rotation(float rotation) {rotation_ = rotation;}
@@ -84,15 +92,18 @@ class UnitModel {
     const SectorMap* SightMap() const { return sightMap; }
     bool IsVisible() const { return isVisible; }
     void SetVisible(bool visible) { isVisible = visible; }
+    const VisibilityFan &Visibility() const { return visibility; }
 
 	private:
 		Vector2f position_;
 		float rotation_;
 		float current_health_;
+    float maxHealth;
 		float radius_;
 		int id_;
 		PlayerNumber owner_;
 		std::string name;
     SectorMap* sightMap;
+    VisibilityFan visibility;
     bool isVisible;
 };

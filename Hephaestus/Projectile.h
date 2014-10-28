@@ -8,20 +8,22 @@ class GameState;
 
 class Projectile : public GameObject {
 	public:
-    Projectile(GameState& gameState, const std::string &name,
-        const Vector2f &position, const Vector2f& destination, float damage,
-        float speed);
+    Projectile(GameState& gameState, std::shared_ptr<GameUnit> owner,
+        const Vector2f &position, float direction,
+        float damage, float speed);
 
-		int id() const {return id_;}
+		int Id() const {return id;}
 		static int serial_number_;
     virtual void PerformAction();
     const std::string &Name() const {return name;}
     bool IsAlive() const { return isAlive; }
 
 	private:
-		//std::shared_ptr<GameUnit> target_;
-		float damage_, speed;
-		int id_;
+    float CalculateDamage(std::shared_ptr<GameUnit> unitHit) const;
+		std::shared_ptr<GameUnit> owner;
+    Vector2f startPosition;
+		float damage, speed;
+		int id;
     bool isAlive;
     std::string name;
     GameState& gameState;

@@ -92,6 +92,19 @@ bool Util::IsBetweenAngles(float testAngle, float angle1, float angle2) {
   return result;
 }
 
+// Returns if testAngle is in the angular interval (angle1, angle2).
+bool Util::IsBetweenAnglesOpen(float testAngle, float angle1, float angle2) {
+  bool result = false;
+
+  if (angle2 > angle1) {
+    result = testAngle > angle1 && testAngle < angle2;
+  } else {
+    result = testAngle < angle2 || testAngle > angle1;
+  }
+
+  return result;
+}
+
 // Returns the vector rotated by 90 degrees CCW.
 Vector2f Util::Perpendicular(const Vector2f &vector) {
 	return Vector2f(-vector.y, vector.x);
@@ -166,12 +179,13 @@ float Util::InterpolateAngles(float angle1, float angle2, float weight) {
 
 float Util::AngleCCW(float angle1, float angle2) {
   float angle = angle2 - angle1;
-  if (angle1 > angle2) {
-    angle = 2 * M_PI + angle;
-  }
-  return angle;
+  return Angle(angle, 0);
 }
 
 float Util::AngleCW(float angle1, float angle2) {
   return AngleCCW(angle2, angle1);
+}
+
+float Util::AngleBetween(float angle1, float angle2) {
+  return std::min(AngleCCW(angle1, angle2), AngleCW(angle1, angle2));
 }

@@ -36,7 +36,6 @@ class Hephaestus {
     void StartJoinedGame(NetworkConnection* connection);
     void StartGame();
     void LoadMap(const std::string &map);
-    static void RunSimulation(GameManager *game_manager);
     sf::RenderWindow *window;
     sf::Clock *clock;
     GameInterface *game_interface;

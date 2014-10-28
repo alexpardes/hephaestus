@@ -50,7 +50,7 @@ void MoveAbility::Execute() {
   }
 
   if (currentGoal) {
-    Vector2f direction = Seek(*currentGoal) + Avoid() + Separate();
+    Vector2f direction = Seek(*currentGoal) + /*0.001f * Avoid() +*/ Separate();
     Util::Limit(direction, maxSpeed);
     ApplyForce(direction - velocity, false);
   } else {
@@ -175,7 +175,7 @@ Vector2f MoveAbility::AvoidWalls() const {
   return newDirection;
 }
 
-Vector2f MoveAbility::AvoidForce(const Vector2f &point) const {
+Vector2f MoveAbility::AvoidForce(const Vector2f &point, int degree) const {
   Vector2f direction = point - owner->Position();
   Vector2f desiredDirection = Util::Perpendicular(direction);
   if (Util::Laterality(desiredDirection, direction)
@@ -183,7 +183,7 @@ Vector2f MoveAbility::AvoidForce(const Vector2f &point) const {
       desiredDirection *= -1.f;        
   }
   float weight = Util::Dot(Util::Normalized(direction),
-    Util::Normalized(velocity));
+    Util::Normalized(velocity)) / std::powf(Util::Length(direction), degree);
   Util::Resize(desiredDirection, weight);
 
   return desiredDirection;
@@ -193,58 +193,6 @@ Vector2f MoveAbility::HandleCollisions() {
   Vector2f newPosition = owner->Position() + velocity;
   DirectedSegment movement(owner->Position(), owner->Position() + velocity);
   return gameState->TestCollision(owner, newPosition).point;
-}
-
-Vector2f MoveAbility::HandleTerrainCollisions(const Vector2f &end) {
-  DirectedSegment movement(owner->Position(), end);
-  float movementDist = Util::Length(owner->Position() - end);
-  if (movementDist != 0) {
-    Rect boundingRect = Util::BoundingRectangle(movement);
-    float radius = owner->Attributes().CollisionRadius();
-    boundingRect.topLeft -= Vector2f(radius, radius);
-    boundingRect.bottomRight += Vector2f(radius, radius);
-    std::vector<Rect> walls =
-        gameState->GetWallsInRectangle(boundingRect);
-    std::vector<Rect>::const_iterator it = walls.begin();
-    while (it != walls.end()) {
-      Rect wall = *it++;
-      Vector2f *collisionPoint = movement.CollisionPoint(wall, radius);
-      if (collisionPoint) {
-        movement = DirectedSegment(owner->Position(), *collisionPoint);
-      }
-    }
-  }
-
-  return movement.End();
-}
-
-Vector2f MoveAbility::HandleUnitCollisions(const Vector2f &end) {
-  DirectedSegment movement(owner->Position(), end);
-  float movementDist = Util::Length(owner->Position() - end);
-
-  if (movementDist != 0) {
-    Vector2f movementCenter = owner->Position() + 0.5f*velocity;
-    std::vector<std::shared_ptr<GameUnit>> nearbyUnits =
-      gameState->GetUnitsInCircle(movementCenter,
-      movementDist/2 + owner->Attributes().CollisionRadius());
-
-    for (std::shared_ptr<GameUnit> unit : nearbyUnits) {
-      if (unit != owner) {
-        float totalRadius = owner->Attributes().CollisionRadius()
-          + unit->Attributes().CollisionRadius();
-        Vector2f *collisionPoint =
-          movement.CollisionPoint(unit->Position(), totalRadius);
-
-        if (collisionPoint) {
-          float distance = Util::Distance(*collisionPoint, unit->Position());
-          movement = DirectedSegment(owner->Position(), *collisionPoint);
-          delete collisionPoint;
-        }
-      }
-    }
-  }
-
-  return movement.End();
 }
 
 Vector2f MoveAbility::Seek(const Vector2f &target) {

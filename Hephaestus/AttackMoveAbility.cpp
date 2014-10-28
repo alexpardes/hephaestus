@@ -6,7 +6,6 @@
 #include "Util.h"
 #include "GameState.h"
 
-
 AttackMoveAbility::AttackMoveAbility(GameUnit &owner,
                                      GameState &gameState,
                                      float aggroRange,

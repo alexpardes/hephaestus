@@ -12,8 +12,8 @@ GameUnit::GameUnit(UnitId id,
 	id_ = id;
 	is_alive_ = true;
 	attributes_ = attributes;
-	position_ = position;
-	current_health_ = attributes_.max_health();
+	this->position = position;
+	current_health_ = attributes_.MaxHealth();
 	owner_ = owner;
 	rotation_ = rotation;
   action = NULL;
@@ -43,11 +43,14 @@ void GameUnit::PerformAction() {
     is_alive_ = false;
   } else if (action) {
     action->Execute(*this);
+  } else if (idleAbility) {
+    idleAbility->Execute();
   }
 }
 
 UnitModel::UnitModel(const GameUnit &unit) {
-	current_health_ = unit.current_health();
+	current_health_ = unit.CurrentHealth();
+  maxHealth = unit.Attributes().MaxHealth();
 	position_ = unit.Position();
 	rotation_ = unit.Rotation();
 	id_ = unit.Id();
@@ -55,7 +58,8 @@ UnitModel::UnitModel(const GameUnit &unit) {
 	owner_ = unit.Owner();
 	radius_ = unit.Attributes().selection_radius();
   sightMap = new SectorMap(unit.SightMap());
-  isVisible = true;
+  visibility = unit.Visibility();
+  isVisible = true;  
 }
 
 UnitModel::UnitModel(const UnitModel &unit1,
@@ -63,7 +67,8 @@ UnitModel::UnitModel(const UnitModel &unit1,
                      float weight) {
 	float b = weight;
 	float a = 1 - weight;
-	current_health_ = a*unit1.current_health() + b*unit2.current_health();
+	current_health_ = a*unit1.CurrentHealth() + b*unit2.CurrentHealth();
+  maxHealth = unit2.MaxHealth();
 	position_ = a*unit1.position() + b*unit2.position();
   rotation_ = Util::InterpolateAngles(unit1.rotation(),
       unit2.rotation(), weight);
@@ -71,7 +76,8 @@ UnitModel::UnitModel(const UnitModel &unit1,
 	id_ = unit1.Id();
 	name = unit1.Name();
 	owner_ = unit1.Owner();
-	radius_ = unit1.radius();
+	radius_ = unit1.Radius();
   sightMap = unit2.sightMap;
+  visibility = unit2.Visibility();
   isVisible = unit2.isVisible;
 }

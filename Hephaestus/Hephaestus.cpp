@@ -10,7 +10,7 @@
 #include "CommandBuffer.h"
 #include "NetworkConnection.h"
 
-const float kTimestep = 100.f;
+const float kTimestep = 50.f;
 
 Hephaestus::Hephaestus(sf::RenderWindow *window) {
   isRunning = false;
@@ -32,10 +32,6 @@ bool Hephaestus::IsRunning() const {
 
 void Hephaestus::SetObserver(HephaestusObserver* observer) {
   this->observer = observer;
-}
-
-void Hephaestus::RunSimulation(GameManager* game_manager) {
-	//game_manager->RunGame();
 }
 
 void Hephaestus::StartSinglePlayerGame(const std::string &map) {

@@ -9,6 +9,8 @@ Command *GameInterface::ProcessEvent(const sf::Event &event,
 	Vector2f location;
 	Command *command = NULL;
 	switch (event.type) {
+    case sf::Event::Resized:
+      Resize();
 		case sf::Event::MouseButtonPressed: {
 			Vector2i mouseLocation(event.mouseButton.x, event.mouseButton.y);
       location = GetGameLocation(mouseLocation);
@@ -128,6 +130,8 @@ void GameInterface::Resize() {
   interface_graphic_.setPosition(Vector2f(0,
     screenHeight - graphicSize));
   interface_graphic_.setFillColor(sf::Color(0, 0, 0, 255));
+
+  SetMapSize(mapSize);
 }
 
 const std::list<UnitModel *> GameInterface::GetSelectedUnits() const {
@@ -147,36 +151,6 @@ void GameInterface::MoveScreen(float time_step) {
 
   mainView.move(horizontal_move, vertical_move);
   ConstrainView();
-
-	//	The last term is to account for the UI size.
-	//Vector2f bottom_right = map_size_ - screen_size_ + Vector2f(0.f, 200.f);
-	//screen_position_.x += horizontal_move;
-	//if (screen_position_.x <= 0.f) {
-	//	screen_position_.x = 0.f;
-	//} else if (screen_position_.x > bottom_right.x) {
-	//	screen_position_.x = bottom_right.x;
-	//}
-	//screen_position_.y += vertical_move;
-	//if (screen_position_.y <= 0.f) {
-	//	screen_position_.y = 0.f;
-	//} else if (screen_position_.y > bottom_right.y) {
-	//	screen_position_.y = bottom_right.y;
-	//}
-	//if (is_selecting_) {
-	//	selection_corner2_.x += horizontal_move;
-	//	if (selection_corner2_.x < 0.f) {
-	//		selection_corner2_.x = 0.f;
-	//	} else if (selection_corner2_.x > map_size_.x) {
-	//		selection_corner2_.x = map_size_.x;
-	//	}
-	//	selection_corner2_.y += vertical_move;
-	//	if (selection_corner2_.y < 0.f) {
-	//		selection_corner2_.y = 0.f;
-	//	} else if (selection_corner2_.y > map_size_.y) {
-	//		selection_corner2_.y = map_size_.y;
-	//	}
-	//	if (selection_corner2_.y < 0) selection_corner2_.y = 0;
-	//}
 }
 
 void GameInterface::MouseScroll() {
@@ -206,17 +180,22 @@ void GameInterface::MouseScroll() {
 }
 
 void GameInterface::ConstrainView() {
+  float minX = window.getSize().x / 2;
+  float minY = window.getSize().y /2;
+  float maxX = mapSize.x - window.getSize().x / 2;
+  float maxY = mapSize.y - window.getSize().y / 2;
+
   float x = mainView.getCenter().x;
   float y = mainView.getCenter().y;
-  if (x <= 960) {
-    x = 960;
-  } else if (x > map_size_.x - 960) {
-    x = map_size_.x - 960;
+  if (x <= minX) {
+    x = minX;
+  } else if (x > maxX) {
+    x = maxX;
   }
-  if (y <= 540) {
-    y = 540;
-  } else if (y > map_size_.y - 540) {
-    y = map_size_.y - 540;
+  if (y <= minY) {
+    y = minY;
+  } else if (y > maxY) {
+    y = maxY;
   }
   mainView.setCenter(x, y);
 }

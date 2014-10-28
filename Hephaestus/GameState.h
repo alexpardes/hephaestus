@@ -26,17 +26,17 @@ struct CollisionTestResult {
 
 class GameState {
 	public:
-		GameState(const UnitDictionary &unit_dictionary,
-				const Vector2i &map_size, PathFinder *pathfinder);
+		GameState(const UnitDictionary &unitDictionary,
+				const Vector2i &mapSize, PathFinder *pathfinder);
 		void AddUnit(const std::string &type, PlayerNumber owner,
 				const Vector2f &location, float rotation);
 		void RemoveUnit(std::shared_ptr<GameUnit> unit);
-		void AddProjectile(const std::string &name, const Vector2f& location,
-        const Vector2f& destination, float damage, float speed);
+		void AddProjectile(std::shared_ptr<GameUnit> owner, const Vector2f& location,
+        float direction, float damage, float speed);
 		void RemoveProjectile(Projectile *projectile);
-		const std::list<std::shared_ptr<GameUnit>> &units() const {return units_;}
-		const std::list<Projectile *> &projectiles() const {
-			return projectiles_;
+		const std::list<std::shared_ptr<GameUnit>> &Units() const {return units;}
+		const std::list<Projectile *> &Projectiles() const {
+			return projectiles;
 		}
 		GameState &operator=(const GameState &game_state);
 		~GameState();
@@ -60,7 +60,7 @@ class GameState {
 		//const static float kPathingResolution;
 		const static float kUnitGridResolution;
 		std::shared_ptr<GameUnit> GetUnit(UnitId id) const;
-		Vector2i map_size() const {return map_size_;}
+		Vector2i map_size() const {return mapSize;}
     Vector2i GetTile(UnitId id) const;
     Vector2i GetTile(const Vector2f &gameLocation) const;
     Vector2f GetLocation(const Vector2i &gridLocation) const;
@@ -86,6 +86,8 @@ class GameState {
     std::vector<sf::ConvexShape> FindOccludedAreas(const GameUnit& unit) const;
 
 	private:
+    const PathingGrid* PathingGrid() const { return pathfinder->GetPathingGrid(); }
+    void FindExternalWalls();
     Rect GetWall(const Vector2i& tile) const;
     CollisionTestResult TestWallCollision(const Vector2f& start,
       const Vector2f& end, float radius) const;
@@ -103,20 +105,25 @@ class GameState {
     // Returns the closest point which is on the map.
     Vector2f Constrain(Vector2f location) const;
     Vector2i Constrain(Vector2i location) const;
-		std::list<std::shared_ptr<GameUnit>> units_;
-		std::list<Projectile *> projectiles_;
 
-    // TODO: change to vectors.
+    void UpdateSightMap(GameUnit& unit);
+
+		std::list<std::shared_ptr<GameUnit>> units;
+		std::list<Projectile *> projectiles;
+
     typedef std::vector<std::vector<std::list<std::shared_ptr<GameUnit>>>> UnitGrid;
-		UnitGrid unit_grid_;
-		int unit_grid_width_, unit_grid_height_;
-		float max_unit_radius_;
+		UnitGrid unitGrid;
+		int unitGridWidth, unitGridHeight;
+		float maxUnitRadius;
 		const UnitDictionary &unitDefinitions;
-		std::unordered_map<UnitId, std::shared_ptr<GameUnit>> unit_table_;
-		Vector2i map_size_;
+		std::unordered_map<UnitId, std::shared_ptr<GameUnit>> unitTable;
+		Vector2i mapSize;
     PathFinder *pathfinder;
     int lastUnitId;
-    void UpdateSightMap(GameUnit& unit);
+
+    // This is a list of the positions of blocked tiles which are not enclosed
+    // by other blocked tiles.
+    std::vector<Vector2i> externalWalls;
 };
 
 class GameScene {

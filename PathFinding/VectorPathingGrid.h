@@ -5,9 +5,13 @@ class VectorPathingGrid : public PathingGrid {
   public:
     VectorPathingGrid(const Vector2i &size);
     VectorPathingGrid(int width, int height);
-    virtual bool IsBlocked(const Vector2i &tile) const;
-    virtual bool IsUnblocked(const Vector2i &tile) const;
-    virtual void SetBlocked(const Vector2i &tile, bool isBlocked);
+
+    using PathingGrid::IsBlocked;
+    using PathingGrid::IsUnblocked;
+    using PathingGrid::SetBlocked;
+    bool IsBlocked(const Vector2i &tile) const;
+    bool IsUnblocked(const Vector2i &tile) const;
+    void SetBlocked(const Vector2i &tile, bool isBlocked);
     virtual Vector2i Size() const;
 
   private:

@@ -14,12 +14,41 @@ class AttackAbility : public UnitAbility {
     virtual std::string Name() { return "Attack"; }
     void SetTarget(UnitId target) { this->target = target; }
 
+    void EnableMovement(bool enableMovement) {
+      movementEnabled = enableMovement;
+    }
+
+    bool CanAttack(UnitId target,
+        std::vector<Vector2f> *unobstructedPoints = nullptr);
+
   private:
+    void Attack(std::shared_ptr<GameUnit> unit,
+      std::vector<Vector2f> unobstructdPoints);
+
+    void ChangeAttackPoint();
+    Vector2f AttackPoint() const;
+    Vector2f LeftAttackPoint() const;
+    Vector2f RightAttackPoint() const;
+
+    // Returns rotated by the unit's rotation and translated by the unit's
+    // position.
+    Vector2f ApplyUnitTransform(const Vector2f& v) const;
+    bool IsInRange(const GameUnit &unit) const;
     bool IsInRange() const;
-    bool IsUnobstructed() const;
+
+    std::vector<Vector2f> UnobstructedPointsOnTarget(UnitId target,
+        const Vector2f &attackPoint) const;
+    std::vector<Vector2f> UnobstructedPointsOnTarget(
+        const Vector2f &attackPoint) const;
     std::shared_ptr<GameUnit> owner;
     MoveAbility *moveAbility;
     GameState *gameState;
     UnitId target;
     float damage, speed, range, loadTime;
+    bool movementEnabled;
+
+    // These are the locations that the unit's projectile can spawn from when
+    // the unit has position = (0, 0) and rotation = 0.
+    Vector2f leftAttackOffset, rightAttackOffset;
+    bool usingLeftAttackPoint;    
 };

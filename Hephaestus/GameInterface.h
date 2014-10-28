@@ -37,13 +37,14 @@ class GameInterface {
 		}
 
     void SetMapSize(const Vector2f &mapSize) {
+      
       int screenWidth = window.getSize().x;
       int screenHeight = window.getSize().y;
 
-      map_size_ = mapSize;
-      minimapView.setCenter(map_size_ / 2.f);
-      minimapView.setSize(map_size_);
-      float mapAspectRatio = map_size_.x / map_size_.y;
+      this->mapSize = mapSize;
+      minimapView.setCenter(mapSize / 2.f);
+      minimapView.setSize(mapSize);
+      float mapAspectRatio = mapSize.x / mapSize.y;
       float screenAspectRatio = float(screenWidth) / screenHeight;
       minimapView.setViewport(sf::FloatRect(0.01f / screenAspectRatio, 0.69f,
           0.3f * mapAspectRatio / screenAspectRatio, 0.3f));
@@ -100,7 +101,7 @@ class GameInterface {
 		static const float kScrollSpeed;
 		enum CursorAction {kSelect, kAttack};
 		CursorAction cursor_action_;
-		Vector2f map_size_;
+		Vector2f mapSize;
 		sf::RectangleShape interface_graphic_;
 		GameScene *game_scene_;
 		PlayerNumber player_;

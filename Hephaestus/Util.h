@@ -31,9 +31,13 @@ class Util {
     static float AngleCW(float angle1, float angle2);
     static float AngleCCW(float angle1, float angle2);
 
+    // Returns the shortest angle between angle1 and angle2.
+    static float AngleBetween(float angle1, float angle2);
+
     // Returns true if testAngle is in the sector from angle1 counterclockwise
     // to angle2.
     static bool IsBetweenAngles(float testAngle, float angle1, float angle2);
+    static bool IsBetweenAnglesOpen(float testAngle, float angle1, float angle2);
 
     // Returns the angle in radius between the given vector and (1, 0).
     static float FindAngle(const Vector2f &vector);

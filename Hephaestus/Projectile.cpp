@@ -6,43 +6,80 @@
 int Projectile::serial_number_ = 0;
 
 Projectile::Projectile(GameState& gameState,
-                       const std::string& name,
+                       std::shared_ptr<GameUnit> owner,
                        const Vector2f& position,
-                       const Vector2f& destination,
+                       float direction,
                        float damage,
                        float speed) : gameState(gameState) {
-  this->name = name;
-  //target_ = target;
-  damage_ = damage;
+  this->owner = owner;
+  name = owner->Attributes().name();
+  this->damage = damage;
   this->speed = speed;  
-  position_ = position;  
-	id_ = serial_number_++;
+  this->position = position;
+  startPosition = position;
+	id = serial_number_++;
   isAlive = true;
-
-  rotation_ = Util::FindAngle(destination - position);
+  rotation_ = direction;
 }
 
 void Projectile::PerformAction() {
   Vector2f v = speed * Util::MakeUnitVector(rotation_);
 
   CollisionTestResult collision
-      = gameState.TestCollision(position_, position_ + v, 0);
+      = gameState.TestCollision(position, position + v, 0, owner);
 
-  if (collision.point != position_ + v) {
+  if (collision.point != position + v) {
     isAlive = false;
 
     if (collision.unitHit != nullptr) {
-      collision.unitHit->modify_health(-damage_);
+      float effectiveDamage = CalculateDamage(collision.unitHit);
+      collision.unitHit->ModifyHealth(-effectiveDamage);
     }
   }
 
-  position_ = collision.point;
+  position = collision.point;
+}
+
+// Damage is calculated by estimating the expected damage of a shot fired
+// at random in a sector centered about the actual trajectory.
+float Projectile::CalculateDamage(std::shared_ptr<GameUnit> unitHit) const {
+  float distance = Util::Distance(startPosition,
+      unitHit->Position()) + unitHit->Attributes().CollisionRadius();
+
+  // This represents half the angle of the sector.
+  float dispersion = Util::Radians(5);
+
+  Vector2f leftVector = Util::MakeUnitVector(Rotation() + dispersion);
+  Vector2f leftPoint = startPosition + distance * leftVector;
+  Vector2f rightVector = Util::MakeUnitVector(Rotation() - dispersion);
+  Vector2f rightPoint = startPosition + distance * rightVector;
+
+  int nRayCasts = 20;
+  int nHits = 0;
+  for (int i = 0; i < nRayCasts; ++i) {
+    float a = float(i) / nRayCasts;
+    float b = 1 - a;
+    Vector2f interpolatedPoint = a * leftPoint + b * rightPoint;
+    CollisionTestResult collision =
+      gameState.TestCollision(startPosition, interpolatedPoint, 0, owner);
+    if (collision.unitHit == unitHit) {
+      ++nHits;
+    }
+  }
+
+  // We know that the projectile hit the target, but it's possible none of
+  // these rays did. Accuracy could be improved somewhat by sweeping over the
+  // portion of the unit that is in the dispersion sector, rather than the
+  // whole sector.
+  // TODO: ignore occlusion by units.
+  nHits = std::max(nHits, 1);
+  return damage * float(nHits) / nRayCasts;
 }
 
 
 ProjectileModel::ProjectileModel(const Projectile &projectile) {
 	position_ = projectile.Position();
-	id_ = projectile.id();
+	id_ = projectile.Id();
   name = projectile.Name();
   rotation = projectile.Rotation();
 }

@@ -10,6 +10,7 @@
 #include <Hephaestus/Line.h>
 #include <Hephaestus/Waypoint.h>
 #include <Hephaestus/SectorMap.h>
+#include <Hephaestus/ShadowCaster.h>
 
 #include <PathFinding/SubgoalPathFinder.h>
 #include <PathFinding/VectorPathingGrid.h>
@@ -473,4 +474,68 @@ TEST_CASE("Angle Interpolation") {
   REQUIRE_EQUAL(interp.rotation(), Util::Radians(36), 0.01);
   interp = UnitModel(state1, state2, 0.8);
   REQUIRE_EQUAL(interp.rotation(), Util::Radians(333), 0.01);
+}
+
+TEST_CASE("Shadow Casting") {
+  VectorPathingGrid grid(5, 5);
+  grid.SetBlocked(2, 2);
+  ShadowCaster caster(grid, 10);
+  auto points = caster.ShadowCast(Vector2f(5, 5),
+      0, Util::Radians(85), 0);
+
+  bool containsPoint = false;
+  for (Vector2f point : points) {
+    if (IsApprox(point, Vector2f(20, 20))) containsPoint = true;
+  }
+  REQUIRE(containsPoint);
+
+  containsPoint = false;
+  for (Vector2f point : points) {
+    if (IsApprox(point, Vector2f(30, 20))) containsPoint = true;
+  }
+  REQUIRE(containsPoint);
+
+  containsPoint = false;
+  for (Vector2f point : points) {
+    if (IsApprox(point, Vector2f(20, 30))) containsPoint = true;
+  }
+  REQUIRE(containsPoint);
+
+  containsPoint = false;
+  for (Vector2f point : points) {
+    if (IsApprox(point, Vector2f(30, 30))) containsPoint = true;
+  }
+  REQUIRE(!containsPoint);
+}
+
+TEST_CASE("Shadow Casting 2") {
+  VectorPathingGrid grid(10, 10);
+  grid.SetBlocked(4, 4);
+  ShadowCaster caster(grid, 50);
+  auto points = caster.ShadowCast(Vector2f(79, 291),
+    Util::Radians(280), Util::Radians(80), 0);
+
+  bool containsPoint = false;
+  for (Vector2f point : points) {
+    if (IsApprox(point, Vector2f(200, 200))) containsPoint = true;
+  }
+  REQUIRE(containsPoint);
+
+  containsPoint = false;
+  for (Vector2f point : points) {
+    if (IsApprox(point, Vector2f(200, 250))) containsPoint = true;
+  }
+  REQUIRE(containsPoint);
+
+  containsPoint = false;
+  for (Vector2f point : points) {
+    if (IsApprox(point, Vector2f(250, 200))) containsPoint = true;
+  }
+  REQUIRE(!containsPoint);
+
+  containsPoint = false;
+  for (Vector2f point : points) {
+    if (IsApprox(point, Vector2f(250, 250))) containsPoint = true;
+  }
+  REQUIRE(containsPoint);
 }

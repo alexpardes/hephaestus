@@ -23,7 +23,7 @@ public:
   float attack_damage() const {return attack_damage_;}
   float attack_speed() const {return attack_speed_;}
   float attack_range() const {return attack_range_;}
-  float max_health() const {return max_health_;}
+  float MaxHealth() const {return max_health_;}
 
   void set_speed(float speed) {speed_ = speed;}
   void set_collision_radius(float collision_radius) {collision_radius_ = collision_radius;}

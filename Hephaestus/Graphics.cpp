@@ -5,7 +5,7 @@ void Graphics::DrawGame(const GameScene &scene,
                         float framerate,
                         float cycleRate) {
 	window_.clear();
-  window_.setView(game_interface_.MainView());
+  window_.setView(gameInterface.MainView());
 	DrawTerrain();
 	DrawUnits(scene.units());
 	DrawProjectiles(scene.projectiles());
@@ -14,7 +14,7 @@ void Graphics::DrawGame(const GameScene &scene,
 
   DrawGameInterface(scene);
 
-  window_.setView(game_interface_.MinimapView());
+  window_.setView(gameInterface.MinimapView());
   DrawTerrain();
   DrawUnits(scene.units());
   DrawProjectiles(scene.projectiles());
@@ -22,11 +22,12 @@ void Graphics::DrawGame(const GameScene &scene,
   DrawFramerate(framerate, cycleRate);
 
 
-  window_.setView(game_interface_.MainView());
+  window_.setView(gameInterface.MainView());
 	window_.display();
 }
 
-std::vector<sf::Vertex> Graphics::TessellateSector(SectorMap::Sector& sector) {
+std::vector<sf::Vertex> Graphics::TessellateSector(
+    const SectorMap::Sector& sector) {
   std::vector<sf::Vertex> result;
 
   float depth = std::min(sector.Depth(), 100000.f);
@@ -71,19 +72,37 @@ void Graphics::DrawFogOfWar(const GameScene& scene) {
 
   sf::VertexArray visibleArea(sf::Triangles);
 
-  for (const SectorMap* unitView : scene.UnitViews()) {
-    std::shared_ptr<SectorMap::Sector> startSector = unitView->GetSector(0);
-    std::shared_ptr<SectorMap::Sector> sector = startSector;
-    do {
-      for (sf::Vertex visionVertex : TessellateSector(*sector)) {
-        visionVertex.color = sf::Color::Transparent;
-        visionVertex.position += unitView->Center();
-        visibleArea.append(visionVertex);
+  for (UnitModel* unit : scene.units()) {
+    if (unit->Owner() == gameInterface.Player()) {
+      for (int i = 0; i < unit->Visibility().VisiblePoints().size(); i += 2) {
+        sf::Vertex p1(unit->Visibility().Origin());
+        sf::Vertex p2(unit->Visibility().VisiblePoints()[i]);
+        sf::Vertex p3(unit->Visibility().VisiblePoints()[i + 1]);
+        visibleArea.append(p1);
+        visibleArea.append(p2);
+        visibleArea.append(p3);
       }
-
-      sector = sector->Next();
-    } while (*sector != *startSector);
+    }
   }
+
+  for (int i = 0; i < visibleArea.getVertexCount(); ++i) {
+    visibleArea[i].color = sf::Color::Transparent;
+  }
+
+  //for (const SectorMap* unitView : scene.UnitViews()) {
+  //  const SectorMap::Sector startSector
+  //      = unitView->GetSector(0);
+  //  SectorMap::Sector sector = startSector;
+  //  do {
+  //    for (sf::Vertex visionVertex : TessellateSector(sector)) {
+  //      visionVertex.color = sf::Color::Transparent;
+  //      visionVertex.position += unitView->Center();
+  //      visibleArea.append(visionVertex);
+  //    }
+
+  //    sector = sector.Next();
+  //  } while (sector != startSector);
+  //}
 
   fogTexture.draw(visibleArea, sf::BlendNone);
 
@@ -163,21 +182,44 @@ void Graphics::DrawProjectiles(const std::list<ProjectileModel *> &projectiles)
 }
 
 void Graphics::DrawGameInterface(const GameScene &scene) const {
-	sf::CircleShape selection_circle;
-	const std::list<UnitModel *> selected_units =
-			game_interface_.GetSelectedUnits();
-  for (UnitModel* unit : selected_units) {
-		selection_circle = sf::CircleShape(unit->radius() + 1.f);
-		selection_circle.setPosition(unit->position());
-		selection_circle.setOrigin(selection_circle.getRadius(),
-				selection_circle.getRadius());
-		selection_circle.setFillColor(sf::Color(0, 0, 0, 0));
-		selection_circle.setOutlineColor(sf::Color(75, 255, 150, 150));
-		selection_circle.setOutlineThickness(1.9f);
-		window_.draw(selection_circle);
+	sf::CircleShape selectionCircle;
+	const std::list<UnitModel *> selectedUnits =
+			gameInterface.GetSelectedUnits();
+  for (UnitModel* unit : selectedUnits) {
+		selectionCircle = sf::CircleShape(unit->Radius() + 1.f);
+		selectionCircle.setPosition(unit->position());
+		selectionCircle.setOrigin(selectionCircle.getRadius(),
+				selectionCircle.getRadius());
+		selectionCircle.setFillColor(sf::Color(0, 0, 0, 0));
+		selectionCircle.setOutlineColor(sf::Color(75, 255, 150, 150));
+		selectionCircle.setOutlineThickness(1.9f);
+		window_.draw(selectionCircle);
 	}
-	if (game_interface_.is_selecting()) {
-		window_.draw(*game_interface_.GetSelectionBoxGraphic());
+
+  for (UnitModel* unit : scene.units()) {
+    if (unit->IsVisible()) {
+      float healthBarWidth = 65.f;
+      float healthBarHeight = 5.f;
+      sf::RectangleShape healthBarOutline(sf::Vector2f(healthBarWidth, healthBarHeight));
+      healthBarOutline.setOrigin(healthBarWidth / 2, healthBarHeight + 5 + unit->Radius());
+      healthBarOutline.setPosition(unit->position());
+      healthBarOutline.setOutlineColor(sf::Color::Black);
+      healthBarOutline.setOutlineThickness(1);
+      healthBarOutline.setFillColor(sf::Color::Transparent);
+
+      float healthFraction = unit->CurrentHealth() / unit->MaxHealth();
+      sf::RectangleShape healthBar(sf::Vector2f(healthFraction * healthBarWidth, healthBarHeight));
+      healthBar.setOutlineColor(sf::Color::Transparent);
+      healthBar.setFillColor(sf::Color::Green);
+      healthBar.setOrigin(healthBarOutline.getOrigin());
+      healthBar.setPosition(healthBarOutline.getPosition());
+      //window_.draw(healthBar);
+      //window_.draw(healthBarOutline);
+    }
+  }
+
+	if (gameInterface.is_selecting()) {
+		window_.draw(*gameInterface.GetSelectionBoxGraphic());
 	}
   
   //Vector2i mapSize = resource_manager_.MapSize();
@@ -195,7 +237,7 @@ void Graphics::DrawGameInterface(const GameScene &scene) const {
   //}
 
   window_.setView(window_.getDefaultView());
-	window_.draw(*game_interface_.GetInterfaceGrahic());
+	window_.draw(*gameInterface.GetInterfaceGrahic());
 
 	//DrawMiniMap(scene);
 }
