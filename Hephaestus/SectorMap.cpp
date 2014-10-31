@@ -4,170 +4,118 @@
 #include "Circle.h"
 #include "Timer.h"
 
-SectorMap::SectorMap() {
-  Clear();
+SectorMap::SectorMap() { }
+
+void SectorMap::CreateSectors(const std::vector<LineSegment> &segments) {
+  rawSectors.clear();
+
+  for (auto segment : segments) {
+    Vector2f v1 = segment.p1 - center;
+    Vector2f v2 = segment.p2 - center;
+    float angle1 = Util::FindAngle(v1);
+    float angle2 = Util::FindAngle(v2);
+    Sector sector;
+
+    // startAngle is the angle on the clockwise side of the segment.
+    if (Util::AngleCCW(angle1, angle2) < M_PI)
+    {
+      sector.startAngle = angle1;
+      sector.endAngle = angle2;
+      sector.startDepth = Util::Length(v1);
+      sector.endDepth = Util::Length(v2);
+    } else {
+      sector.startAngle = angle2;
+      sector.endAngle = angle1;
+      sector.startDepth = Util::Length(v2);
+      sector.endDepth = Util::Length(v1);
+    }
+
+    if (sector.startAngle <= sector.endAngle) {
+      rawSectors.push_back(sector);
+    } else {
+      // In this case the sector crosses the angle 0. This splits it into
+      // the sectors before and after 0.
+      Sector sector1;
+      sector1.startAngle = sector.startAngle;
+      sector1.endAngle = 2*M_PI;
+      sector1.startDepth = sector.startDepth;
+      //sector1.endDepth = depth at zero
+      rawSectors.push_back(sector1);
+
+      Sector sector2;
+      sector2.startAngle = 0;
+      sector2.endAngle = sector.endAngle;
+      sector2.startDepth = sector1.endDepth;
+      sector2.endDepth = sector.endDepth;
+      rawSectors.push_back(sector2);
+    }
+  }
+
 }
 
-SectorMap::SectorMap(const Vector2f& center) : center(center) {
-  Clear();
+struct {
+  bool operator()(SectorMap::Sector a, SectorMap::Sector b) {
+    return a.startAngle < b.startAngle;
+  }
+} startAngleLess;
+
+// Returns the next sector which is not fully occluded by the input sector.
+std::vector<SectorMap::Sector>::iterator SectorMap::NextVisibleSector(const std::vector<SectorMap::Sector>::iterator &sector) {
+  auto sector2 = sector + 1;
+  while (sector2 != rawSectors.end() && sector2->startDepth > sector->startDepth
+      && sector2->endAngle <= sector->endAngle)
+    ++sector2;
+
+  return sector2;
 }
 
-SectorMap::SectorMap(const SectorMap& map) {
-  center = map.center;
-  tree = map.tree;
-}
+// Assumes that there is no ray from the center which does not intersect a segment.
+// Currently only uses start depth.
+// Currently does not handle segments which cross the angle 0.
+void SectorMap::Create(const Vector2f &center, const std::vector<LineSegment> &segments) {  
+  this->center = center;
+  sectors.clear();
 
-bool SectorMap::Contains(const Vector2f& point) const {
-  float angle = Util::FindAngle(point - center);
-  float depth = Util::Distance(point, center);
-  return GetSectorDepth(angle) >= depth;
-}
+  CreateSectors(segments);
+  std::sort(rawSectors.begin(), rawSectors.end(), startAngleLess);
 
-bool SectorMap::IntersectsCircle(const Vector2f& center,
-                                 float radius) const {
-  std::pair<float, float> intersection = LargestCircleIntersection(center,
-      radius);
-  return !(intersection.first == intersection.second);
+  auto sector1 = rawSectors.begin();
+  while (sector1 != rawSectors.end()) {
+    auto sector2 = NextVisibleSector(sector1);
 
-  //Circle circle(center, radius);
-  //std::vector<Vector2f> widestPoints = circle.WidestPoints(this->center);
-  //float startAngle = Util::FindAngle(widestPoints[0] - this->center);
-  //float endAngle = Util::FindAngle(widestPoints[1] - this->center);
-  //float distance = Util::Distance(this->center, center) - radius;
+    if (sector2 == rawSectors.end()) {
+      sectors.push_back(*sector1);
+      break;
+    }
 
-  //bool intersectsCircle = false;
-  //std::shared_ptr<const Sector> sector = GetSector(startAngle);
-  //do {
-  //  if (sector->Depth() > distance) {
-  //    intersectsCircle = true;
-  //    break;
-  //  }
-  //  sector = sector->Next();
-  //} while (!sector->ContainsAngle(endAngle));
+    bool isSector1Closer = sector1->startDepth <= sector2->startDepth;
 
-  //return intersectsCircle;
-}
+    Sector sector;
+    sector.startAngle = sector1->startAngle;
+    sector.startDepth = sector1->startDepth;
 
-std::pair<float, float> SectorMap::LargestCircleIntersection(
-    const Vector2f& center, float radius) const {
+    if (isSector1Closer) {
+      sector.endAngle = sector1->endAngle;
+      sector.endDepth = sector1->endDepth;
+    } else {
+      sector.endAngle = sector2->startAngle;
+      sector.endDepth = sector2->startDepth;
 
-  Circle circle(center, radius);
-  std::vector<Vector2f> widestPoints = circle.WidestPoints(this->center);
-  float startAngle = Util::FindAngle(widestPoints[0] - this->center);
-  float endAngle = Util::FindAngle(widestPoints[1] - this->center);
-  float distance = Util::Distance(this->center, center) - radius;
-
-  std::pair<float, float> result(0.f, 0.f);
-
-  float maxSectionSize = 0;
-  Sector sector = GetSector(startAngle);
-  float currentStartAngle = startAngle;
-  bool combineWithPrevious = false;
-
-  while (!sector.ContainsAngle(endAngle)) {
-    if (sector.Depth() < distance) {
-      if (combineWithPrevious) {
-        float currentEndAngle = sector.StartAngle();
-
-        float intersectionSize = Util::AngleCCW(currentStartAngle,
-            currentEndAngle);
-        if (intersectionSize > maxSectionSize) {
-          result.first = currentStartAngle;
-          result.second = currentEndAngle;
+      if (sector1->endAngle > sector2->endAngle) {
+        // In this case part of sector1 may be visible past sector2 and needs to be processed again.
+        // This moves sector2 one slot left, and moves the remainder of sector1 to the original slot of sector2.
+        sector1->startAngle = sector2->endAngle;
+        if (sector1 == sector2 - 1) {
+          std::iter_swap(sector1, sector2);
+        } else {
+          *(sector2 - 1) = *sector2;
+          *sector2 = *sector1;
         }
+        --sector2; // Have to update the iterator to point to the right place.
       }
-
-      currentStartAngle = sector.EndAngle();
-      combineWithPrevious = false;
-    } else {
-      combineWithPrevious = true;
-    }
-    sector = sector.Next();
-  }
-
-  float currentEndAngle;
-  if (sector.Depth() < distance) {
-    currentEndAngle = sector.StartAngle();
-  } else {
-    currentEndAngle = endAngle;
-  }
-
-  float intersectionSize = Util::AngleCCW(currentStartAngle,
-    currentEndAngle);
-  if (intersectionSize > maxSectionSize) {
-    result.first = currentStartAngle;
-    result.second = currentEndAngle;
-  }
-
-
-  return result;
-}
-
-void SectorMap::Clear() {
-  tree.clear();
-  Sector sector(&tree);
-}
-
-void SectorMap::Add(Sector startSector,
-                    float startAngle,
-                    float endAngle,
-                    float depth) {
-  Sector nextSector;
-  bool containsNewSector = Util::IsBetweenAngles(endAngle,
-    startSector.StartAngle(), startSector.EndAngle());
-
-  float originalDepth = startSector.Depth();
-  if (depth < originalDepth) {
-    Sector newSector;
-    if (startAngle != startSector.StartAngle()) {
-      startSector.PostInsert(startAngle, depth);
-      newSector = startSector.Next();
-    } else {
-      newSector = startSector;
-      newSector.SetDepth(depth);
     }
 
-    // Creates a new sector representing the remainder of the start sector.
-    if (containsNewSector) {
-      newSector.PostInsert(endAngle, originalDepth);
-    } else {
-      nextSector = newSector.Next();
-    }
-  } else {
-    nextSector = startSector.Next();
+    sector1 = sector2;
+    sectors.push_back(sector);
   }
-
-  if (!containsNewSector) {
-    if (endAngle != nextSector.StartAngle()) {
-      Add(nextSector, nextSector.StartAngle(), endAngle, depth);
-    }
-  }
-}
-
-
-// TODO: make sure there are no remaining edge cases to handle.
-// TODO: combine adjacent sectors of equal depth or otherwise minimize number
-// of sectors.
-void SectorMap::Add(float startAngle, float endAngle, float depth) {
-  Sector startSector = GetSector(startAngle);
-  Add(startSector, startAngle, endAngle, depth);
-}
-
-SectorMap::Sector SectorMap::GetSector(float angle) {
-  std::map<float, float>::iterator it = tree.upper_bound(angle);
-  if (it == tree.end()) {
-    it = tree.begin();
-  }
-  Sector sector = Sector(&tree, it).Prev();
-  return sector;
-}
-
-const SectorMap::Sector SectorMap::GetSector(float angle) const {
-  // Because the non-const version should not modify anything, this should be
-  // safe.
-  return const_cast<SectorMap*>(this)->GetSector(angle);
-}
-
-float SectorMap::GetSectorDepth(float angle) const {
-  return GetSector(angle).Depth();
 }

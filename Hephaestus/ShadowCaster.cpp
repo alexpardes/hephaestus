@@ -139,7 +139,7 @@ void ShadowCaster::ShadowCast(Vector2f origin,
       // check it. Other corners are after the start vector if they are between
       // the start vector and the vector to the last corner.
       float lastCornerAngle = Util::FindAngle(corners.back() - origin);
-      for (int i = 0; i < corners.size() - 1; ++i) {
+      for (size_t i = 0; i < corners.size() - 1; ++i) {
         float angle = Util::FindAngle(corners[i] - origin);
 
         if (Util::IsBetweenAngles(angle, currentStartAngle, lastCornerAngle, flipRotation)) {
@@ -174,7 +174,7 @@ void ShadowCaster::ShadowCast(Vector2f origin,
       } 
 
       // Adds the visible points to the result.
-      for (int i = 0; i < points.size() - 1; ++i) {
+      for (size_t i = 0; i < points.size() - 1; ++i) {
         visiblePoints.push_back(points[i]);
         visiblePoints.push_back(points[i + 1]);
       }
@@ -215,9 +215,9 @@ Vector2f ShadowCaster::FindIntersection(const Vector2f& origin,
                                         const Vector2f& p1,
                                         const Vector2f& p2) const {
   if (p1.x == p2.x) {
-    return FindColumnIntersection(origin, angle, p1.x / tileSize);
+    return FindColumnIntersection(origin, angle, int(p1.x / tileSize));
   } else {
-    return FindRowIntersection(origin, angle, p1.y / tileSize);
+    return FindRowIntersection(origin, angle, int(p1.y / tileSize));
   }
 }
 

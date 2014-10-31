@@ -30,30 +30,30 @@ std::vector<sf::Vertex> Graphics::TessellateSector(
     const SectorMap::Sector& sector) {
   std::vector<sf::Vertex> result;
 
-  float depth = std::min(sector.Depth(), 100000.f);
+  //float depth = std::min(sector.Depth(), 100000.f);
 
-  float startAngle = sector.StartAngle();
-  float endAngle = sector.EndAngle();
-  if (endAngle == startAngle || Util::AngleCCW(startAngle, endAngle) > M_PI / 2) {
-    endAngle = startAngle + M_PI / 2;
-  }
+  //float startAngle = sector.StartAngle();
+  //float endAngle = sector.EndAngle();
+  //if (endAngle == startAngle || Util::AngleCCW(startAngle, endAngle) > M_PI / 2) {
+  //  endAngle = startAngle + M_PI / 2;
+  //}
 
-  do {
-    Vector2f direction1 = Util::MakeUnitVector(startAngle);
-    Vector2f direction2 = Util::MakeUnitVector(endAngle);
-    Vector2f point1 = direction1 * depth;
-    Vector2f point2 = direction2 * depth;
+  //do {
+  //  Vector2f direction1 = Util::MakeUnitVector(startAngle);
+  //  Vector2f direction2 = Util::MakeUnitVector(endAngle);
+  //  Vector2f point1 = direction1 * depth;
+  //  Vector2f point2 = direction2 * depth;
 
-    result.push_back(sf::Vertex(Vector2f(0, 0)));
-    result.push_back(sf::Vertex(point1));
-    result.push_back(sf::Vertex(point2));
+  //  result.push_back(sf::Vertex(Vector2f(0, 0)));
+  //  result.push_back(sf::Vertex(point1));
+  //  result.push_back(sf::Vertex(point2));
 
-    startAngle = endAngle;
-    endAngle = sector.EndAngle();
-    if (endAngle == startAngle || Util::AngleCCW(startAngle, endAngle) > M_PI / 2) {
-      endAngle = startAngle + M_PI / 2;
-    }
-  } while (startAngle != sector.EndAngle());
+  //  startAngle = endAngle;
+  //  endAngle = sector.EndAngle();
+  //  if (endAngle == startAngle || Util::AngleCCW(startAngle, endAngle) > M_PI / 2) {
+  //    endAngle = startAngle + M_PI / 2;
+  //  }
+  //} while (startAngle != sector.EndAngle());
 
   return result;
 }
@@ -66,7 +66,7 @@ void Graphics::DrawFogOfWar(const GameScene& scene) {
 
   for (UnitModel* unit : scene.units()) {
     if (unit->Owner() == gameInterface.Player()) {
-      for (int i = 0; i < unit->Visibility().VisiblePoints().size(); i += 2) {
+      for (size_t i = 0; i < unit->Visibility().VisiblePoints().size(); i += 2) {
         sf::Vertex p1(unit->Visibility().Origin());
         sf::Vertex p2(unit->Visibility().VisiblePoints()[i]);
         sf::Vertex p3(unit->Visibility().VisiblePoints()[i + 1]);
@@ -77,7 +77,7 @@ void Graphics::DrawFogOfWar(const GameScene& scene) {
     }
   }
 
-  for (int i = 0; i < visibleArea.getVertexCount(); ++i) {
+  for (size_t i = 0; i < visibleArea.getVertexCount(); ++i) {
     visibleArea[i].color = sf::Color::Transparent;
   }
 
@@ -138,8 +138,8 @@ void Graphics::DrawUnits(const std::list<UnitModel *> &units) const {
 		  const sf::Texture &unit_image = resource_manager_.GetImage(unit->Name(),
 				  unit->Owner());
 		  sf::Sprite unit_sprite(unit_image);
-		  Vector2f image_center(unit_image.getSize().x * 0.5,
-          unit_image.getSize().y * 0.5);
+		  Vector2f image_center(unit_image.getSize().x * 0.5f,
+          unit_image.getSize().y * 0.5f);
 		  unit_sprite.setOrigin(image_center);
 		  unit_sprite.setPosition(unit->position());
 		  unit_sprite.setRotation(Util::Degrees(unit->rotation()));

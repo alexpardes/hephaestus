@@ -68,7 +68,7 @@ class GameState {
     void MoveUnit(UnitId id, Vector2f location);
     Vector2f GetUnitPosition(UnitId id) const;
     std::vector<Rect> GetWallsInRectangle(const Rect &rectangle) const;
-    const std::vector<Rect> &GetWalls() const;
+    const std::vector<LineSegment> &GetWalls() const;
 
     //CollisionTestResult TestCollision(const GameUnit& unit,
     //    const Vector2f& end) const;
@@ -83,12 +83,11 @@ class GameState {
     CollisionTestResult TestCollision(std::shared_ptr<const GameUnit> unit,
         const Vector2f& end) const;
 
-    std::vector<sf::ConvexShape> FindOccludedAreas(const GameUnit& unit) const;
-
 	private:
     const PathingGrid* PathingGrid() const { return pathfinder->GetPathingGrid(); }
     void FindExternalWalls();
     Rect GetWall(const Vector2i& tile) const;
+    void GameState::AddWalls(int tileX, int tileY);
     CollisionTestResult TestWallCollision(const Vector2f& start,
       const Vector2f& end, float radius) const;
 
@@ -121,10 +120,7 @@ class GameState {
     PathFinder *pathfinder;
     int lastUnitId;
 
-    // This is a list of the positions of blocked tiles which are not enclosed
-    // by other blocked tiles.
-    std::vector<Vector2i> externalWalls;
-    std::vector<Rect> walls;
+    std::vector<LineSegment> walls;
 };
 
 class GameScene {

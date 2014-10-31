@@ -57,7 +57,7 @@ UnitModel::UnitModel(const GameUnit &unit) {
 	name = unit.Attributes().name();
 	owner_ = unit.Owner();
 	radius_ = unit.Attributes().selection_radius();
-  sightMap = new SectorMap(unit.SightMap());
+  //sightMap = new SectorMap(unit.SightMap());
   visibility = unit.Visibility();
   isVisible = true;
 }

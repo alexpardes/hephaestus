@@ -84,7 +84,7 @@ bool Util::IsBetweenAngles(float testAngle, float angle1, float angle2, bool fli
   bool result = false;
 
   if (flipRotation) {
-    double temp = angle1;
+    float temp = angle1;
     angle1 = angle2;
     angle2 = temp;
   }
@@ -103,7 +103,7 @@ bool Util::IsBetweenAnglesClosed(float testAngle, float angle1, float angle2, bo
   bool result = false;
 
   if (flipRotation) {
-    double temp = angle1;
+    float temp = angle1;
     angle1 = angle2;
     angle2 = temp;
   }

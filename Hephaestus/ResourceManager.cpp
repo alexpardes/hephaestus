@@ -37,7 +37,7 @@ GameState *ResourceManager::LoadMap(const std::string& filename) {
 }
 
 void ResourceManager::SetupFogOfWar() {
-  fogImage.create(mapSize.x * kTileSize, mapSize.y * kTileSize);
+  fogImage.create(int(mapSize.x * kTileSize), int(mapSize.y * kTileSize));
 
   sf::RectangleShape emptyTile(Vector2f(kTileSize, kTileSize));
   emptyTile.setPosition(0, 0);
@@ -47,7 +47,7 @@ void ResourceManager::SetupFogOfWar() {
   fogTile.setPosition(kTileSize, 0);
   fogTile.setFillColor(fogColor);
 
-  fogTileset.create(2 * kTileSize, kTileSize);
+  fogTileset.create(int(2 * kTileSize), int(kTileSize));
   fogTileset.draw(emptyTile);
   fogTileset.draw(fogTile);
 
@@ -59,7 +59,7 @@ void ResourceManager::SetupFogOfWar() {
 
 // TODO: handle maps that are larger than the max texture size.
 void ResourceManager::RenderMap() {
-  mapImage.create(kTileSize * mapSize.x, kTileSize * mapSize.y);
+  mapImage.create(int(kTileSize * mapSize.x), int(kTileSize * mapSize.y));
   for (int x = 0; x < mapSize.x; ++x) {
     for (int y = 0; y < mapSize.y; ++y) {
       const sf::Texture &terrain_image = GetImage(terrain_[x][y]);

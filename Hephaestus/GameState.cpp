@@ -39,19 +39,31 @@ GameState::GameState(const UnitDictionary &unitDictionary,
 void GameState::FindExternalWalls() {
   for (int x = 0; x < PathingGrid()->Size().x; ++x) {
     for (int y = 0; y < PathingGrid()->Size().y; ++y) {
-      if (PathingGrid()->IsBlocked(x, y) &&
-          (PathingGrid()->IsUnblocked(x - 1, y)
-          || PathingGrid()->IsUnblocked(x + 1, y)
-          || PathingGrid()->IsUnblocked(x, y - 1)
-          || PathingGrid()->IsUnblocked(x, y + 1))) {
-        externalWalls.push_back(Vector2i(x, y));
-      }
+      AddWalls(x, y);
     }
   }
+}
 
-  for (Vector2i tile : externalWalls) {
-    walls.push_back(GetWall(tile));
-  }
+void GameState::AddWalls(int tileX, int tileY) {
+  if (!PathingGrid()->IsBlocked(tileX, tileY))
+    return;
+
+  Vector2f topLeft(tileX * kTileSize, tileY * kTileSize);
+  Vector2f topRight((tileX + 1) * kTileSize, tileY * kTileSize);
+  Vector2f bottomLeft(tileX * kTileSize, (tileY + 1) * kTileSize);
+  Vector2f bottomRight((tileX + 1) * kTileSize, (tileY + 1) * kTileSize);
+
+  if (PathingGrid()->IsUnblocked(tileX - 1, tileY))
+    walls.push_back(LineSegment(bottomLeft, topLeft));
+
+  if (PathingGrid()->IsUnblocked(tileX, tileY - 1))
+    walls.push_back(LineSegment(topLeft, topRight));
+
+  if (PathingGrid()->IsUnblocked(tileX + 1, tileY))
+    walls.push_back(LineSegment(topRight, bottomRight));
+
+  if (PathingGrid()->IsUnblocked(tileX, tileY + 1))
+    walls.push_back(LineSegment(bottomRight, bottomLeft));
 }
 
 GameState::~GameState() {
@@ -127,19 +139,7 @@ void GameState::ExecuteTurn() {
 
 void GameState::UpdateSightMap(GameUnit& unit) {
   Timer::Start1();
-  unit.SightMap().Clear();
-  unit.SightMap().SetCenter(unit.Position());
-  const std::vector<Rect> &walls = GetWalls();
-
-  for (Rect wall : walls) {
-    auto widestPoints = wall.WidestPoints(unit.Position());
-    float startAngle = Util::FindAngle(widestPoints.first - unit.Position());
-    float endAngle = Util::FindAngle(widestPoints.second - unit.Position());
-    float distance = Util::Distance((widestPoints.first + widestPoints.second)/2.f,
-        unit.Position());
-
-    unit.SightMap().Add(startAngle, endAngle, distance);
-  }
+  unit.SightMap().Create(unit.Position(), GetWalls());
   Timer::Stop1();
 }
 
@@ -305,8 +305,7 @@ Rect GameState::GetWall(const Vector2i& tile) const {
   return wall;
 }
 
-// Now only returns external walls.
-const std::vector<Rect> &GameState::GetWalls() const {
+const std::vector<LineSegment> &GameState::GetWalls() const {
   return walls;
 }
 
@@ -336,13 +335,13 @@ Vector2i GameState::GetTile(UnitId id) const {
 }
 
 Vector2i GameState::GetTile(const Vector2f &gameLocation) const {
-  return Vector2i(gameLocation.x / kTileSize, gameLocation.y / kTileSize);
+  return Vector2i(int(gameLocation.x / kTileSize), int(gameLocation.y / kTileSize));
 }
 
 // Returns the centerpoint of the input tile.
 Vector2f GameState::GetLocation(const Vector2i &gridLocation) const {
-  return Vector2f((gridLocation.x + 0.5) * kTileSize,
-      (gridLocation.y + 0.5) * kTileSize);
+  return Vector2f((gridLocation.x + 0.5f) * kTileSize,
+      (gridLocation.y + 0.5f) * kTileSize);
 }
 
 CollisionTestResult GameState::TestUnitCollision(const Vector2f& start,
@@ -465,32 +464,6 @@ CollisionTestResult GameState::TestCollision(
       unit->Attributes().CollisionRadius(), unit);
 }
 
-std::vector<sf::ConvexShape> GameState::FindOccludedAreas(
-    const GameUnit& unit) const {
-  std::vector<sf::ConvexShape> result;
-  std::vector<Rect> walls = GetWalls();
-
-  for (Rect wall : walls) {
-    auto widestPoints = wall.WidestPoints(unit.Position());
-    Vector2f direction1 = widestPoints.first - unit.Position();
-    Util::Resize(direction1, 1000);
-    Vector2f farPoint1 = unit.Position() + direction1;
-
-    Vector2f direction2 = widestPoints.second - unit.Position();
-    Util::Resize(direction2, 1000);
-    Vector2f farPoint2 = unit.Position() + direction2;
-
-    sf::ConvexShape area(4);
-    area.setPoint(0, widestPoints.first);
-    area.setPoint(1, widestPoints.second);
-    area.setPoint(2, farPoint1);
-    area.setPoint(3, farPoint2);
-    result.push_back(area);
-  }
-
-  return result;
-}
-
 const float GameScene::kUnitGridResolution = 25.f;
 
 GameScene::GameScene(GameState &game_state) {
@@ -516,30 +489,30 @@ GameScene::GameScene(GameState &game_state) {
 }
 
 void GameScene::ComputeVisibility(PlayerNumber playerID) {
-  for (UnitModel* unit : units()) {
-    if (unit->Owner() == playerID) {
-      unitViews.push_back(unit->SightMap());
-    }
-  }
+  //for (UnitModel* unit : units()) {
+  //  if (unit->Owner() == playerID) {
+  //    unitViews.push_back(unit->SightMap());
+  //  }
+  //}
 
-  ComputeUnitVisibility(playerID, unitViews);
+  //ComputeUnitVisibility(playerID, unitViews);
 }
 
 void GameScene::ComputeUnitVisibility(PlayerNumber player,
                                       std::vector<const SectorMap*> sightMaps) {
-  for (UnitModel* unit : units()) {
-    if (unit->Owner() == player) {
-      unit->SetVisible(true);
-    } else {
-      unit->SetVisible(false);
-      for (const SectorMap* sightMap : sightMaps) {
-        if (sightMap->IntersectsCircle(unit->position(), unit->Radius())) {
-          unit->SetVisible(true);
-          break;
-        }
-      }
-    }
-  }
+  //for (UnitModel* unit : units()) {
+  //  if (unit->Owner() == player) {
+  //    unit->SetVisible(true);
+  //  } else {
+  //    unit->SetVisible(false);
+  //    for (const SectorMap* sightMap : sightMaps) {
+  //      if (sightMap->IntersectsCircle(unit->position(), unit->Radius())) {
+  //        unit->SetVisible(true);
+  //        break;
+  //      }
+  //    }
+  //  }
+  //}
 }
 
 
