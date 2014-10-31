@@ -2,6 +2,7 @@
 #include "SectorMap.h"
 #include "Util.h"
 #include "Circle.h"
+#include "Timer.h"
 
 SectorMap::SectorMap() {
   Clear();
@@ -152,13 +153,12 @@ void SectorMap::Add(float startAngle, float endAngle, float depth) {
   Add(startSector, startAngle, endAngle, depth);
 }
 
-SectorMap::Sector SectorMap::GetSector(float angle) {  
+SectorMap::Sector SectorMap::GetSector(float angle) {
   std::map<float, float>::iterator it = tree.upper_bound(angle);
   if (it == tree.end()) {
     it = tree.begin();
   }
   Sector sector = Sector(&tree, it).Prev();
-
   return sector;
 }
 

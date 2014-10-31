@@ -59,7 +59,7 @@ UnitModel::UnitModel(const GameUnit &unit) {
 	radius_ = unit.Attributes().selection_radius();
   sightMap = new SectorMap(unit.SightMap());
   visibility = unit.Visibility();
-  isVisible = true;  
+  isVisible = true;
 }
 
 UnitModel::UnitModel(const UnitModel &unit1,

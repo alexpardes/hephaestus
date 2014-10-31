@@ -22,11 +22,17 @@ NetworkConnection::NetworkConnection(boost::asio::ip::tcp::socket* socket) :
   socketStream = nullptr;
 }
 
-void NetworkConnection::AddCommands(CommandTurn* commands) {
+void NetworkConnection::AddCommands(std::shared_ptr<CommandTurn> commands) {
+  std::vector<const Command *> *rawCommands = new std::vector<const Command *>(commands->size());
+  for (auto command : *commands) 
+  {
+    rawCommands->push_back(command.get());
+  }
+
   if (socket) {
     std::ostringstream outStream;
     boost::archive::text_oarchive serializer(outStream);
-    serializer << const_cast<CommandTurn* const>(commands);
+    serializer << const_cast<std::vector<const Command *> *const>(rawCommands);
     std::string outString = outStream.str();
     std::ostringstream headerStream;
     headerStream << std::setw(HEADER_SIZE)
@@ -42,19 +48,19 @@ void NetworkConnection::AddCommands(CommandTurn* commands) {
 
   } else {
     boost::archive::text_oarchive serializer(*socketStream);
-    serializer << const_cast<CommandTurn* const>(commands);
+    serializer << const_cast<std::vector<const Command *> *const>(rawCommands);
     socketStream->flush();
   }
 }
 
-void NetworkConnection::AddCommand(Command* command) {
+void NetworkConnection::AddCommand(std::shared_ptr<Command> command) {
   //boost::archive::text_oarchive serializer(*socketStream);
   //serializer << const_cast<Command* const>(command);
   //socketStream->flush();
 }
 
-CommandTurn* NetworkConnection::TakeCommandTurn() {
-  CommandTurn *commands = nullptr;
+std::shared_ptr<CommandTurn> NetworkConnection::TakeCommandTurn() {
+  std::vector<const Command *> *commands = nullptr;
   if (socket) {
     char headerString[HEADER_SIZE];
     bool isWaiting = true;
@@ -89,5 +95,10 @@ CommandTurn* NetworkConnection::TakeCommandTurn() {
     boost::archive::text_iarchive deserializer(*socketStream);
     deserializer >> commands;
   }
-  return commands;
+
+  auto commandTurn = std::make_shared<CommandTurn>();
+  for (auto command : *commands) {
+    commandTurn->push_back(std::shared_ptr<const Command>(command));
+  }
+  return commandTurn;
 }

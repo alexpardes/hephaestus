@@ -125,9 +125,12 @@ void ShadowCaster::ShadowCast(Vector2f origin,
 
       // Recurses on the space above this wall, unless the top of the wall is
       // above the top vector.
-      if (Util::IsBetweenAngles(wallStartAngle, currentStartAngle, endAngle) ^ flipRotation) {
+      if (Util::IsBetweenAnglesClosed(wallStartAngle, currentStartAngle, endAngle, flipRotation)) {
         QueueColumnSector(column + xDir, currentStartAngle, wallStartAngle, flipX, flipY);
       }
+
+      if (wallStartAngle == endAngle)
+        break;
 
       // This will store the index of the first corner past the start vector.
       int cornerAfterStart = corners.size() - 1;
@@ -139,7 +142,7 @@ void ShadowCaster::ShadowCast(Vector2f origin,
       for (int i = 0; i < corners.size() - 1; ++i) {
         float angle = Util::FindAngle(corners[i] - origin);
 
-        if (Util::IsBetweenAngles(angle, startAngle, lastCornerAngle) ^ flipRotation) {
+        if (Util::IsBetweenAngles(angle, currentStartAngle, lastCornerAngle, flipRotation)) {
           cornerAfterStart = i;
           break;
         }
@@ -149,7 +152,7 @@ void ShadowCaster::ShadowCast(Vector2f origin,
       float firstCornerAngle = Util::FindAngle(corners.front() - origin);
       for (int i = corners.size() - 1; i > 0; --i) {
         float angle = Util::FindAngle(corners[i] - origin);
-        if (Util::IsBetweenAngles(angle, firstCornerAngle, endAngle) ^ flipRotation) {
+        if (Util::IsBetweenAngles(angle, firstCornerAngle, endAngle, flipRotation)) {
           cornerBeforeEnd = i;
           break;
         }
@@ -157,7 +160,7 @@ void ShadowCaster::ShadowCast(Vector2f origin,
 
       std::vector<Vector2f> points;
       if (cornerAfterStart != 0) {
-        points.push_back(FindIntersection(origin, startAngle,
+        points.push_back(FindIntersection(origin, currentStartAngle,
             corners[cornerAfterStart - 1], corners[cornerAfterStart]));
       }
 
@@ -176,12 +179,13 @@ void ShadowCaster::ShadowCast(Vector2f origin,
         visiblePoints.push_back(points[i + 1]);
       }
 
+      float wallEndAngle = Util::FindAngle(points.back() - origin);
+
       // In this case, this wall occludes any remaining rows in this column.
-      if (cornerBeforeEnd != corners.size() - 1) {
+      if (cornerBeforeEnd != corners.size() - 1 || wallEndAngle == endAngle) {
         break;
       }
       
-      float wallEndAngle = Util::FindAngle(points.back() - origin);
       currentStartAngle = wallEndAngle;
     } else {
       // Queues the area after the last obstacle.
@@ -319,6 +323,10 @@ int ShadowCaster::FindHighRow(const Vector2f& origin,
                               int column,
                               bool flipX) {
 
+  // Column intersection requires that the angle not be vertical.
+  if (endAngle == M_PI / 2)
+    return grid.Size().y;
+
   int xDir = flipX ? -1 : 1;
   float h1 = FindColumnIntersection(origin, endAngle, column).y / tileSize;
   float h2 = FindColumnIntersection(origin, endAngle, column + 1).y / tileSize;
@@ -332,6 +340,10 @@ int ShadowCaster::FindLowRow(const Vector2f& origin,
                               float distance,
                               int column,
                               bool flipX) {
+
+  // Column intersection requires that the angle not be vertical.
+  if (startAngle == 3 * M_PI / 2)
+    return -1;
   
   int xDir = flipX ? -1 : 1;
   float h1 = FindColumnIntersection(origin, startAngle, column).y / tileSize;

@@ -80,13 +80,38 @@ float Util::FindAngleDegrees(const Vector2f &vector1, const Vector2f &vector2) {
 }
 
 // Returns if testAngle is in the angular interval [angle1, angle2).
-bool Util::IsBetweenAngles(float testAngle, float angle1, float angle2) {
+bool Util::IsBetweenAngles(float testAngle, float angle1, float angle2, bool flipRotation) {
   bool result = false;
+
+  if (flipRotation) {
+    double temp = angle1;
+    angle1 = angle2;
+    angle2 = temp;
+  }
 
   if (angle2 > angle1) {
     result = testAngle >= angle1 && testAngle < angle2;
   } else {
     result = testAngle < angle2 || testAngle >= angle1;
+  }
+
+  return result;
+}
+
+// Returns if testAngle is in the angular interval [angle1, angle2].
+bool Util::IsBetweenAnglesClosed(float testAngle, float angle1, float angle2, bool flipRotation) {
+  bool result = false;
+
+  if (flipRotation) {
+    double temp = angle1;
+    angle1 = angle2;
+    angle2 = temp;
+  }
+
+  if (angle2 > angle1) {
+    result = testAngle >= angle1 && testAngle <= angle2;
+  } else {
+    result = testAngle <= angle2 || testAngle >= angle1;
   }
 
   return result;

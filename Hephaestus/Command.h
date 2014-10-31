@@ -16,4 +16,4 @@ class Command {
 		template<class Archive>
     void serialize(Archive & ar, const unsigned int version) { }
 };
-typedef std::vector<const Command*> CommandTurn;
+typedef std::vector<const std::shared_ptr<const Command>> CommandTurn;

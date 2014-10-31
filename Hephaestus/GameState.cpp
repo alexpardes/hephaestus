@@ -7,6 +7,7 @@
 #include "AutoAttackAbility.h"
 #include "SectorMap.h"
 #include "ShadowCaster.h"
+#include "Timer.h"
 
 //const float GameState::kPathingResolution = 25.f;
 const float GameState::kUnitGridResolution = 8.f;
@@ -33,6 +34,8 @@ GameState::GameState(const UnitDictionary &unitDictionary,
   FindExternalWalls();
 }
 
+// Currently only used for calculating wall segments.
+// TODO: Only use exterior segments.
 void GameState::FindExternalWalls() {
   for (int x = 0; x < PathingGrid()->Size().x; ++x) {
     for (int y = 0; y < PathingGrid()->Size().y; ++y) {
@@ -44,6 +47,10 @@ void GameState::FindExternalWalls() {
         externalWalls.push_back(Vector2i(x, y));
       }
     }
+  }
+
+  for (Vector2i tile : externalWalls) {
+    walls.push_back(GetWall(tile));
   }
 }
 
@@ -81,12 +88,12 @@ Vector2f GameState::Constrain(Vector2f location) const {
 
 Vector2i GameState::Constrain(Vector2i location) const {
   if (location.x < 0) {
-    location.x = 0.f;
+    location.x = 0;
   } else if (location.x >= map_size().x) {
     location.x = map_size().x - 1;
   }
   if (location.y < 0) {
-    location.y = 0.f;
+    location.y = 0;
   } else if (location.y >= map_size().y) {
     location.y = map_size().y - 1;
   }
@@ -119,21 +126,21 @@ void GameState::ExecuteTurn() {
 }
 
 void GameState::UpdateSightMap(GameUnit& unit) {
-  ShadowCaster caster(*PathingGrid(), kTileSize);
-  unit.SetVisibility(caster.ShadowCast(unit.Position(), Util::Radians(0), Util::Radians(360), 0));
+  Timer::Start1();
+  unit.SightMap().Clear();
+  unit.SightMap().SetCenter(unit.Position());
+  const std::vector<Rect> &walls = GetWalls();
 
-  //unit.SightMap().Clear();
-  //unit.SightMap().SetCenter(unit.Position());
-  //std::vector<Rect> walls = GetWalls();
+  for (Rect wall : walls) {
+    auto widestPoints = wall.WidestPoints(unit.Position());
+    float startAngle = Util::FindAngle(widestPoints.first - unit.Position());
+    float endAngle = Util::FindAngle(widestPoints.second - unit.Position());
+    float distance = Util::Distance((widestPoints.first + widestPoints.second)/2.f,
+        unit.Position());
 
-  //for (Rect wall : walls) {
-  //  std::vector<Vector2f> widestPoints = wall.WidestPoints(unit.Position());
-  //  float startAngle = Util::FindAngle(widestPoints[0] - unit.Position());
-  //  float endAngle = Util::FindAngle(widestPoints[1] - unit.Position());
-  //  float distance = Util::Distance((widestPoints[0] + widestPoints[1])/2.f,
-  //      unit.Position());
-  //  unit.SightMap().Add(startAngle, endAngle, distance);
-  //}
+    unit.SightMap().Add(startAngle, endAngle, distance);
+  }
+  Timer::Stop1();
 }
 
 
@@ -142,7 +149,7 @@ void GameState::AddUnit(const std::string &type,
                         const Vector2f &location,
                         float rotation) {
 	const UnitAttributes &attributes = unitDefinitions.at(type);
-	std::shared_ptr<GameUnit> unit(new GameUnit(++lastUnitId, attributes, owner, location, rotation));
+	auto unit = std::make_shared<GameUnit>(++lastUnitId, attributes, owner, location, rotation);
 
   // TODO: remove the order dependency.
   UnitAbility *move = new MoveAbility(unit, pathfinder, this, attributes.speed());
@@ -299,19 +306,7 @@ Rect GameState::GetWall(const Vector2i& tile) const {
 }
 
 // Now only returns external walls.
-std::vector<Rect> GameState::GetWalls() const {
-  std::vector<Rect> walls;
-  for (Vector2i tile : externalWalls) {
-    walls.push_back(GetWall(tile));
-  }
-
-  //for (int x = 0; x < mapSize.x; ++x) {
-  //  for (int y = 0; y < mapSize.y; ++y) {
-  //    if (pathfinder->GetPathingGrid()->IsBlocked(x, y)) {
-  //      walls.push_back(GetWall(Vector2i(x, y)));
-  //    }
-  //  }
-  //}
+const std::vector<Rect> &GameState::GetWalls() const {
   return walls;
 }
 
@@ -476,18 +471,18 @@ std::vector<sf::ConvexShape> GameState::FindOccludedAreas(
   std::vector<Rect> walls = GetWalls();
 
   for (Rect wall : walls) {
-    std::vector<Vector2f> widestPoints = wall.WidestPoints(unit.Position());
-    Vector2f direction1 = widestPoints[0] - unit.Position();
+    auto widestPoints = wall.WidestPoints(unit.Position());
+    Vector2f direction1 = widestPoints.first - unit.Position();
     Util::Resize(direction1, 1000);
     Vector2f farPoint1 = unit.Position() + direction1;
 
-    Vector2f direction2 = widestPoints[1] - unit.Position();
+    Vector2f direction2 = widestPoints.second - unit.Position();
     Util::Resize(direction2, 1000);
     Vector2f farPoint2 = unit.Position() + direction2;
 
     sf::ConvexShape area(4);
-    area.setPoint(0, widestPoints[0]);
-    area.setPoint(1, widestPoints[1]);
+    area.setPoint(0, widestPoints.first);
+    area.setPoint(1, widestPoints.second);
     area.setPoint(2, farPoint1);
     area.setPoint(3, farPoint2);
     result.push_back(area);

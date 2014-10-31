@@ -126,7 +126,7 @@ void Hephaestus::Update() {
         && event.KeyPressed == sf::Keyboard::Escape) {
       game_manager->EndGame();
     } else {
-      Command *command = game_interface->ProcessEvent(event, *window);
+      auto command = game_interface->ProcessEvent(event, *window);
       if (command) {
         commandBuffer->AddCommand(command);
       }
@@ -141,9 +141,8 @@ void Hephaestus::Update() {
     updated_scene->ComputeVisibility(game_interface->Player());
   }
   if (game_scene1 && game_scene2) {
-    GameScene *display_scene = NULL;
     float weight = game_manager->GetFrameTime();
-    display_scene = new GameScene(*game_scene1,
+    GameScene *display_scene = new GameScene(*game_scene1,
       *game_scene2, weight);
     game_interface->set_scene(display_scene);
     game_interface->DeselectDeadUnits();

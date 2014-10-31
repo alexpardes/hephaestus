@@ -8,14 +8,14 @@ class SectorMap {
     class Sector;
 
     SectorMap();
-    SectorMap(const Vector2f& center);
+    SectorMap(const Vector2f &center);
     SectorMap(const SectorMap& map);
 
     // Returns true iff the given point is less than the max distance from the
     // center given for its sector.
-    bool Contains(const Vector2f& point) const;
+    bool Contains(const Vector2f &point) const;
 
-    bool IntersectsCircle(const Vector2f& center, float radius) const;
+    bool IntersectsCircle(const Vector2f &center, float radius) const;
 
     // Returns the start and end angles of the largest visible portion of the
     // circle. Returns (0, 0) if there is no intersection;

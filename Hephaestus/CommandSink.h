@@ -3,8 +3,8 @@
 
 class CommandSink {
   public:
-    virtual void AddCommand(Command* command) = 0;
-    virtual void AddCommands(CommandTurn* commands) = 0;
+    virtual void AddCommand(std::shared_ptr<Command> command) = 0;
+    virtual void AddCommands(std::shared_ptr<CommandTurn> commands) = 0;
     virtual ~CommandSink() { }
     static CommandSink *Null;
 
@@ -14,6 +14,6 @@ class CommandSink {
 
 class CommandSink::NullCommandSink : public CommandSink {
   public:
-    virtual void AddCommand(Command* command) { }
-    virtual void AddCommands(CommandTurn* commands) { }
+    virtual void AddCommand(std::shared_ptr<Command> command) { }
+    virtual void AddCommands(std::shared_ptr<CommandTurn> commands) { }
 };

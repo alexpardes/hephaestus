@@ -198,6 +198,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="TileMap.cpp" />
+    <ClCompile Include="Timer.cpp" />
     <ClCompile Include="UnitBehavior.cpp" />
     <ClCompile Include="GameInterface.cpp" />
     <ClCompile Include="UnitCommand.cpp" />
@@ -245,6 +246,7 @@
     <ClInclude Include="ShadowCaster.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="TileMap.h" />
+    <ClInclude Include="Timer.h" />
     <ClInclude Include="UnitAbility.h" />
     <ClInclude Include="UnitAction.h" />
     <ClInclude Include="UnitAttributes.h" />

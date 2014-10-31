@@ -2,15 +2,15 @@
 #include "CommandBuffer.h"
 
 CommandBuffer::CommandBuffer() {
-  buffer = new CommandTurn();
+  buffer = std::make_shared<CommandTurn>();
 }
 
-CommandTurn* CommandBuffer::TakeCommandTurn() {
-  CommandTurn* turn = buffer;
+std::shared_ptr<CommandTurn> CommandBuffer::TakeCommandTurn() {
+  auto turn = buffer;
 
   // Makes sure that no more commands will be added to the old buffer.
   lock.lock();
-  buffer = new CommandTurn();
+  buffer = std::make_shared<CommandTurn>();
   lock.unlock();
 
   // Is this safe if another thread adds a sink during iteration?
@@ -26,15 +26,15 @@ void CommandBuffer::CreateTurnDelay(int nTurns) {
   }
 }
 
-void CommandBuffer::AddCommand(Command* command) {
+void CommandBuffer::AddCommand(std::shared_ptr<Command> command) {
   lock.lock();
   buffer->push_back(command);
   lock.unlock();
 }
 
-void CommandBuffer::AddCommands(CommandTurn* commands) {
+void CommandBuffer::AddCommands(std::shared_ptr<CommandTurn> commands) {
   lock.lock();
-  for (const Command* command : *commands) {
+  for (const std::shared_ptr<const Command> command : *commands) {
     buffer->push_back(command);
   }
 }

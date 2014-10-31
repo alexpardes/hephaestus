@@ -7,7 +7,7 @@
 
 class Command;
 class UnitCommand;
-typedef std::vector<const Command*> CommandTurn;
+typedef std::vector<const std::shared_ptr<const Command>> CommandTurn;
 
 class Player {
 	public:
@@ -22,9 +22,9 @@ class Player {
 
 	private:
     void DeselectDeadUnits();
-    const CommandTurn* PopCommandTurn();
+    const std::shared_ptr<CommandTurn> PopCommandTurn();
 		std::list<UnitId> selectedUnits;
-		std::deque<const CommandTurn *> turnQueue;
+		std::deque<const std::shared_ptr<CommandTurn>> turnQueue;
     GameState& gameState;
     CommandSource* commandSource;
 };

@@ -31,7 +31,7 @@ class GameState {
 		void AddUnit(const std::string &type, PlayerNumber owner,
 				const Vector2f &location, float rotation);
 		void RemoveUnit(std::shared_ptr<GameUnit> unit);
-		void AddProjectile(std::shared_ptr<GameUnit> owner, const Vector2f& location,
+		void AddProjectile(std::shared_ptr<GameUnit> owner, const Vector2f &location,
         float direction, float damage, float speed);
 		void RemoveProjectile(Projectile *projectile);
 		const std::list<std::shared_ptr<GameUnit>> &Units() const {return units;}
@@ -68,7 +68,7 @@ class GameState {
     void MoveUnit(UnitId id, Vector2f location);
     Vector2f GetUnitPosition(UnitId id) const;
     std::vector<Rect> GetWallsInRectangle(const Rect &rectangle) const;
-    std::vector<Rect> GetWalls() const;
+    const std::vector<Rect> &GetWalls() const;
 
     //CollisionTestResult TestCollision(const GameUnit& unit,
     //    const Vector2f& end) const;
@@ -124,6 +124,7 @@ class GameState {
     // This is a list of the positions of blocked tiles which are not enclosed
     // by other blocked tiles.
     std::vector<Vector2i> externalWalls;
+    std::vector<Rect> walls;
 };
 
 class GameScene {

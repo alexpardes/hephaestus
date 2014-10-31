@@ -39,8 +39,6 @@ std::vector<sf::Vertex> Graphics::TessellateSector(
   }
 
   do {
-    //sf::ConvexShape visionTriangle(3);
-
     Vector2f direction1 = Util::MakeUnitVector(startAngle);
     Vector2f direction2 = Util::MakeUnitVector(endAngle);
     Vector2f point1 = direction1 * depth;
@@ -49,12 +47,6 @@ std::vector<sf::Vertex> Graphics::TessellateSector(
     result.push_back(sf::Vertex(Vector2f(0, 0)));
     result.push_back(sf::Vertex(point1));
     result.push_back(sf::Vertex(point2));
-
-    //visionTriangle.setPoint(0, Vector2f(0, 0));
-    //visionTriangle.setPoint(1, point1);
-    //visionTriangle.setPoint(2, point2);
-
-    //result.push_back(visionTriangle);
 
     startAngle = endAngle;
     endAngle = sector.EndAngle();
@@ -108,17 +100,6 @@ void Graphics::DrawFogOfWar(const GameScene& scene) {
 
   fogTexture.display();
   window_.draw(sf::Sprite(fogTexture.getTexture()));
-
-  //for (int x = 0; x < MapSize().x; ++x) {
-  //  for (int y = 0; y < MapSize().y; ++y) {
-  //    if (scene.IsVisible(x, y)) {
-  //      resource_manager_.FogOfWar().SetTile(x, y, Vector2i(0, 0));
-  //    } else {
-  //      resource_manager_.FogOfWar().SetTile(x, y, Vector2i(1, 0));
-  //    }
-  //  }
-  //}
-  //window_.draw(resource_manager_.FogOfWar());
 }
 
 void Graphics::DrawFramerate(float framerate, float cycleRate) const {

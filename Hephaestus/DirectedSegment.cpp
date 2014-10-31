@@ -85,10 +85,10 @@ Vector2f *DirectedSegment::CollisionPoint(const Rect &rectangle,
   Vector2f *result = NULL;
 
   std::vector<float> distances;
-  std::vector<Vector2f> corners = rectangle.Corners();
+  auto corners = rectangle.Corners();
   
-  std::vector<Vector2f>::const_iterator it1 = corners.begin();
-  std::vector<Vector2f>::const_iterator it2 = corners.begin() + 1;
+  auto it1 = corners.begin();
+  auto it2 = corners.begin() + 1;
   while (it2 != corners.end()) {
     distances.push_back(CollisionDistance(LineSegment(*it1++, *it2++), radius));
   }

@@ -6,9 +6,9 @@
 class CommandBuffer : public CommandSource, public CommandSink {
   public:
     CommandBuffer();
-    virtual CommandTurn* TakeCommandTurn();
-    virtual void AddCommand(Command* command);
-    virtual void AddCommands(CommandTurn* commands);
+    virtual std::shared_ptr<CommandTurn> TakeCommandTurn();
+    virtual void AddCommand(std::shared_ptr<Command> command);
+    virtual void AddCommands(std::shared_ptr<CommandTurn> commands);
 
     // Registered sinks will be sent the current command turn when
     // TakeCommandTurn is called.
@@ -17,7 +17,7 @@ class CommandBuffer : public CommandSource, public CommandSink {
     void CreateTurnDelay(int nTurns);
 
   private:
-    CommandTurn* buffer;
+    std::shared_ptr<CommandTurn> buffer;
     std::vector<CommandSink*> sinks;
     std::mutex lock;
 };

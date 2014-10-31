@@ -4,10 +4,10 @@
 
 const float GameInterface::kScrollSpeed = 500.f;
 
-Command *GameInterface::ProcessEvent(const sf::Event &event,
-                                     const sf::RenderWindow &window) {
+std::shared_ptr<Command> GameInterface::ProcessEvent(const sf::Event &event,
+                                                     const sf::RenderWindow &window) {
 	Vector2f location;
-	Command *command = NULL;
+	std::shared_ptr<Command> command = nullptr;
 	switch (event.type) {
     case sf::Event::Resized:
       Resize();
@@ -25,9 +25,9 @@ Command *GameInterface::ProcessEvent(const sf::Event &event,
 						case kAttack:
 							const UnitModel *unit = GetUnit(location);
 							if (unit) {
-								command = new AttackCommand(unit->Id());
+								command = std::make_shared<AttackCommand>(unit->Id());
 							} else {
-								command = new AttackMoveCommand(location);
+								command = std::make_shared<AttackMoveCommand>(location);
 							}
 							cursor_action_ = kSelect;
 							break;
@@ -37,9 +37,9 @@ Command *GameInterface::ProcessEvent(const sf::Event &event,
 					if (cursor_action_ == kSelect) {
 						const UnitModel *unit = GetUnit(location);
 						if (unit && unit->Owner() != player_) {
-							command = new AttackCommand(unit->Id());
+							command = std::make_shared<AttackCommand>(unit->Id());
 						} else {
-							command = new MoveCommand(location);
+							command = std::make_shared<MoveCommand>(location);
 						}
 					} else {
 						cursor_action_ = kSelect;
@@ -71,7 +71,7 @@ Command *GameInterface::ProcessEvent(const sf::Event &event,
             for (UnitId id : ids) {
               selected_unit_ids_.push_back(id);
             }
-						command = new SelectCommand(ids);
+						command = std::make_shared<SelectCommand>(ids);
 						is_selecting_ = false;
 					}
 					break;

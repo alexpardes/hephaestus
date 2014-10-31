@@ -36,10 +36,11 @@ class Util {
 
     // Returns true if testAngle is in the sector from angle1 counterclockwise
     // to angle2.
-    static bool IsBetweenAngles(float testAngle, float angle1, float angle2);
+    static bool IsBetweenAngles(float testAngle, float angle1, float angle2, bool flipRotation = false);
+    static bool IsBetweenAnglesClosed(float testAngle, float angle1, float angle2, bool flipRotation = false);
     static bool IsBetweenAnglesOpen(float testAngle, float angle1, float angle2);
 
-    // Returns the angle in radius between the given vector and (1, 0).
+    // Returns the angle in radians between the given vector and (1, 0).
     static float FindAngle(const Vector2f &vector);
 		static float FindAngle(const Vector2f &vector1, const Vector2f &vector2);
     static float FindAngleDegrees(const Vector2f &vector1, const Vector2f &vector2);

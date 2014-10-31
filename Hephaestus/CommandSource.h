@@ -3,7 +3,7 @@
 
 class CommandSource {
   public:
-    virtual CommandTurn* TakeCommandTurn() = 0;
+    virtual std::shared_ptr<CommandTurn> TakeCommandTurn() = 0;
     virtual ~CommandSource() { }
     static CommandSource *Null;
 
@@ -13,5 +13,5 @@ class CommandSource {
 
 class CommandSource::NullCommandSource : public CommandSource {
   public:
-    virtual CommandTurn* TakeCommandTurn();
+    virtual std::shared_ptr<CommandTurn> TakeCommandTurn();
 };

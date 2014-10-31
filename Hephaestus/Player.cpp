@@ -9,7 +9,7 @@ Player::Player(GameState& gameState, CommandSource* commandSource) :
 
 bool Player::QueueCommandTurn() {
   bool succeeded = false;
-  CommandTurn* turn = commandSource->TakeCommandTurn();
+  auto turn = commandSource->TakeCommandTurn();
   if (turn) {
     turnQueue.push_back(turn);
     succeeded = true;
@@ -17,25 +17,23 @@ bool Player::QueueCommandTurn() {
   return succeeded;
 }
 
-const CommandTurn *Player::PopCommandTurn() {
+const std::shared_ptr<CommandTurn> Player::PopCommandTurn() {
 	if (turnQueue.size() > 0) {
-		const CommandTurn* front = turnQueue.front();
+		const std::shared_ptr<CommandTurn> front = turnQueue.front();
 		turnQueue.pop_front();
     return front;
 	} else {
-	  return new CommandTurn();
+	  return std::make_shared<CommandTurn>();
   }
 }
 
 void Player::ExecuteTurn() {
-  const CommandTurn *turn = PopCommandTurn();
+  const std::shared_ptr<CommandTurn> turn = PopCommandTurn();
   CommandTurn::const_iterator it = turn->begin();
   while (it != turn->end()) {
-    const Command *command = *it++;
+    const std::shared_ptr<const Command> command = *it++;
     command->Execute(*this);
-    delete command;
   }
-  delete turn;
 }
 
 void Player::GiveOrder(const UnitCommand *command) {

@@ -3,6 +3,7 @@
 #include "Commands.h"
 #include "CommandBuffer.h"
 #include "NetworkConnection.h"
+#include "Timer.h"
 
 GameManager::GameManager(float timestep) :
 		gameState(NULL),
@@ -40,16 +41,19 @@ void GameManager::RunGame() {
 
 		ApplyCommands();
 
+    Timer::Start();
     gameState->ExecuteTurn();
+    Timer::Stop();
 
-    float elapsed_time = clock_.getElapsedTime().asMilliseconds();
+    currentStepsPerSecond = Timer::Average1();
+
+    float elapsed_time = clock_.getElapsedTime().asSeconds() * 1000;
     while (elapsed_time < timestep_) {
       boost::this_thread::sleep(boost::posix_time::
-        milliseconds(int64_t(timestep_ - elapsed_time)));
-      elapsed_time = clock_.getElapsedTime().asMilliseconds();
+          milliseconds(int64_t(timestep_ - elapsed_time)));
+      elapsed_time = clock_.getElapsedTime().asSeconds() * 1000;
     }
 
-    //clock_.restart();
     currentStepsPerSecond = 1000 / elapsed_time;
 
 		scene_mutex_.lock();

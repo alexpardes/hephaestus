@@ -3,6 +3,6 @@
 
 CommandSource* CommandSource::Null = new CommandSource::NullCommandSource();
 
-CommandTurn* CommandSource::NullCommandSource::TakeCommandTurn() {
-  return new CommandTurn();
+std::shared_ptr<CommandTurn> CommandSource::NullCommandSource::TakeCommandTurn() {
+  return std::make_shared<CommandTurn>();
 }

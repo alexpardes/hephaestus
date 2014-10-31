@@ -27,7 +27,7 @@ class GameInterface {
     const sf::View &MainView() const { return mainView; }
     const sf::View &MinimapView() const { return minimapView; }
 
-		Command *ProcessEvent(const sf::Event &event, const sf::RenderWindow &window);
+		std::shared_ptr<Command> ProcessEvent(const sf::Event &event, const sf::RenderWindow &window);
 		void MoveScreen(float time_step);
 
 		CommandTurn TakeCommands() {
