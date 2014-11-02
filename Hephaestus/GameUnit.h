@@ -7,7 +7,7 @@
 #include "GameObject.h"
 #include "UnitAttributes.h"
 #include "SectorMap.h"
-#include "VisibilityFan.h"
+#include "VisibilityPolygon.h"
 
 class UnitAction;
 class UnitAbility;
@@ -27,10 +27,8 @@ class GameUnit : public GameObject {
 			return pathing_offsets_[3*x + y + 4];
 		}
 
-    SectorMap& SightMap() { return sightMap; }
-    const SectorMap& SightMap() const { return sightMap; }
-    VisibilityFan Visibility() const { return VisibilityFan(position, visiblePoints); }
-    void SetVisibility(const std::vector<Vector2f> &visiblePoints) { this->visiblePoints = visiblePoints; }
+    SectorMap &SightMap() { return sightMap; }
+    const SectorMap &SightMap() const { return sightMap; }
 
 		void ModifyHealth(float health) {
 			current_health_ += health;
@@ -88,11 +86,9 @@ class UnitModel {
 		PlayerNumber Owner() const {return owner_;}
 		const std::string &Name() const {return name;}
 		int Id() const {return id_;}
-    void SetSightMap(SectorMap* map) { sightMap = map; }
-    const SectorMap* SightMap() const { return sightMap; }
     bool IsVisible() const { return isVisible; }
     void SetVisible(bool visible) { isVisible = visible; }
-    const VisibilityFan &Visibility() const { return visibility; }
+    const VisibilityPolygon &Visibility() const { return visibility; }
 
 	private:
 		Vector2f position_;
@@ -103,7 +99,6 @@ class UnitModel {
 		int id_;
 		PlayerNumber owner_;
 		std::string name;
-    SectorMap* sightMap;
-    VisibilityFan visibility;
+    VisibilityPolygon visibility;
     bool isVisible;
 };

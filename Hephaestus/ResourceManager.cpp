@@ -38,7 +38,7 @@ GameState *ResourceManager::LoadMap(const std::string& filename) {
 
 void ResourceManager::SetupFogOfWar() {
   fogImage.create(int(mapSize.x * kTileSize), int(mapSize.y * kTileSize));
-
+  fogImage.setSmooth(true);
   sf::RectangleShape emptyTile(Vector2f(kTileSize, kTileSize));
   emptyTile.setPosition(0, 0);
   emptyTile.setFillColor(sf::Color(0, 0, 0, 0));

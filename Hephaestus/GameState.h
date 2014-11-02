@@ -85,7 +85,7 @@ class GameState {
 
 	private:
     const PathingGrid* PathingGrid() const { return pathfinder->GetPathingGrid(); }
-    void FindExternalWalls();
+    void FindWalls();
     Rect GetWall(const Vector2i& tile) const;
     void GameState::AddWalls(int tileX, int tileY);
     CollisionTestResult TestWallCollision(const Vector2f& start,

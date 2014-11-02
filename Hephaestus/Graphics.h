@@ -16,8 +16,6 @@ class Graphics {
     }
 		void DrawGame(const GameScene &scene, float framerate, float cycleRate);
 	private:
-    static std::vector<sf::Vertex> TessellateSector(
-        const SectorMap::Sector& sector);
     Vector2i MapSize() const { return resource_manager_.MapSize(); }
 		sf::RenderWindow &window_;
 		ResourceManager &resource_manager_;

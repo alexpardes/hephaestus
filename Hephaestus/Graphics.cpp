@@ -26,38 +26,6 @@ void Graphics::DrawGame(const GameScene &scene,
 	window_.display();
 }
 
-std::vector<sf::Vertex> Graphics::TessellateSector(
-    const SectorMap::Sector& sector) {
-  std::vector<sf::Vertex> result;
-
-  //float depth = std::min(sector.Depth(), 100000.f);
-
-  //float startAngle = sector.StartAngle();
-  //float endAngle = sector.EndAngle();
-  //if (endAngle == startAngle || Util::AngleCCW(startAngle, endAngle) > M_PI / 2) {
-  //  endAngle = startAngle + M_PI / 2;
-  //}
-
-  //do {
-  //  Vector2f direction1 = Util::MakeUnitVector(startAngle);
-  //  Vector2f direction2 = Util::MakeUnitVector(endAngle);
-  //  Vector2f point1 = direction1 * depth;
-  //  Vector2f point2 = direction2 * depth;
-
-  //  result.push_back(sf::Vertex(Vector2f(0, 0)));
-  //  result.push_back(sf::Vertex(point1));
-  //  result.push_back(sf::Vertex(point2));
-
-  //  startAngle = endAngle;
-  //  endAngle = sector.EndAngle();
-  //  if (endAngle == startAngle || Util::AngleCCW(startAngle, endAngle) > M_PI / 2) {
-  //    endAngle = startAngle + M_PI / 2;
-  //  }
-  //} while (startAngle != sector.EndAngle());
-
-  return result;
-}
-
 void Graphics::DrawFogOfWar(const GameScene& scene) {
   sf::RenderTexture& fogTexture = resource_manager_.FogTexture();
   fogTexture.clear(sf::Color(0, 0, 0, 150));
@@ -81,23 +49,7 @@ void Graphics::DrawFogOfWar(const GameScene& scene) {
     visibleArea[i].color = sf::Color::Transparent;
   }
 
-  //for (const SectorMap* unitView : scene.UnitViews()) {
-  //  const SectorMap::Sector startSector
-  //      = unitView->GetSector(0);
-  //  SectorMap::Sector sector = startSector;
-  //  do {
-  //    for (sf::Vertex visionVertex : TessellateSector(sector)) {
-  //      visionVertex.color = sf::Color::Transparent;
-  //      visionVertex.position += unitView->Center();
-  //      visibleArea.append(visionVertex);
-  //    }
-
-  //    sector = sector.Next();
-  //  } while (sector != startSector);
-  //}
-
   fogTexture.draw(visibleArea, sf::BlendNone);
-
   fogTexture.display();
   window_.draw(sf::Sprite(fogTexture.getTexture()));
 }
@@ -154,7 +106,7 @@ void Graphics::DrawProjectiles(const std::list<ProjectileModel *> &projectiles)
     const sf::Texture &image =
         resource_manager_.GetImage(projectile->Name());
 		sf::Sprite projectile_sprite(image);
-		Vector2f imageCenter(image.getSize().x * 0.5, image.getSize().y * 0.5);
+		Vector2f imageCenter(image.getSize().x * 0.5f, image.getSize().y * 0.5f);
 		projectile_sprite.setOrigin(imageCenter);
 		projectile_sprite.setPosition(projectile->position());
     projectile_sprite.setRotation(Util::Degrees(projectile->Rotation()));

@@ -6,7 +6,6 @@
 #include "AttackMoveAbility.h"
 #include "AutoAttackAbility.h"
 #include "SectorMap.h"
-#include "ShadowCaster.h"
 #include "Timer.h"
 
 //const float GameState::kPathingResolution = 25.f;
@@ -31,17 +30,25 @@ GameState::GameState(const UnitDictionary &unitDictionary,
 
   lastUnitId = 0;
 
-  FindExternalWalls();
+  FindWalls();
 }
 
-// Currently only used for calculating wall segments.
 // TODO: Only use exterior segments.
-void GameState::FindExternalWalls() {
+void GameState::FindWalls() {
   for (int x = 0; x < PathingGrid()->Size().x; ++x) {
     for (int y = 0; y < PathingGrid()->Size().y; ++y) {
       AddWalls(x, y);
     }
   }
+
+  Vector2f topLeft(0, 0);
+  Vector2f topRight(PathingGrid()->Size().x * kTileSize, 0);
+  Vector2f bottomRight(PathingGrid()->Size().x * kTileSize, PathingGrid()->Size().y * kTileSize);
+  Vector2f bottomLeft(0, PathingGrid()->Size().y * kTileSize);
+  walls.push_back(LineSegment(topLeft, topRight));
+  walls.push_back(LineSegment(topRight, bottomRight));
+  walls.push_back(LineSegment(bottomRight, bottomLeft));
+  walls.push_back(LineSegment(bottomLeft, topLeft));
 }
 
 void GameState::AddWalls(int tileX, int tileY) {

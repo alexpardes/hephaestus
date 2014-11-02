@@ -16,7 +16,7 @@ MoveAbility::MoveAbility(std::shared_ptr<GameUnit> owner,
   this->pathfinder = pathfinder;
   this->gameState = gameState;
   this->maxSpeed = speed;
-  acceleration = 0.75 * speed;
+  acceleration = 0.75f * speed;
 }
 
 void MoveAbility::SetDestination(const Vector2f &destination) {
@@ -183,7 +183,7 @@ Vector2f MoveAbility::AvoidForce(const Vector2f &point, int degree) const {
       desiredDirection *= -1.f;        
   }
   float weight = Util::Dot(Util::Normalized(direction),
-    Util::Normalized(velocity)) / std::powf(Util::Length(direction), degree);
+    Util::Normalized(velocity)) / std::powf(Util::Length(direction), float(degree));
   Util::Resize(desiredDirection, weight);
 
   return desiredDirection;

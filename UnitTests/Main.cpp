@@ -10,7 +10,6 @@
 #include <Hephaestus/Line.h>
 #include <Hephaestus/Waypoint.h>
 #include <Hephaestus/SectorMap.h>
-#include <Hephaestus/ShadowCaster.h>
 
 #include <PathFinding/SubgoalPathFinder.h>
 #include <PathFinding/VectorPathingGrid.h>
@@ -41,70 +40,70 @@ bool IsApprox(const Vector2f &a, CONST Vector2f &b, double tolerance) {
 
 #define REQUIRE_EQUAL(a,b,tol) REQUIRE(IsApprox(a,b,tol))
 
-TEST_CASE("SectorMap") {
-  SectorMap sectors(Vector2f(1, 1));
-  REQUIRE(sectors.Contains(Vector2f(3, 4)));
-
-  sectors.Add(M_PI/2, M_PI, 10);
-  REQUIRE(sectors.Contains(Vector2f(-2, 2)));
-  REQUIRE(!sectors.Contains(Vector2f(-15, 15)));
-  REQUIRE(sectors.Contains(Vector2f(50, 50)));
-
-  REQUIRE(sectors.Contains(Vector2f(25, 30)));
-  sectors.Add(M_PI/4, 3*M_PI/4, 20);
-  REQUIRE(!sectors.Contains(Vector2f(25, 30)));
-  REQUIRE(!sectors.Contains(Vector2f(-8, 10)));
-}
-
-TEST_CASE("SectorMap 2") {
-  SectorMap sectors(Vector2f(0, 0));
-  sectors.Add(M_PI/4, M_PI/2, 5);
-  sectors.Add(0, M_PI, 10);
-
-  REQUIRE(sectors.Contains(Vector2f(6, 1)));
-  REQUIRE(sectors.Contains(Vector2f(-6, 1)));
-  REQUIRE(!sectors.Contains(Vector2f(5, 6)));
-}
-
-TEST_CASE("SectorMap 3") {
-  SectorMap sectors(Vector2f(164, 562));
-  sectors.Add(5.48, 5.54, 253);
-  sectors.Add(5.54, 5.59, 254);
-
-  REQUIRE(sectors.Contains(Vector2f(1000, 500)));
-}
-
-TEST_CASE("SectorMap 4") {
-  SectorMap sectors(Vector2f(0, 0));
-  sectors.Add(3.05, 3.10, 11);
-  sectors.Add(3.00, 3.05, 10);
-
-  REQUIRE(sectors.Contains(Vector2f(-100, -100)));
-}
-
-TEST_CASE("SectorMap 5") {
-  SectorMap sectors(Vector2f(0, 0));
-  sectors.Clear();
-  sectors.Add(6.14, 6.19, 1);
-  sectors.Add(6.24, 0.005, 2);
-  REQUIRE(sectors.Contains(Vector2f(-100, -100)));
-
-  sectors.Clear();
-  sectors.Add(6.14, 6.19, 1);
-  sectors.Add(6.24, 0.005, 2);
-  REQUIRE(sectors.Contains(Vector2f(-100, -100)));
-}
-
-TEST_CASE("Overwrite Sector") {
-  SectorMap sectors(Vector2f(0, 0));
-  sectors.Add(M_PI/4, M_PI/2, 10);
-  sectors.Add(M_PI/4, M_PI/2, 20);
-  REQUIRE(!sectors.Contains(Vector2f(6, 10)));
-  REQUIRE(sectors.Contains(Vector2f(4, 5)));
-
-  sectors.Add(0, M_PI, 5);
-  REQUIRE(!sectors.Contains(Vector2f(4, 5)));
-}
+//TEST_CASE("SectorMap") {
+//  SectorMap sectors(Vector2f(1, 1));
+//  REQUIRE(sectors.Contains(Vector2f(3, 4)));
+//
+//  sectors.Add(M_PI/2, M_PI, 10);
+//  REQUIRE(sectors.Contains(Vector2f(-2, 2)));
+//  REQUIRE(!sectors.Contains(Vector2f(-15, 15)));
+//  REQUIRE(sectors.Contains(Vector2f(50, 50)));
+//
+//  REQUIRE(sectors.Contains(Vector2f(25, 30)));
+//  sectors.Add(M_PI/4, 3*M_PI/4, 20);
+//  REQUIRE(!sectors.Contains(Vector2f(25, 30)));
+//  REQUIRE(!sectors.Contains(Vector2f(-8, 10)));
+//}
+//
+//TEST_CASE("SectorMap 2") {
+//  SectorMap sectors(Vector2f(0, 0));
+//  sectors.Add(M_PI/4, M_PI/2, 5);
+//  sectors.Add(0, M_PI, 10);
+//
+//  REQUIRE(sectors.Contains(Vector2f(6, 1)));
+//  REQUIRE(sectors.Contains(Vector2f(-6, 1)));
+//  REQUIRE(!sectors.Contains(Vector2f(5, 6)));
+//}
+//
+//TEST_CASE("SectorMap 3") {
+//  SectorMap sectors(Vector2f(164, 562));
+//  sectors.Add(5.48, 5.54, 253);
+//  sectors.Add(5.54, 5.59, 254);
+//
+//  REQUIRE(sectors.Contains(Vector2f(1000, 500)));
+//}
+//
+//TEST_CASE("SectorMap 4") {
+//  SectorMap sectors(Vector2f(0, 0));
+//  sectors.Add(3.05, 3.10, 11);
+//  sectors.Add(3.00, 3.05, 10);
+//
+//  REQUIRE(sectors.Contains(Vector2f(-100, -100)));
+//}
+//
+//TEST_CASE("SectorMap 5") {
+//  SectorMap sectors(Vector2f(0, 0));
+//  sectors.Clear();
+//  sectors.Add(6.14, 6.19, 1);
+//  sectors.Add(6.24, 0.005, 2);
+//  REQUIRE(sectors.Contains(Vector2f(-100, -100)));
+//
+//  sectors.Clear();
+//  sectors.Add(6.14, 6.19, 1);
+//  sectors.Add(6.24, 0.005, 2);
+//  REQUIRE(sectors.Contains(Vector2f(-100, -100)));
+//}
+//
+//TEST_CASE("Overwrite Sector") {
+//  SectorMap sectors(Vector2f(0, 0));
+//  sectors.Add(M_PI/4, M_PI/2, 10);
+//  sectors.Add(M_PI/4, M_PI/2, 20);
+//  REQUIRE(!sectors.Contains(Vector2f(6, 10)));
+//  REQUIRE(sectors.Contains(Vector2f(4, 5)));
+//
+//  sectors.Add(0, M_PI, 5);
+//  REQUIRE(!sectors.Contains(Vector2f(4, 5)));
+//}
 
 TEST_CASE("Rectangle Widest Points") {
   Rect rect(Vector2f(1, -1), Vector2f(2, 1));
@@ -476,66 +475,66 @@ TEST_CASE("Angle Interpolation") {
   REQUIRE_EQUAL(interp.rotation(), Util::Radians(333), 0.01);
 }
 
-TEST_CASE("Shadow Casting") {
-  VectorPathingGrid grid(5, 5);
-  grid.SetBlocked(2, 2);
-  ShadowCaster caster(grid, 10);
-  auto points = caster.ShadowCast(Vector2f(5, 5),
-      0, Util::Radians(85), 0);
-
-  bool containsPoint = false;
-  for (Vector2f point : points) {
-    if (IsApprox(point, Vector2f(20, 20))) containsPoint = true;
-  }
-  REQUIRE(containsPoint);
-
-  containsPoint = false;
-  for (Vector2f point : points) {
-    if (IsApprox(point, Vector2f(30, 20))) containsPoint = true;
-  }
-  REQUIRE(containsPoint);
-
-  containsPoint = false;
-  for (Vector2f point : points) {
-    if (IsApprox(point, Vector2f(20, 30))) containsPoint = true;
-  }
-  REQUIRE(containsPoint);
-
-  containsPoint = false;
-  for (Vector2f point : points) {
-    if (IsApprox(point, Vector2f(30, 30))) containsPoint = true;
-  }
-  REQUIRE(!containsPoint);
-}
-
-TEST_CASE("Shadow Casting 2") {
-  VectorPathingGrid grid(10, 10);
-  grid.SetBlocked(4, 4);
-  ShadowCaster caster(grid, 50);
-  auto points = caster.ShadowCast(Vector2f(79, 291),
-    Util::Radians(280), Util::Radians(80), 0);
-
-  bool containsPoint = false;
-  for (Vector2f point : points) {
-    if (IsApprox(point, Vector2f(200, 200))) containsPoint = true;
-  }
-  REQUIRE(containsPoint);
-
-  containsPoint = false;
-  for (Vector2f point : points) {
-    if (IsApprox(point, Vector2f(200, 250))) containsPoint = true;
-  }
-  REQUIRE(containsPoint);
-
-  containsPoint = false;
-  for (Vector2f point : points) {
-    if (IsApprox(point, Vector2f(250, 200))) containsPoint = true;
-  }
-  REQUIRE(!containsPoint);
-
-  containsPoint = false;
-  for (Vector2f point : points) {
-    if (IsApprox(point, Vector2f(250, 250))) containsPoint = true;
-  }
-  REQUIRE(containsPoint);
-}
+//TEST_CASE("Shadow Casting") {
+//  VectorPathingGrid grid(5, 5);
+//  grid.SetBlocked(2, 2);
+//  ShadowCaster caster(grid, 10);
+//  auto points = caster.ShadowCast(Vector2f(5, 5),
+//      0, Util::Radians(85), 0);
+//
+//  bool containsPoint = false;
+//  for (Vector2f point : points) {
+//    if (IsApprox(point, Vector2f(20, 20))) containsPoint = true;
+//  }
+//  REQUIRE(containsPoint);
+//
+//  containsPoint = false;
+//  for (Vector2f point : points) {
+//    if (IsApprox(point, Vector2f(30, 20))) containsPoint = true;
+//  }
+//  REQUIRE(containsPoint);
+//
+//  containsPoint = false;
+//  for (Vector2f point : points) {
+//    if (IsApprox(point, Vector2f(20, 30))) containsPoint = true;
+//  }
+//  REQUIRE(containsPoint);
+//
+//  containsPoint = false;
+//  for (Vector2f point : points) {
+//    if (IsApprox(point, Vector2f(30, 30))) containsPoint = true;
+//  }
+//  REQUIRE(!containsPoint);
+//}
+//
+//TEST_CASE("Shadow Casting 2") {
+//  VectorPathingGrid grid(10, 10);
+//  grid.SetBlocked(4, 4);
+//  ShadowCaster caster(grid, 50);
+//  auto points = caster.ShadowCast(Vector2f(79, 291),
+//    Util::Radians(280), Util::Radians(80), 0);
+//
+//  bool containsPoint = false;
+//  for (Vector2f point : points) {
+//    if (IsApprox(point, Vector2f(200, 200))) containsPoint = true;
+//  }
+//  REQUIRE(containsPoint);
+//
+//  containsPoint = false;
+//  for (Vector2f point : points) {
+//    if (IsApprox(point, Vector2f(200, 250))) containsPoint = true;
+//  }
+//  REQUIRE(containsPoint);
+//
+//  containsPoint = false;
+//  for (Vector2f point : points) {
+//    if (IsApprox(point, Vector2f(250, 200))) containsPoint = true;
+//  }
+//  REQUIRE(!containsPoint);
+//
+//  containsPoint = false;
+//  for (Vector2f point : points) {
+//    if (IsApprox(point, Vector2f(250, 250))) containsPoint = true;
+//  }
+//  REQUIRE(containsPoint);
+//}

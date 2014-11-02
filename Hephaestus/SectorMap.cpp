@@ -4,10 +4,75 @@
 #include "Circle.h"
 #include "Timer.h"
 
+typedef SectorMap::Sector Sector;
+typedef std::vector<Sector>::const_reverse_iterator iterator;
+
+Sector Nil = Sector();
+
+bool Sector::IsNil() const {
+  return startAngle == 0 && endAngle == 0 && startDepth == 0 && endDepth == 0;
+}
+
 SectorMap::SectorMap() { }
 
-void SectorMap::CreateSectors(const std::vector<LineSegment> &segments) {
-  rawSectors.clear();
+float SectorDepthAtAngle(const SectorMap::Sector &sector, float angle) {
+  if (sector.endAngle < sector.startAngle) {
+    float sizeCcwFrom0 = 2 * M_PI - sector.startAngle;
+    SectorMap::Sector newSector;
+    newSector.startAngle = 0;
+    newSector.endAngle = sector.endAngle + sizeCcwFrom0;
+    newSector.startDepth = sector.startDepth;
+    newSector.endDepth = sector.endDepth;
+    float depth = SectorDepthAtAngle(newSector, angle + sizeCcwFrom0);
+    assert(depth > 0);
+    return depth;
+  }
+
+  assert(angle >= sector.startAngle);
+  assert(angle <= sector.endAngle);
+
+  float size = sector.endAngle - sector.startAngle;
+  float sizeCwFromAngle = sector.endAngle - angle;
+  float fractionCwFromAngle = sizeCwFromAngle / size;
+  float depth = fractionCwFromAngle * sector.startDepth + (1 - fractionCwFromAngle) * sector.endDepth;
+  assert(depth > 0);
+  return depth;
+}
+
+void TrimSectorStart(Sector &sector, float startAngle) {
+  assert(startAngle >= sector.startAngle);
+  assert(startAngle <= sector.endAngle);
+  sector.startDepth = SectorDepthAtAngle(sector, startAngle);
+  sector.startAngle = startAngle;
+}
+
+void TrimSectorEnd(Sector &sector, float endAngle) {
+  assert(endAngle >= sector.startAngle);
+  assert(endAngle <= sector.endAngle);
+  sector.endDepth = SectorDepthAtAngle(sector, endAngle);
+  sector.endAngle = endAngle;
+}
+
+Sector Subsector(const Sector &sector, float startAngle, float endAngle) {
+  assert(startAngle <= endAngle);
+
+  Sector subsector = sector;
+  TrimSectorStart(subsector, startAngle);
+  TrimSectorEnd(subsector, endAngle);
+  return subsector;
+}
+
+// Returns if sector1 is shallower than sector2.
+bool IsSectorShallower(const Sector &sector1, const Sector &sector2) {
+  bool hasSameStartPoint = sector1.startAngle == sector2.startAngle && sector1.startDepth == sector2.startDepth; 
+  float comparisonAngle = hasSameStartPoint ? std::min(sector1.endAngle, sector2.endAngle) :
+    std::max(sector1.startAngle, sector2.startAngle);
+
+  return SectorDepthAtAngle(sector1, comparisonAngle) <= SectorDepthAtAngle(sector2, comparisonAngle);
+}
+
+void SectorMap::CreateInputSectors(const std::vector<LineSegment> &segments) {
+  inputSectors.clear();
 
   for (auto segment : segments) {
     Vector2f v1 = segment.p1 - center;
@@ -31,91 +96,141 @@ void SectorMap::CreateSectors(const std::vector<LineSegment> &segments) {
     }
 
     if (sector.startAngle <= sector.endAngle) {
-      rawSectors.push_back(sector);
+      inputSectors.push_back(sector);
     } else {
       // In this case the sector crosses the angle 0. This splits it into
-      // the sectors before and after 0.
+      // the sectors CW and CCW from 0.
       Sector sector1;
       sector1.startAngle = sector.startAngle;
-      sector1.endAngle = 2*M_PI;
+      sector1.endAngle = 2 * M_PI;
       sector1.startDepth = sector.startDepth;
-      //sector1.endDepth = depth at zero
-      rawSectors.push_back(sector1);
+      sector1.endDepth = SectorDepthAtAngle(sector, 0);
+      inputSectors.push_back(sector1);
 
       Sector sector2;
       sector2.startAngle = 0;
       sector2.endAngle = sector.endAngle;
       sector2.startDepth = sector1.endDepth;
       sector2.endDepth = sector.endDepth;
-      rawSectors.push_back(sector2);
+      inputSectors.push_back(sector2);
     }
   }
 
 }
 
 struct {
-  bool operator()(SectorMap::Sector a, SectorMap::Sector b) {
-    return a.startAngle < b.startAngle;
+  bool operator()(Sector a, Sector b) {
+    return a.startAngle > b.startAngle;
   }
-} startAngleLess;
+} startAngleGreater;
 
-// Returns the next sector which is not fully occluded by the input sector.
-std::vector<SectorMap::Sector>::iterator SectorMap::NextVisibleSector(const std::vector<SectorMap::Sector>::iterator &sector) {
-  auto sector2 = sector + 1;
-  while (sector2 != rawSectors.end() && sector2->startDepth > sector->startDepth
-      && sector2->endAngle <= sector->endAngle)
-    ++sector2;
+const Sector &SectorMap::Next(iterator &inputSector, iterator &sectorRemainder) const {
+  if (sectorRemainder == sectorRemainders.crend()) {
+    if (inputSector == inputSectors.crend()) {
+      return Nil;
+    }
 
-  return sector2;
+    return *inputSector++;
+  }   
+
+  if (inputSector == inputSectors.crend())
+    return *sectorRemainder++;
+
+  if (inputSector->startAngle < sectorRemainder->startAngle) {
+    return *inputSector++;
+  } else {
+    return *sectorRemainder++;
+  }
+}
+
+// Returns first sector which occludes any part of the input sector.
+const Sector &SectorMap::FirstOccludingSector(const Sector &sector) const {
+  auto sector1 = inputSectors.crbegin();
+  auto sector2 = sectorRemainders.crbegin();
+
+  for (const Sector *nextSector = &Next(sector1, sector2); !nextSector->IsNil()
+    && nextSector->startAngle < sector.endAngle; nextSector = &Next(sector1, sector2)) {
+
+    if (nextSector->endAngle > sector.startAngle && IsSectorShallower(*nextSector, sector))
+      return *nextSector;
+  }
+
+  return Nil;
+}
+
+Sector PopBack(std::vector<Sector> &vector) {
+  auto sector = vector.back();
+  vector.pop_back();
+  return sector;
+}
+
+// Returns the first sector which ends after the end of the input sector.
+Sector SectorMap::PopNextSector() {
+  if (inputSectors.empty()) {
+    if (sectorRemainders.empty()) {
+      return Nil;
+    } else {
+      return PopBack(sectorRemainders);
+    }
+  }
+
+  if (sectorRemainders.empty())
+    return PopBack(inputSectors);
+
+  if (inputSectors.back().startAngle < sectorRemainders.back().startAngle) {
+    return PopBack(inputSectors);
+  } else {
+    return PopBack(sectorRemainders);
+  }
 }
 
 // Assumes that there is no ray from the center which does not intersect a segment.
-// Currently only uses start depth.
-// Currently does not handle segments which cross the angle 0.
+// Assumes no segments intersect.
 void SectorMap::Create(const Vector2f &center, const std::vector<LineSegment> &segments) {  
   this->center = center;
   sectors.clear();
+  sectorRemainders.clear();
 
-  CreateSectors(segments);
-  std::sort(rawSectors.begin(), rawSectors.end(), startAngleLess);
+  CreateInputSectors(segments);
 
-  auto sector1 = rawSectors.begin();
-  while (sector1 != rawSectors.end()) {
-    auto sector2 = NextVisibleSector(sector1);
+  // Sort in reverse order so we can pop elements off the back;
+  std::sort(inputSectors.begin(), inputSectors.end(), startAngleGreater);
 
-    if (sector2 == rawSectors.end()) {
-      sectors.push_back(*sector1);
-      break;
-    }
+  auto sector1 = PopNextSector();
+  while (true) {
+    auto sector2 = FirstOccludingSector(sector1);
+    if (!sector2.IsNil()) {
+      if (sector2.startAngle < sector1.startAngle)
+        TrimSectorStart(sector2, sector1.startAngle);
 
-    bool isSector1Closer = sector1->startDepth <= sector2->startDepth;
-
-    Sector sector;
-    sector.startAngle = sector1->startAngle;
-    sector.startDepth = sector1->startDepth;
-
-    if (isSector1Closer) {
-      sector.endAngle = sector1->endAngle;
-      sector.endDepth = sector1->endDepth;
-    } else {
-      sector.endAngle = sector2->startAngle;
-      sector.endDepth = sector2->startDepth;
-
-      if (sector1->endAngle > sector2->endAngle) {
-        // In this case part of sector1 may be visible past sector2 and needs to be processed again.
-        // This moves sector2 one slot left, and moves the remainder of sector1 to the original slot of sector2.
-        sector1->startAngle = sector2->endAngle;
-        if (sector1 == sector2 - 1) {
-          std::iter_swap(sector1, sector2);
-        } else {
-          *(sector2 - 1) = *sector2;
-          *sector2 = *sector1;
-        }
-        --sector2; // Have to update the iterator to point to the right place.
+      if (sector1.endAngle > sector2.endAngle) {
+        Sector sector1Remainder = Subsector(sector1, sector2.endAngle, sector1.endAngle);
+        auto insertionLocation = std::lower_bound(sectorRemainders.begin(), sectorRemainders.end(), sector1Remainder, startAngleGreater);
+        sectorRemainders.insert(insertionLocation, sector1Remainder);
       }
+      TrimSectorEnd(sector1, sector2.startAngle);
     }
+    if (sector1.endAngle > sector1.startAngle)
+      sectors.push_back(sector1);
 
+    // Get the next sector which is not fully occluded by sector1.
+     do {    
+      sector2 = PopNextSector();
+      if (sector2.IsNil())
+        return;
+    } while (sector2.endAngle <= sector1.endAngle);
+
+    TrimSectorStart(sector2, sector1.endAngle);
     sector1 = sector2;
-    sectors.push_back(sector);
   }
+}
+
+VisibilityPolygon SectorMap::AsPolygon() const {
+  std::vector<Vector2f> vertices(2 * sectors.size());
+  for (auto sector : sectors) {
+    vertices.push_back(sector.startDepth * Util::MakeUnitVector(sector.startAngle) + center);
+    vertices.push_back(sector.endDepth * Util::MakeUnitVector(sector.endAngle) + center);
+  }
+
+  return VisibilityPolygon(center, vertices);
 }

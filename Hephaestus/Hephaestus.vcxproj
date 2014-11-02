@@ -256,7 +256,7 @@
     <ClInclude Include="Util.h" />
     <ClInclude Include="Vector2.h" />
     <ClInclude Include="VectorSerialization.h" />
-    <ClInclude Include="VisibilityFan.h" />
+    <ClInclude Include="VisibilityPolygon.h" />
     <ClInclude Include="Waypoint.h" />
   </ItemGroup>
   <ItemGroup>
