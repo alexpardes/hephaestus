@@ -145,9 +145,7 @@ void GameState::ExecuteTurn() {
 }
 
 void GameState::UpdateSightMap(GameUnit& unit) {
-  Timer::Start1();
   unit.SightMap().Create(unit.Position(), GetWalls());
-  Timer::Stop1();
 }
 
 
@@ -172,8 +170,8 @@ void GameState::AddUnit(const std::string &type,
   UnitAbility *autoAttack = new AutoAttackAbility(*unit, *this);
   unit->AddAbility(autoAttack);
 
-  unit->SetIdleAbility(nullptr);
-  //unit->SetIdleAbility(autoAttack);
+  //unit->SetIdleAbility(nullptr);
+  unit->SetIdleAbility(autoAttack);
 
 	units.push_back(unit);
 	AddToUnitGrid(unit);
@@ -473,7 +471,7 @@ CollisionTestResult GameState::TestCollision(
 
 const float GameScene::kUnitGridResolution = 25.f;
 
-GameScene::GameScene(GameState &game_state) {
+GameScene::GameScene(const GameState &game_state) {
   mapSize = game_state.map_size();
 	unit_grid_width_ = int(game_state.map_size().x * kTileSize /
 			kUnitGridResolution);
@@ -495,37 +493,9 @@ GameScene::GameScene(GameState &game_state) {
 	}
 }
 
-void GameScene::ComputeVisibility(PlayerNumber playerID) {
-  //for (UnitModel* unit : units()) {
-  //  if (unit->Owner() == playerID) {
-  //    unitViews.push_back(unit->SightMap());
-  //  }
-  //}
-
-  //ComputeUnitVisibility(playerID, unitViews);
-}
-
-void GameScene::ComputeUnitVisibility(PlayerNumber player,
-                                      std::vector<const SectorMap*> sightMaps) {
-  //for (UnitModel* unit : units()) {
-  //  if (unit->Owner() == player) {
-  //    unit->SetVisible(true);
-  //  } else {
-  //    unit->SetVisible(false);
-  //    for (const SectorMap* sightMap : sightMaps) {
-  //      if (sightMap->IntersectsCircle(unit->position(), unit->Radius())) {
-  //        unit->SetVisible(true);
-  //        break;
-  //      }
-  //    }
-  //  }
-  //}
-}
-
-
 // TODO: remove duplication.
-GameScene::GameScene(GameScene &scene1,
-                     GameScene &scene2,
+GameScene::GameScene(const GameScene &scene1,
+                     const GameScene &scene2,
                      float weight) {
   assert(weight >= 0.f);
   assert(weight <= 1.f);
@@ -559,8 +529,6 @@ GameScene::GameScene(GameScene &scene1,
 			units_.push_back(new UnitModel(unit1));
 			++unit_iterator1;
 		}
-
-    isVisible = scene2.isVisible;
 	}
 	std::list<ProjectileModel *>::const_iterator projectile_iterator1,
 			projectile_iterator2;

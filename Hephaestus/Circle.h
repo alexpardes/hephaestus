@@ -8,8 +8,8 @@ class Circle {
     Circle(const Vector2f& center, float radius) :
         center(center), radius(radius) { }
 
-    std::vector<Vector2f> WidestPoints(const Vector2f& point) const {
-      std::vector<Vector2f> result;
+    std::pair<Vector2f, Vector2f> WidestPoints(const Vector2f &point) const {
+      std::pair<Vector2f, Vector2f> result;
       Vector2f direction = center - point;
       Vector2f perpendicular = Util::Normalized(Util::Perpendicular(direction));
       Vector2f point1 = center + radius * perpendicular;
@@ -19,11 +19,11 @@ class Circle {
       float angle2 = Util::FindAngle(point2 - point);
 
       if (Util::AngleCCW(angle1, angle2) <= M_PI) {
-        result.push_back(point1);
-        result.push_back(point2);
+        result.first = point1;
+        result.second = point2;
       } else {
-        result.push_back(point2);
-        result.push_back(point1);
+        result.first = point2;
+        result.second = point1;
       }
 
       return result;

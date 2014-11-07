@@ -19,6 +19,10 @@ void AttackAction::Execute(GameUnit &unit) {
   attackAbility->Execute();
 }
 
+bool AttackAction::IsFinished() const {
+  return attackAbility->Target() == nullptr;
+}
+
 std::string AttackAction::Name() {
   return "Attack";
 }

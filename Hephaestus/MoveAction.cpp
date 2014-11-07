@@ -16,3 +16,7 @@ void MoveAction::Execute(GameUnit &unit) {
 std::string MoveAction::Name() {
   return "Move";
 }
+
+bool MoveAction::IsFinished() const {
+  return ability->DestinationReached();
+}

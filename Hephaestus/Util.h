@@ -14,7 +14,7 @@ class Util {
     static int Sign(int x);
 
     // Returns the angle between origin and origin + 2*pi.
-    static float Angle(float angle, float origin);
+    static float Angle(float angle, float origin = 0);
 		static float Degrees(float radians);
 		static float Radians(float degrees);
 		static float Distance(const Vector2f &point1,

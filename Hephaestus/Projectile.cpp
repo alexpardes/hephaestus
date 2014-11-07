@@ -13,6 +13,7 @@ Projectile::Projectile(GameState& gameState,
                        float speed) : gameState(gameState) {
   this->owner = owner;
   name = owner->Attributes().name();
+  sectorMap = owner->SightMap();
   this->damage = damage;
   this->speed = speed;  
   this->position = position;
@@ -32,7 +33,7 @@ void Projectile::PerformAction() {
     isAlive = false;
 
     if (collision.unitHit != nullptr) {
-      float effectiveDamage = CalculateDamage(collision.unitHit);
+      float effectiveDamage = CalculateDamage(*collision.unitHit);
       collision.unitHit->ModifyHealth(-effectiveDamage);
     }
   }
@@ -42,38 +43,12 @@ void Projectile::PerformAction() {
 
 // Damage is calculated by estimating the expected damage of a shot fired
 // at random in a sector centered about the actual trajectory.
-float Projectile::CalculateDamage(std::shared_ptr<GameUnit> unitHit) const {
-  float distance = Util::Distance(startPosition,
-      unitHit->Position()) + unitHit->Attributes().CollisionRadius();
+float Projectile::CalculateDamage(const GameUnit &unitHit) const {
+  float visibleSize = sectorMap.VisibleSize(unitHit.SegmentFromUnit(startPosition));
 
-  // This represents half the angle of the sector.
-  float dispersion = Util::Radians(5);
-
-  Vector2f leftVector = Util::MakeUnitVector(Rotation() + dispersion);
-  Vector2f leftPoint = startPosition + distance * leftVector;
-  Vector2f rightVector = Util::MakeUnitVector(Rotation() - dispersion);
-  Vector2f rightPoint = startPosition + distance * rightVector;
-
-  int nRayCasts = 20;
-  int nHits = 0;
-  for (int i = 0; i < nRayCasts; ++i) {
-    float a = float(i) / nRayCasts;
-    float b = 1 - a;
-    Vector2f interpolatedPoint = a * leftPoint + b * rightPoint;
-    CollisionTestResult collision =
-      gameState.TestCollision(startPosition, interpolatedPoint, 0, owner);
-    if (collision.unitHit == unitHit) {
-      ++nHits;
-    }
-  }
-
-  // We know that the projectile hit the target, but it's possible none of
-  // these rays did. Accuracy could be improved somewhat by sweeping over the
-  // portion of the unit that is in the dispersion sector, rather than the
-  // whole sector.
-  // TODO: ignore occlusion by units.
-  nHits = std::max(nHits, 1);
-  return damage * float(nHits) / nRayCasts;
+  // This represents the angular size of the cone of fire.
+  float dispersion = Util::Radians(10);
+  return damage * std::min(1.f, visibleSize / dispersion);
 }
 
 

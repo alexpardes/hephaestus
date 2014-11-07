@@ -138,7 +138,6 @@ void Hephaestus::Update() {
     if (game_scene1) delete game_scene1;
     game_scene1 = game_scene2;
     game_scene2 = updated_scene;
-    updated_scene->ComputeVisibility(game_interface->Player());
   }
   if (game_scene1 && game_scene2) {
     float weight = game_manager->GetFrameTime();

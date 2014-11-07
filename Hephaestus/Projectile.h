@@ -19,7 +19,7 @@ class Projectile : public GameObject {
     bool IsAlive() const { return isAlive; }
 
 	private:
-    float CalculateDamage(std::shared_ptr<GameUnit> unitHit) const;
+    float CalculateDamage(const GameUnit &unitHit) const;
 		std::shared_ptr<GameUnit> owner;
     Vector2f startPosition;
 		float damage, speed;
@@ -27,6 +27,7 @@ class Projectile : public GameObject {
     bool isAlive;
     std::string name;
     GameState& gameState;
+    SectorMap sectorMap;
 };
 
 class ProjectileModel {

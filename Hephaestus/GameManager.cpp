@@ -40,12 +40,10 @@ void GameManager::RunGame() {
     }
 
 		ApplyCommands();
-
+    
     Timer::Start();
     gameState->ExecuteTurn();
     Timer::Stop();
-
-    currentStepsPerSecond = Timer::Average1();
 
     float elapsed_time = clock_.getElapsedTime().asSeconds() * 1000;
     while (elapsed_time < timestep_) {

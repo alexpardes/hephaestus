@@ -22,6 +22,7 @@ class GameUnit : public GameObject {
 				const Vector2f &position, float rotation);
 
 		Vector2f Position() const {return position;}
+    LineSegment SegmentFromUnit(const Vector2f &viewPoint) const;
 
 		static std::vector<Vector2i> pathing_offsets(int x, int y) {
 			return pathing_offsets_[3*x + y + 4];

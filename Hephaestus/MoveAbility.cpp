@@ -225,3 +225,7 @@ void MoveAbility::ScaleForce(Vector2f &force, float distance) const {
     Util::Resize(force, 1000*acceleration);
   }
 }
+
+bool MoveAbility::DestinationReached() const {
+  return Util::Distance(owner->Position(), *destination) < 5;
+}

@@ -19,9 +19,9 @@ void AutoAttackAbility::Execute() {
       target = nullptr;
     }
   }
-  if (!target) {
+  else {
 
-    // Chooses the target whose bearing is closest to our current direction.
+    // Chooses the target whose bearing is closest to the unit's current direction.
     float smallestAngle = FLT_MAX;
     std::shared_ptr<GameUnit> closestUnit;
     for (auto unit : gameState.Units()) {

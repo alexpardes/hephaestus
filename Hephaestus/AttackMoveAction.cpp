@@ -11,3 +11,7 @@ void AttackMoveAction::Start(GameUnit &unit) {
 void AttackMoveAction::Execute(GameUnit &unit) {
   ability->Execute();
 }
+
+bool AttackMoveAction::IsFinished() const {
+  return true;
+}

@@ -125,8 +125,8 @@ class GameState {
 
 class GameScene {
 	public:
-		GameScene(GameState &game_state);
-		GameScene(GameScene &scene1, GameScene &scene2,
+		GameScene(const GameState &game_state);
+		GameScene(const GameScene &scene1, const GameScene &scene2,
 				float weight);
 		~GameScene();
 		const std::list<UnitModel *> &units() const {return units_;}
@@ -139,8 +139,6 @@ class GameScene {
 		std::vector<const UnitModel *> GetUnitsInRectangle(
 				const Vector2f &corner1, const Vector2f &corner2) const;
 		UnitModel *GetUnit(UnitId id) const;
-    bool IsVisible(int x, int y) const { return isVisible[x][y]; }
-    void ComputeVisibility(PlayerNumber playerID);
 
 		const static float kUnitGridResolution;
 
@@ -161,7 +159,6 @@ class GameScene {
 		int unit_grid_width_, unit_grid_height_;
 		float max_unit_radius_;
 		std::unordered_map<UnitId, UnitModel *> unit_table_;
-    std::vector<std::vector<bool>> isVisible;
     std::vector<const SectorMap*> unitViews;
     Vector2i mapSize;
 };

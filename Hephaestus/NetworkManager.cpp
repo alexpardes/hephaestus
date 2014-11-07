@@ -6,12 +6,12 @@
 
 using boost::asio::ip::tcp;
 
-NetworkManager::NetworkManager() : work(io_service_) {
+NetworkManager::NetworkManager() : work(ioService) {
   acceptor = nullptr;
   thread = new std::thread([this]() {
-    io_service_.run();
+    ioService.run();
   });
-  socket = new tcp::socket(io_service_);
+  socket = new tcp::socket(ioService);
 }
 
 NetworkManager::~NetworkManager() {
@@ -27,7 +27,7 @@ NetworkManager::CreateHandler(ConnectionHandler handler) {
   return [this, handler] (const boost::system::error_code& e) {
     NetworkConnection* result = nullptr;
     if (!e) {
-      result = new NetworkConnection(socket /*&tcp_stream_*/);
+      result = new NetworkConnection(socket);
     }
     try {handler(result); }
     catch (boost::system::system_error& e) { std::cout << e.what(); }
@@ -35,9 +35,8 @@ NetworkManager::CreateHandler(ConnectionHandler handler) {
 }
 
 void NetworkManager::AcceptClient(int port, ConnectionHandler handler) {
-	acceptor = new tcp::acceptor(io_service_, tcp::endpoint(tcp::v4(), port));
-  //socket = new tcp::socket(io_service_);
-	acceptor->async_accept(*socket /**tcp_stream_.rdbuf()*/, CreateHandler(handler));
+	acceptor = new tcp::acceptor(ioService, tcp::endpoint(tcp::v4(), port));
+	acceptor->async_accept(*socket, CreateHandler(handler));
 }
 
 NetworkManager::AsioJoinHandler
@@ -56,33 +55,14 @@ void NetworkManager::Connect(const std::string &hostname,
                              const std::string &port,
                              ConnectionHandler handler) {
 
-  tcp::resolver resolver(io_service_);
+  tcp::resolver resolver(ioService);
   tcp::resolver::query query(hostname, port);
   tcp::resolver::iterator endpoints = resolver.resolve(query);
-
-  //try {
-  //socket = new tcp::socket(io_service_);
   boost::asio::async_connect(*socket, endpoints, CreateJoinHandler(handler));
-  //} catch (boost::system::system_error& e) {
-  //  std::ofstream log("errorlog.txt");
-  //  log << e.what() << std::endl;
-  //  log << boost::diagnostic_information(e);
-  //}
-
-  //socket->async_connect(endpoint, [this, handler, socket](const boost::system::error_code& e) {
-  //    tcp_stream_.rdbuf()->assign(tcp::v4(), socket->native());
-  //    handler(new NetworkConnection(tcp_stream_));
-  //});
-  //boost::asio::async_connect(*tcp_stream_.rdbuf(), endpoints, Handler);
 }
 
 void NetworkManager::Reset() {
   socket->close();
-}
-
-void NetworkManager::Disconnect() {
-	boost::system::error_code error;
-	tcp_stream_.close();
 }
 
 //void NetworkManager::SendCommands(const CommandTurn *commands) {	

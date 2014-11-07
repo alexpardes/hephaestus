@@ -13,17 +13,16 @@ class AttackAbility : public UnitAbility {
     virtual void Execute();
     virtual std::string Name() { return "Attack"; }
     void SetTarget(UnitId target) { this->target = target; }
+    const std::shared_ptr<GameUnit> Target() const;
 
     void EnableMovement(bool enableMovement) {
       movementEnabled = enableMovement;
     }
 
-    bool CanAttack(UnitId target,
-        std::vector<Vector2f> *unobstructedPoints = nullptr);
+    bool CanAttack(UnitId target) const;
 
   private:
-    void Attack(std::shared_ptr<GameUnit> unit,
-      std::vector<Vector2f> unobstructdPoints);
+    void Attack(const GameUnit &unit);
 
     void ChangeAttackPoint();
     Vector2f AttackPoint() const;

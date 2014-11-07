@@ -15,6 +15,7 @@ class MoveAbility : public UnitAbility {
     virtual void Execute();
     virtual std::string Name() { return "Move"; }
     void SetDestination(const Vector2f &destination);
+    bool DestinationReached() const;
 
   private:
     void ApplyForce(Vector2f &force, bool useMaxAcceleration);

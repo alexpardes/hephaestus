@@ -107,10 +107,9 @@ bool IsApprox(const Vector2f &a, CONST Vector2f &b, double tolerance) {
 
 TEST_CASE("Rectangle Widest Points") {
   Rect rect(Vector2f(1, -1), Vector2f(2, 1));
-  std::vector<Vector2f> widestPoints = rect.WidestPoints(Vector2f(0, 0));
-  REQUIRE(widestPoints.size() == 2);
-  REQUIRE_EQUAL(widestPoints[1], Vector2f(1, 1), 0.01);
-  REQUIRE_EQUAL(widestPoints[0], Vector2f(1, -1), 0.01);
+  auto widestPoints = rect.WidestPoints(Vector2f(0, 0));
+  REQUIRE_EQUAL(widestPoints.first, Vector2f(1, -1), 0.01);
+  REQUIRE_EQUAL(widestPoints.second, Vector2f(1, 1), 0.01);
 }
 
 TEST_CASE("RGB-HSL Conversion - Red") {
@@ -469,9 +468,9 @@ TEST_CASE("Angle Interpolation") {
   UnitModel state1(unit);
   unit.SetRotation(7*M_PI / 4);
   UnitModel state2(unit);
-  UnitModel interp(state1, state2, 0.1);
+  UnitModel interp(state1, state2, 0.1f);
   REQUIRE_EQUAL(interp.rotation(), Util::Radians(36), 0.01);
-  interp = UnitModel(state1, state2, 0.8);
+  interp = UnitModel(state1, state2, 0.8f);
   REQUIRE_EQUAL(interp.rotation(), Util::Radians(333), 0.01);
 }
 

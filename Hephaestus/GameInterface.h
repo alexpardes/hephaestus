@@ -10,17 +10,7 @@
 
 class GameInterface {
 	public:
-		GameInterface(sf::RenderWindow& window) : window(window) {
-      keyboardHScroll = 0;
-      keyboardVScroll = 0;
-			mouseHScroll = 0;
-			mouseVScroll = 0;
-			is_selecting_ = false;
-			cursor_action_ = kSelect;
-			game_scene_ = NULL;
-      mainView.setCenter(Vector2f(960, 540));
-      mainView.setSize(Vector2f(1920, 1080));
-		}
+		GameInterface(sf::RenderWindow& window);
 
     void Resize();
 
@@ -74,6 +64,8 @@ class GameInterface {
 		void DeselectDeadUnits();
 
 	private:
+    static bool hasRegisteredCommands;
+    static void RegisterCommands();
     void ConstrainView();
     void MouseScroll();
 		const UnitModel *GetUnit(const Vector2f &location) const;

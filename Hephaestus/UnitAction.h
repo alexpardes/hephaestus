@@ -12,6 +12,7 @@ class UnitAction {
 		virtual ~UnitAction() { };
     virtual void Start(GameUnit &unit) = 0;
 		virtual void Execute(GameUnit &unit) = 0;
+    virtual bool IsFinished() const = 0;
 };
 
 #endif

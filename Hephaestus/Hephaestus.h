@@ -43,9 +43,9 @@ class Hephaestus {
     Graphics *graphics;
     ResourceManager *resource_manager;
     GameScene *game_scene1, *game_scene2;
-    CommandBuffer* commandBuffer;
-    NetworkManager* networkManager;
-    NetworkConnection* opponentConnection;
-    HephaestusObserver* observer;
+    CommandBuffer *commandBuffer;
+    NetworkManager *networkManager;
+    NetworkConnection *opponentConnection;
+    HephaestusObserver *observer;
     bool isRunning;
 };

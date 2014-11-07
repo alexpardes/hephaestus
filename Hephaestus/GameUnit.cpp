@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "Circle.h"
 #include "GameUnit.h"
 #include "UnitAction.h"
 #include "UnitAbility.h"
@@ -42,10 +43,22 @@ void GameUnit::PerformAction() {
   if (current_health_ <= 0) {
     is_alive_ = false;
   } else if (action) {
+    if (action->IsFinished()) {
+      action = nullptr;
+    } else {
     action->Execute(*this);
-  } else if (idleAbility) {
+    }
+  }
+  
+  if (!action && idleAbility) {
     idleAbility->Execute();
   }
+}
+
+LineSegment GameUnit::SegmentFromUnit(const Vector2f &viewPoint) const {
+  Circle circle(Position(), Attributes().CollisionRadius());
+  auto widestPoints = circle.WidestPoints(viewPoint);
+  return LineSegment(widestPoints.first, widestPoints.second);
 }
 
 UnitModel::UnitModel(const GameUnit &unit) {
@@ -58,7 +71,7 @@ UnitModel::UnitModel(const GameUnit &unit) {
 	owner_ = unit.Owner();
 	radius_ = unit.Attributes().selection_radius();
   
-  visibility = unit.SightMap().AsPolygon();
+  visibility = unit.SightMap().ToPolygon();
   isVisible = true;
 }
 

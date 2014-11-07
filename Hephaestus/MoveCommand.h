@@ -7,14 +7,12 @@ class MoveCommand : public UnitCommand {
 		MoveCommand() { }
 		MoveCommand(const Vector2f &location) : location(location) { }
     virtual UnitAction *MakeUnitAction(GameState &gameState) const;
+    virtual std::vector<unsigned char> Serialize() const;
+    virtual CommandType Type() const { return type; }
+    static std::shared_ptr<Command> Deserialize(ByteIterator start, ByteIterator end);
+    static void Register();
 
 	private:
-		friend class boost::serialization::access;
+    static CommandType type;
 		Vector2f location;
-
-		template<class Archive>
-		void serialize(Archive & ar, const unsigned int version) {
-			ar & boost::serialization::base_object<UnitCommand>(*this);
-			ar & location;
-		}
 };

@@ -4,18 +4,16 @@
 
 class SelectCommand : public Command {
 	public:
-		SelectCommand() { } // Default constructor for serialization. Probably can be made private. 12/25/2013
-		SelectCommand(const std::vector<UnitId> &targets) : targets_(targets) { }
-		~SelectCommand() { }
-		virtual void Execute(Player &player) const;
+		SelectCommand(const std::vector<UnitId> &targets) : targets(targets) { }
+    SelectCommand(const SelectCommand &other);
+    ~SelectCommand() { }
+    virtual void Execute(Player &player) const;
+    virtual std::vector<unsigned char> Serialize() const;
+    virtual CommandType Type() const { return type; }
+    static std::shared_ptr<Command> Deserialize(ByteIterator start, ByteIterator end);
+    static void Register();
 
 	private:
-		friend class boost::serialization::access;
-		std::vector<UnitId> targets_;
-
-		template<class Archive>
-		void serialize(Archive & ar, const unsigned int version) {
-			ar & boost::serialization::base_object<Command>(*this);
-			ar & targets_;
-		}
+    static CommandType type;
+		std::vector<UnitId> targets;
 };

@@ -13,6 +13,7 @@ class MoveAction : public UnitAction {
 
     virtual void Start(GameUnit &unit);
     virtual void Execute(GameUnit &unit);
+    virtual bool IsFinished() const;
     virtual std::string Name();
 
 	private:

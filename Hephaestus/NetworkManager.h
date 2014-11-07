@@ -30,9 +30,8 @@ class NetworkManager {
         boost::asio::ip::tcp::resolver::iterator iterator)> AsioJoinHandler;
     AsioHandler CreateHandler(ConnectionHandler handler);
     AsioJoinHandler CreateJoinHandler(ConnectionHandler handler);
-		boost::asio::io_service io_service_;
+		boost::asio::io_service ioService;
     boost::asio::io_service::work work;
-		boost::asio::ip::tcp::iostream tcp_stream_;
     std::thread* thread;    
     boost::asio::ip::tcp::acceptor* acceptor;
     boost::asio::ip::tcp::socket* socket;

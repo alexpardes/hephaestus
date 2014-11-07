@@ -3,6 +3,31 @@
 #include "GameInterface.h"
 
 const float GameInterface::kScrollSpeed = 500.f;
+bool GameInterface::hasRegisteredCommands = false;
+
+void GameInterface::RegisterCommands() {
+  if (!hasRegisteredCommands) {
+    SelectCommand::Register();
+    MoveCommand::Register();
+    AttackCommand::Register();
+    AttackMoveCommand::Register();
+    hasRegisteredCommands = true;
+  }
+}
+
+GameInterface::GameInterface(sf::RenderWindow& window) : window(window) {
+  keyboardHScroll = 0;
+  keyboardVScroll = 0;
+  mouseHScroll = 0;
+  mouseVScroll = 0;
+  is_selecting_ = false;
+  cursor_action_ = kSelect;
+  game_scene_ = NULL;
+  mainView.setCenter(Vector2f(960, 540));
+  mainView.setSize(Vector2f(1920, 1080));
+
+  RegisterCommands();
+}
 
 std::shared_ptr<Command> GameInterface::ProcessEvent(const sf::Event &event,
                                                      const sf::RenderWindow &window) {

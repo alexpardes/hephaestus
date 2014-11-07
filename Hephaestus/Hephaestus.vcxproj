@@ -170,6 +170,7 @@
     <ClCompile Include="AttackMoveCommand.cpp" />
     <ClCompile Include="AutoAttackAbility.cpp" />
     <ClCompile Include="Coloring.cpp" />
+    <ClCompile Include="Command.cpp" />
     <ClCompile Include="CommandBuffer.cpp" />
     <ClCompile Include="CommandSink.cpp" />
     <ClCompile Include="CommandSource.cpp" />
@@ -243,6 +244,7 @@
     <ClInclude Include="ResourceManager.h" />
     <ClInclude Include="SectorMap.h" />
     <ClInclude Include="SelectCommand.h" />
+    <ClInclude Include="Serialization.h" />
     <ClInclude Include="ShadowCaster.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="TileMap.h" />
