@@ -64,16 +64,3 @@ void NetworkManager::Connect(const std::string &hostname,
 void NetworkManager::Reset() {
   socket->close();
 }
-
-//void NetworkManager::SendCommands(const CommandTurn *commands) {	
-//	boost::archive::text_oarchive serializer(tcp_stream_);
-//	serializer << const_cast<const CommandTurn * const>(commands);
-//	tcp_stream_.flush();
-//}
-//
-//const CommandTurn *NetworkManager::ReceiveCommands() {
-//	boost::archive::text_iarchive deserializer(tcp_stream_);
-//	CommandTurn *commands;
-//	deserializer >> commands;
-//	return commands;
-//}

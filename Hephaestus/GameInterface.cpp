@@ -11,6 +11,7 @@ void GameInterface::RegisterCommands() {
     MoveCommand::Register();
     AttackCommand::Register();
     AttackMoveCommand::Register();
+    StopCommand::Register();
     hasRegisteredCommands = true;
   }
 }
@@ -107,6 +108,9 @@ std::shared_ptr<Command> GameInterface::ProcessEvent(const sf::Event &event,
 				case sf::Keyboard::Key::A:
 					cursor_action_ = kAttack;
 					break;
+        case sf::Keyboard::Key::S:
+          command = std::make_shared<StopCommand>();
+          break;
 				case sf::Keyboard::Key::Left:
 					keyboardHScroll = -1;
 					break;

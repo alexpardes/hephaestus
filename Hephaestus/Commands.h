@@ -4,3 +4,4 @@
 #include "AttackMoveCommand.h"
 #include "MoveCommand.h"
 #include "SelectCommand.h"
+#include "StopCommand.h"

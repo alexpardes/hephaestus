@@ -21,10 +21,9 @@ GameUnit::GameUnit(UnitId id,
 }
 
 void GameUnit::SetAction(UnitAction *action) {
-  if (action) {
-    this->action = action;
+  this->action = action;
+  if (action)
     action->Start(*this);
-  }
 }
 
 void GameUnit::AddAbility(UnitAbility *ability) {
