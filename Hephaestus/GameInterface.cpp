@@ -24,8 +24,9 @@ GameInterface::GameInterface(sf::RenderWindow& window) : window(window) {
   is_selecting_ = false;
   cursor_action_ = kSelect;
   game_scene_ = NULL;
-  mainView.setCenter(Vector2f(960, 540));
-  mainView.setSize(Vector2f(1920, 1080));
+  mainView = window.getDefaultView();
+  //mainView.setCenter(Vector2f(960, 540));
+  //mainView.setSize(Vector2f(1920, 1080));
 
   RegisterCommands();
 }
@@ -151,8 +152,7 @@ std::shared_ptr<Command> GameInterface::ProcessEvent(const sf::Event &event,
 }
 
 void GameInterface::Resize() {
-  int screenHeight = window.getDefaultView().getSize().y;
-
+  float screenHeight = window.getDefaultView().getSize().y;
   float graphicSize = 0.32 * screenHeight;
   interface_graphic_ = sf::RectangleShape(Vector2f(graphicSize,
     graphicSize));
@@ -209,10 +209,10 @@ void GameInterface::MouseScroll() {
 }
 
 void GameInterface::ConstrainView() {
-  float minX = window.getSize().x / 2;
-  float minY = window.getSize().y /2;
-  float maxX = mapSize.x - window.getSize().x / 2;
-  float maxY = mapSize.y - window.getSize().y / 2;
+  float minX = mainView.getSize().x / 2;
+  float minY = mainView.getSize().y /2;
+  float maxX = mapSize.x - mainView.getSize().x / 2;
+  float maxY = mapSize.y - mainView.getSize().y / 2;
 
   float x = mainView.getCenter().x;
   float y = mainView.getCenter().y;
