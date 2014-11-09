@@ -16,6 +16,7 @@ MoveAbility::MoveAbility(std::shared_ptr<GameUnit> owner,
   this->pathfinder = pathfinder;
   this->gameState = gameState;
   this->maxSpeed = speed;
+  destination = nullptr;
   acceleration = 0.75f * speed;
 }
 
@@ -238,5 +239,5 @@ void MoveAbility::ScaleForce(Vector2f &force, float distance) const {
 }
 
 bool MoveAbility::DestinationReached() const {
-  return Util::Distance(owner->Position(), *destination) < 5;
+  return !destination || Util::Distance(owner->Position(), *destination) < 5;
 }
