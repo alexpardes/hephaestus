@@ -28,6 +28,8 @@ class MoveAbility : public UnitAbility {
     Vector2f AvoidUnits() const;
     Vector2f AvoidWalls() const;
     Vector2f AvoidForce(const Vector2f &point, int degree = 2) const;
+    void MoveDynamic(const Vector2f *currentGoal);
+    void MoveStatic(const Vector2f *currentGoal);
     void Stop();
     Vector2f HandleCollisions();
     float maxSpeed;

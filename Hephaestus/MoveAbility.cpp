@@ -50,13 +50,24 @@ void MoveAbility::Execute() {
   }
 
   if (currentGoal) {
+    Vector2f displacement = *currentGoal - owner->Position();
+    Util::Limit(displacement, maxSpeed);
+    owner->SetRotation(Util::FindAngle(displacement));
+    gameState->MoveUnit(owner->Id(), owner->Position() + displacement);
+  }
+
+  //MoveDynamic(currentGoal);
+}
+
+void MoveAbility::MoveDynamic(const Vector2f *currentGoal) {
+  if (currentGoal) {
     Vector2f direction = Seek(*currentGoal) + /*0.001f * Avoid() +*/ Separate();
     Util::Limit(direction, maxSpeed);
     ApplyForce(direction - velocity, false);
   } else {
     Stop();
   }
-  
+
   assert(velocity.x == velocity.x);
   Vector2f newPosition = HandleCollisions();
 
