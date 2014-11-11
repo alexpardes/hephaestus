@@ -83,13 +83,14 @@ class GameState {
     CollisionTestResult TestCollision(std::shared_ptr<const GameUnit> unit,
         const Vector2f& end) const;
 
+    CollisionTestResult TestWallCollision(const Vector2f& start,
+      const Vector2f& end, float radius) const;
+
 	private:
     const PathingGrid* PathingGrid() const { return pathfinder->GetPathingGrid(); }
     void FindWalls();
     Rect GetWall(const Vector2i& tile) const;
     void GameState::AddWalls(int tileX, int tileY);
-    CollisionTestResult TestWallCollision(const Vector2f& start,
-      const Vector2f& end, float radius) const;
 
     //CollisionTestResult TestWallCollision(const GameUnit& unit,
     //    const Vector2f& end) const;

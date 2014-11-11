@@ -8,6 +8,8 @@
 #include "Waypoint.h"
 #include <PathFinding/PathFinder.h>
 
+const float PATHING_EPSILON = 1.f;
+
 MoveAbility::MoveAbility(std::shared_ptr<GameUnit> owner,
                          PathFinder *pathfinder,
                          GameState *gameState,
@@ -45,7 +47,7 @@ void MoveAbility::Execute() {
   Vector2f *currentGoal;
   if (!path.empty()) {
     currentGoal = new Vector2f(path.front()
-        ->Position(owner->Attributes().CollisionRadius()));
+        ->Position(owner->Attributes().CollisionRadius() + PATHING_EPSILON));
   } else if (destination) {
     currentGoal = destination;
   }
@@ -54,7 +56,15 @@ void MoveAbility::Execute() {
     Vector2f displacement = *currentGoal - owner->Position();
     Util::Limit(displacement, maxSpeed);
     owner->SetRotation(Util::FindAngle(displacement));
-    gameState->MoveUnit(owner->Id(), owner->Position() + displacement);
+    Vector2f newPosition = owner->Position() + displacement;
+    auto collision = gameState->TestWallCollision(owner->Position(), newPosition, owner->Attributes().CollisionRadius() - PATHING_EPSILON);
+    if (collision.point != newPosition) {
+      Util::Limit(displacement, PATHING_EPSILON);
+      newPosition = collision.point - displacement;
+      destination = nullptr;
+    }
+
+    gameState->MoveUnit(owner->Id(), newPosition);
   }
 
   //MoveDynamic(currentGoal);
