@@ -134,7 +134,7 @@ void Graphics::DrawGameInterface(const GameScene &scene) const {
       float healthBarWidth = 65.f;
       float healthBarHeight = 5.f;
       sf::RectangleShape healthBarOutline(sf::Vector2f(healthBarWidth, healthBarHeight));
-      healthBarOutline.setOrigin(healthBarWidth / 2, healthBarHeight + 5 + unit->Radius());
+      healthBarOutline.setOrigin(healthBarWidth / 2, -unit->Radius());
       healthBarOutline.setPosition(unit->position());
       healthBarOutline.setOutlineColor(sf::Color::Black);
       healthBarOutline.setOutlineThickness(1);
@@ -146,8 +146,8 @@ void Graphics::DrawGameInterface(const GameScene &scene) const {
       healthBar.setFillColor(sf::Color::Green);
       healthBar.setOrigin(healthBarOutline.getOrigin());
       healthBar.setPosition(healthBarOutline.getPosition());
-      //window_.draw(healthBar);
-      //window_.draw(healthBarOutline);
+      window_.draw(healthBar);
+      window_.draw(healthBarOutline);
     }
   }
 
