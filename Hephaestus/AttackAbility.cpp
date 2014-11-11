@@ -27,17 +27,28 @@ Vector2f AttackAbility::ApplyUnitTransform(const Vector2f& v) const {
   return result;
 }
 
-void AttackAbility::ChangeAttackPoint() {
-  usingLeftAttackPoint = !usingLeftAttackPoint;
+void AttackAbility::ChooseAttackPoint() {
+  // Raycast forward from each attack point and use one with the longest line of sight.
+  Vector2f sightVector = 1000.f * Util::MakeUnitVector(owner->Rotation());
+  auto leftCollision = gameState->TestWallCollision(LeftAttackPoint(), LeftAttackPoint() + sightVector, 0);
+  auto rightCollision = gameState->TestWallCollision(RightAttackPoint(), RightAttackPoint() + sightVector, 0);
+  usingLeftAttackPoint = Util::Distance(leftCollision.point, LeftAttackPoint()) > Util::Distance(rightCollision.point, RightAttackPoint());
 }
 
 Vector2f AttackAbility::AttackPoint() const {
-  return owner->Position();
-  //if (usingLeftAttackPoint) {
-  //  return LeftAttackPoint();
-  //} else {
-  //  return RightAttackPoint();
-  //}
+  if (usingLeftAttackPoint) {
+    return LeftAttackPoint();
+  } else {
+    return RightAttackPoint();
+  }
+}
+
+Vector2f AttackAbility::OtherAttackPoint() const {
+  if (!usingLeftAttackPoint) {
+    return LeftAttackPoint();
+  } else {
+    return RightAttackPoint();
+  }
 }
 
 Vector2f AttackAbility::LeftAttackPoint() const {
@@ -62,10 +73,12 @@ bool AttackAbility::CanAttack(UnitId target) const {
   if (!unit || !IsInRange(*unit))
     return false;
 
-  return owner->SightMap().IsAnyVisible(unit->SegmentFromUnit(owner->Position()));
+  return owner->SightMap().IsAnyVisible(unit->SegmentFromUnit(AttackPoint()));
 }
 
 void AttackAbility::Attack(const GameUnit &unit) {
+  ChooseAttackPoint();
+
   auto targetSegment = owner->SightMap().LargestVisibleSubsegment(unit.SegmentFromUnit(owner->Position()));
   auto targetPoint = (targetSegment.p1 + targetSegment.p2) / 2.f;
   float targetAngle = Util::FindAngle(targetPoint - AttackPoint());

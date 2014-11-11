@@ -23,9 +23,9 @@ class AttackAbility : public UnitAbility {
 
   private:
     void Attack(const GameUnit &unit);
-
-    void ChangeAttackPoint();
+    void ChooseAttackPoint();
     Vector2f AttackPoint() const;
+    Vector2f OtherAttackPoint() const;
     Vector2f LeftAttackPoint() const;
     Vector2f RightAttackPoint() const;
 
@@ -47,7 +47,7 @@ class AttackAbility : public UnitAbility {
     bool movementEnabled;
 
     // These are the locations that the unit's projectile can spawn from when
-    // the unit has position = (0, 0) and rotation = 0.
+    // the unit is positioned at the origin with rotation = 0.
     Vector2f leftAttackOffset, rightAttackOffset;
     bool usingLeftAttackPoint;    
 };
