@@ -164,14 +164,12 @@ void GameState::AddUnit(const std::string &type,
       attributes.attack_damage(), attributes.attack_speed(), attributes.attack_range());
   unit->AddAbility(attack);
 
-  UnitAbility *attackMove = new AttackMoveAbility(*unit, *this, 400, 450);
-  unit->AddAbility(attackMove);
-
   UnitAbility *autoAttack = new AutoAttackAbility(*unit, *this);
   unit->AddAbility(autoAttack);
-
-  //unit->SetIdleAbility(nullptr);
   unit->SetIdleAbility(autoAttack);
+
+  UnitAbility *attackMove = new AttackMoveAbility(*unit, *this);
+  unit->AddAbility(attackMove);
 
 	units.push_back(unit);
 	AddToUnitGrid(unit);

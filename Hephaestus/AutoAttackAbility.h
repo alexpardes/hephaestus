@@ -10,7 +10,8 @@ class AutoAttackAbility : public UnitAbility {
   public:
     AutoAttackAbility(GameUnit &owner, GameState &gameState);
     virtual void Execute();
-    virtual std::string Name() { return "AutoAttack"; }
+    virtual std::string Name() const { return "AutoAttack"; }
+    bool HasTarget() const { return target != nullptr; }
 
   private:
     // TODO: these fields can probably be moved to base class.

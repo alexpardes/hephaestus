@@ -4,24 +4,22 @@
 
 class GameState;
 class GameUnit;
-class AttackAbility;
+class AutoAttackAbility;
 class MoveAbility;
 
 class AttackMoveAbility : public UnitAbility {
   public:
-    AttackMoveAbility(GameUnit &owner, GameState &gameState,
-        float aggroRange, float deaggroRange);
+    AttackMoveAbility(GameUnit &owner, GameState &gameState);
 
     virtual void Execute();
-    virtual std::string Name() { return "AttackMove"; }
+    virtual std::string Name() const { return "AttackMove"; }
     void SetDestination(const Vector2f &destination);
+    bool DestinationReached() const;
 
   private:
     GameUnit &owner;
     GameState &gameState;
-    float aggroRange, deaggroRange;
     Vector2f destination;
-    std::shared_ptr<GameUnit> target;
-    AttackAbility *attackAbility;
+    AutoAttackAbility *autoAttackAbility;
     MoveAbility *moveAbility;
 };

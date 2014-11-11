@@ -13,7 +13,7 @@ class MoveAbility : public UnitAbility {
     MoveAbility(std::shared_ptr<GameUnit> owner, PathFinder *pathfinder, GameState *gameState,
         float speed);
     virtual void Execute();
-    virtual std::string Name() { return "Move"; }
+    virtual std::string Name() const { return "Move"; }
     void SetDestination(const Vector2f &destination);
     bool DestinationReached() const;
 

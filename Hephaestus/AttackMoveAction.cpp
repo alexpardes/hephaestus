@@ -13,5 +13,5 @@ void AttackMoveAction::Execute(GameUnit &unit) {
 }
 
 bool AttackMoveAction::IsFinished() const {
-  return true;
+  return ability->DestinationReached();
 }

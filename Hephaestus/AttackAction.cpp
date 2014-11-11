@@ -23,6 +23,6 @@ bool AttackAction::IsFinished() const {
   return attackAbility->Target() == nullptr;
 }
 
-std::string AttackAction::Name() {
+std::string AttackAction::Name() const {
   return "Attack";
 }

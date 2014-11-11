@@ -13,7 +13,7 @@ void MoveAction::Execute(GameUnit &unit) {
   ability->Execute();
 }
 
-std::string MoveAction::Name() {
+std::string MoveAction::Name() const {
   return "Move";
 }
 

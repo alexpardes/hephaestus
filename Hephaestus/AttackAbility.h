@@ -11,7 +11,7 @@ class AttackAbility : public UnitAbility {
         float damage, float speed, float range);
 
     virtual void Execute();
-    virtual std::string Name() { return "Attack"; }
+    virtual std::string Name() const { return "Attack"; }
     void SetTarget(UnitId target) { this->target = target; }
     const std::shared_ptr<GameUnit> Target() const;
 
