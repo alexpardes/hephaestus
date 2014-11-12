@@ -49,5 +49,4 @@ class AttackAbility : public UnitAbility {
     // These are the locations that the unit's projectile can spawn from when
     // the unit is positioned at the origin with rotation = 0.
     Vector2f leftAttackOffset, rightAttackOffset;
-    bool usingLeftAttackPoint;    
 };

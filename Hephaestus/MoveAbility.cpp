@@ -8,7 +8,7 @@
 #include "Waypoint.h"
 #include <PathFinding/PathFinder.h>
 
-const float PATHING_EPSILON = 1.f;
+const float kPathingEpsilon = 1.f;
 
 MoveAbility::MoveAbility(std::shared_ptr<GameUnit> owner,
                          PathFinder *pathfinder,
@@ -47,7 +47,7 @@ void MoveAbility::Execute() {
   Vector2f *currentGoal;
   if (!path.empty()) {
     currentGoal = new Vector2f(path.front()
-        ->Position(owner->Attributes().CollisionRadius() + PATHING_EPSILON));
+        ->Position(owner->Attributes().CollisionRadius() + kPathingEpsilon));
   } else if (destination) {
     currentGoal = destination;
   }
@@ -57,9 +57,9 @@ void MoveAbility::Execute() {
     Util::Limit(displacement, maxSpeed);
     owner->SetRotation(Util::FindAngle(displacement));
     Vector2f newPosition = owner->Position() + displacement;
-    auto collision = gameState->TestWallCollision(owner->Position(), newPosition, owner->Attributes().CollisionRadius() - PATHING_EPSILON);
+    auto collision = gameState->TestWallCollision(owner->Position(), newPosition, owner->Attributes().CollisionRadius() - kPathingEpsilon);
     if (collision.point != newPosition) {
-      Util::Limit(displacement, PATHING_EPSILON);
+      Util::Limit(displacement, kPathingEpsilon);
       newPosition = collision.point - displacement;
       destination = nullptr;
     }

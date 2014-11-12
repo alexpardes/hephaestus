@@ -14,10 +14,11 @@ GameUnit::GameUnit(UnitId id,
 	is_alive_ = true;
 	attributes_ = attributes;
 	this->position = position;
-	current_health_ = attributes_.MaxHealth();
+	currentHealth = attributes_.MaxHealth();
 	owner_ = owner;
-	rotation_ = rotation;
-  action = NULL;
+	this->rotation = rotation;
+  action = nullptr;
+  facing = kRight;
 }
 
 void GameUnit::SetAction(UnitAction *action) {
@@ -31,7 +32,7 @@ void GameUnit::AddAbility(UnitAbility *ability) {
 }
 
 UnitAbility *GameUnit::GetAbility(const std::string &name) {
-  UnitAbility *result = NULL;
+  UnitAbility *result = nullptr;
   if (abilities.count(name)) {
     result = abilities[name];
   }
@@ -39,7 +40,7 @@ UnitAbility *GameUnit::GetAbility(const std::string &name) {
 }
 
 void GameUnit::PerformAction() {
-  if (current_health_ <= 0) {
+  if (currentHealth <= 0) {
     is_alive_ = false;
   } else if (action) {
     if (action->IsFinished()) {
@@ -71,6 +72,7 @@ UnitModel::UnitModel(const GameUnit &unit) {
 	radius_ = unit.Attributes().selection_radius();
   
   visibility = unit.SightMap().ToPolygon();
+  facing = unit.Facing();
   isVisible = true;
 }
 
@@ -91,4 +93,5 @@ UnitModel::UnitModel(const UnitModel &unit1,
 	radius_ = unit1.Radius();
   visibility = unit2.Visibility();
   isVisible = unit2.isVisible;
+  facing = unit2.facing;
 }

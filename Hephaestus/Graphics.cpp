@@ -95,6 +95,9 @@ void Graphics::DrawUnits(const std::list<UnitModel *> &units) const {
 		  unit_sprite.setOrigin(image_center);
 		  unit_sprite.setPosition(unit->position());
 		  unit_sprite.setRotation(Util::Degrees(unit->rotation()));
+      if (unit->Facing() == kLeft)
+        unit_sprite.setScale(1, -1);
+
 		  window_.draw(unit_sprite);
     }
 	}

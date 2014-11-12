@@ -153,7 +153,7 @@ std::shared_ptr<Command> GameInterface::ProcessEvent(const sf::Event &event,
 
 void GameInterface::Resize() {
   float screenHeight = window.getDefaultView().getSize().y;
-  float graphicSize = 0.32 * screenHeight;
+  float graphicSize = 0.32f * screenHeight;
   interface_graphic_ = sf::RectangleShape(Vector2f(graphicSize,
     graphicSize));
   interface_graphic_.setPosition(Vector2f(0,

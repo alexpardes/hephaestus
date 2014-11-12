@@ -32,11 +32,12 @@ void AttackAbility::ChooseAttackPoint() {
   Vector2f sightVector = 1000.f * Util::MakeUnitVector(owner->Rotation());
   auto leftCollision = gameState->TestWallCollision(LeftAttackPoint(), LeftAttackPoint() + sightVector, 0);
   auto rightCollision = gameState->TestWallCollision(RightAttackPoint(), RightAttackPoint() + sightVector, 0);
-  usingLeftAttackPoint = Util::Distance(leftCollision.point, LeftAttackPoint()) > Util::Distance(rightCollision.point, RightAttackPoint());
+  bool useLeftPoint = Util::Distance(leftCollision.point, LeftAttackPoint()) > Util::Distance(rightCollision.point, RightAttackPoint());
+  owner->SetFacing(useLeftPoint ? kLeft : kRight);
 }
 
 Vector2f AttackAbility::AttackPoint() const {
-  if (usingLeftAttackPoint) {
+  if (owner->Facing() == kLeft) {
     return LeftAttackPoint();
   } else {
     return RightAttackPoint();
@@ -44,7 +45,7 @@ Vector2f AttackAbility::AttackPoint() const {
 }
 
 Vector2f AttackAbility::OtherAttackPoint() const {
-  if (!usingLeftAttackPoint) {
+  if (owner->Facing() != kLeft) {
     return LeftAttackPoint();
   } else {
     return RightAttackPoint();

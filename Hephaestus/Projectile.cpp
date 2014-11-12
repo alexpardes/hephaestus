@@ -20,11 +20,11 @@ Projectile::Projectile(GameState& gameState,
   startPosition = position;
 	id = serial_number_++;
   isAlive = true;
-  rotation_ = direction;
+  rotation = direction;
 }
 
 void Projectile::PerformAction() {
-  Vector2f v = speed * Util::MakeUnitVector(rotation_);
+  Vector2f v = speed * Util::MakeUnitVector(rotation);
 
   CollisionTestResult collision
       = gameState.TestCollision(position, position + v, 0, owner);

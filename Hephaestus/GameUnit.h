@@ -15,6 +15,7 @@ class UnitAbility;
 typedef short UnitId;
 
 enum PlayerNumber { kPlayer1, kPlayer2 };
+enum Direction { kLeft, kRight };
 
 class GameUnit : public GameObject {
 	public:
@@ -32,14 +33,14 @@ class GameUnit : public GameObject {
     const SectorMap &SightMap() const { return sightMap; }
 
 		void ModifyHealth(float health) {
-			current_health_ += health;
-			if (current_health_ < 0) current_health_ = 0;
-			if (current_health_ > attributes_.MaxHealth()) {
-				current_health_ = attributes_.MaxHealth();
+			currentHealth += health;
+			if (currentHealth < 0) currentHealth = 0;
+			if (currentHealth > attributes_.MaxHealth()) {
+				currentHealth = attributes_.MaxHealth();
 			}
 		}
 
-		float CurrentHealth() const {return current_health_;}
+		float CurrentHealth() const {return currentHealth;}
 
 		void SetAction(UnitAction *action);
     void PerformAction();
@@ -56,13 +57,16 @@ class GameUnit : public GameObject {
     UnitAbility *GetAbility(const std::string &name);
 
     void SetIdleAbility(UnitAbility* ability) { idleAbility = ability; }
+    Direction Facing() const { return facing; }
+    void SetFacing(Direction facing) { this->facing = facing; }
 
 	private:
 		bool is_alive_;
     SectorMap sightMap;
     std::vector<Vector2f> visiblePoints;
 		static std::vector<Vector2i>* pathing_offsets_;
-		float current_health_;
+		float currentHealth;
+    Direction facing;
 		UnitId id_;
 		UnitAttributes attributes_;
 		PlayerNumber owner_;
@@ -90,6 +94,7 @@ class UnitModel {
     bool IsVisible() const { return isVisible; }
     void SetVisible(bool visible) { isVisible = visible; }
     const VisibilityPolygon &Visibility() const { return visibility; }
+    Direction Facing() const { return facing; }
 
 	private:
 		Vector2f position_;
@@ -102,4 +107,5 @@ class UnitModel {
 		std::string name;
     VisibilityPolygon visibility;
     bool isVisible;
+    Direction facing;
 };
