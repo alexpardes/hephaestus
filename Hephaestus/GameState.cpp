@@ -5,6 +5,7 @@
 #include "AttackAbility.h"
 #include "AttackMoveAbility.h"
 #include "AutoAttackAbility.h"
+#include "HealthRegenAbility.h"
 #include "SectorMap.h"
 #include "Timer.h"
 
@@ -171,6 +172,8 @@ void GameState::AddUnit(const std::string &type,
 
   UnitAbility *attackMove = new AttackMoveAbility(*unit, *this);
   unit->AddAbility(attackMove);
+
+  unit->AddPassiveAbility(new HealthRegenAbility(*unit, 0.01f));
 
 	units.push_back(unit);
 	AddToUnitGrid(unit);

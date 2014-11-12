@@ -39,6 +39,10 @@ UnitAbility *GameUnit::GetAbility(const std::string &name) {
   return result;
 }
 
+void GameUnit::AddPassiveAbility(UnitAbility *ability) {
+  passiveAbilities.push_back(ability);
+}
+
 void GameUnit::PerformAction() {
   if (currentHealth <= 0) {
     is_alive_ = false;
@@ -52,6 +56,10 @@ void GameUnit::PerformAction() {
   
   if (!action && idleAbility) {
     idleAbility->Execute();
+  }
+
+  for (auto ability : passiveAbilities) {
+    ability->Execute();
   }
 }
 

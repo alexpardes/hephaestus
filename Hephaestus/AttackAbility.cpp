@@ -4,7 +4,6 @@
 #include "Util.h"
 #include "MoveAbility.h"
 #include "Circle.h"
-#include <Scripting/LuaUtilities.h>
 
 AttackAbility::AttackAbility(std::shared_ptr<GameUnit> owner,
                              GameState *gameState,

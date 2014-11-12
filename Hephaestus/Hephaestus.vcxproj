@@ -178,6 +178,7 @@
     <ClCompile Include="GameManager.cpp" />
     <ClCompile Include="GameUnit.cpp" />
     <ClCompile Include="Graphics.cpp" />
+    <ClCompile Include="HealthRegenAbility.cpp" />
     <ClCompile Include="Hephaestus.cpp" />
     <ClCompile Include="Line.cpp" />
     <ClCompile Include="LineSegment.cpp" />
@@ -226,6 +227,7 @@
     <ClInclude Include="GameState.h" />
     <ClInclude Include="GameUnit.h" />
     <ClInclude Include="Graphics.h" />
+    <ClInclude Include="HealthRegenAbility.h" />
     <ClInclude Include="Hephaestus.h" />
     <ClInclude Include="HephaestusObserver.h" />
     <ClInclude Include="Coloring.h" />

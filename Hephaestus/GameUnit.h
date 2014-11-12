@@ -34,10 +34,11 @@ class GameUnit : public GameObject {
 
 		void ModifyHealth(float health) {
 			currentHealth += health;
-			if (currentHealth < 0) currentHealth = 0;
-			if (currentHealth > attributes_.MaxHealth()) {
+			if (currentHealth < 0)
+        currentHealth = 0;
+
+			if (currentHealth > attributes_.MaxHealth())
 				currentHealth = attributes_.MaxHealth();
-			}
 		}
 
 		float CurrentHealth() const {return currentHealth;}
@@ -55,6 +56,7 @@ class GameUnit : public GameObject {
 
     void AddAbility(UnitAbility *ability);
     UnitAbility *GetAbility(const std::string &name);
+    void AddPassiveAbility(UnitAbility *ability);
 
     void SetIdleAbility(UnitAbility* ability) { idleAbility = ability; }
     Direction Facing() const { return facing; }
@@ -72,6 +74,7 @@ class GameUnit : public GameObject {
 		PlayerNumber owner_;
     UnitAction *action;
     std::unordered_map<std::string, UnitAbility*> abilities;
+    std::vector<UnitAbility*> passiveAbilities;
     UnitAbility* idleAbility;
 };
 typedef std::list<std::shared_ptr<GameUnit>> UnitList;
