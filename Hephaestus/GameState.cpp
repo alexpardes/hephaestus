@@ -145,7 +145,8 @@ void GameState::ExecuteTurn() {
 }
 
 void GameState::UpdateSightMap(GameUnit& unit) {
-  unit.SightMap().Create(unit.Position(), GetWalls());
+  // TODO: Vision should not depend on attack ability.
+  unit.SightMap().Create(dynamic_cast<AttackAbility *>(unit.GetAbility("Attack"))->AttackPoint(), GetWalls());
 }
 
 

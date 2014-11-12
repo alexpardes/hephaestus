@@ -19,12 +19,12 @@ class AttackAbility : public UnitAbility {
       movementEnabled = enableMovement;
     }
 
+    Vector2f AttackPoint() const;
     bool CanAttack(UnitId target) const;
 
   private:
     void Attack(const GameUnit &unit);
     void ChooseAttackPoint();
-    Vector2f AttackPoint() const;
     Vector2f OtherAttackPoint() const;
     Vector2f LeftAttackPoint() const;
     Vector2f RightAttackPoint() const;
