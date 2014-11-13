@@ -52,7 +52,7 @@ class SubgoalPathFinder : public PathFinder {
     };
 
     const PathingGrid *grid;
-    std::vector<Subgoal*> subgoals;   
+    std::vector<Subgoal*> subgoals;
     Vector2f tileSize;
     bool CanMoveInDirection(const Vector2i &p, const Vector2i &direction);
     bool AreDirectlyConnected(const Vector2i &p1, const Vector2i &p2);

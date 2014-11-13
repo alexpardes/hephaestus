@@ -67,7 +67,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AStarSearch.h" />
-    <ClInclude Include="GridSubgoalVertex.h" />
     <ClInclude Include="PathFinder.h" />
     <ClInclude Include="GridRegion.h" />
     <ClInclude Include="SearchAlgorithm.h" />
@@ -78,7 +77,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AStarSearch.cpp" />
-    <ClCompile Include="GridSubgoalVertex.cpp" />
     <ClCompile Include="PathFinder.cpp" />
     <ClCompile Include="GridRegion.cpp" />
     <ClCompile Include="Subgoal.cpp" />

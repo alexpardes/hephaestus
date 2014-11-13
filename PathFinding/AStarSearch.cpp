@@ -1,6 +1,5 @@
 #include "AStarSearch.h"
 #include <assert.h>
-#include <functional>
 #include "Vertex.h"
 
 struct SearchNode {
@@ -37,6 +36,7 @@ std::vector<const Vertex*> AStarSearch::FindPath(const Vertex *start, SearchHeur
       return Path(node);
     }
   }
+  return std::vector<const Vertex*>();
 }
 
 bool AStarSearch::Visit(const SearchNode *node) {

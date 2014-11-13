@@ -1,15 +1,22 @@
 #pragma once
 #include <vector>
 #include <Hephaestus/Vector2.h>
+#include "Vertex.h"
 
 class GridRegion;
 
-class Subgoal {
+class Subgoal : public Vertex {
 public:
   Subgoal(const Vector2i &point, const Vector2i &direction);
   void AddAdjacency(Subgoal *subgoal) {
     adjacencyList.push_back(subgoal);
   }
+
+  void RemoveAdjacency() {
+    adjacencyList.pop_back();
+  }
+
+  virtual std::vector<Edge> Adjacencies() const; 
 
   ~Subgoal();
 

@@ -4,6 +4,7 @@
 #include <Hephaestus/Vector2.h>
 #include <Hephaestus/Util.h>
 #include <Hephaestus/Waypoint.h>
+#include "AStarSearch.h"
 #include "GridRegion.h"
 #include "Subgoal.h"
 
@@ -67,6 +68,12 @@ SubgoalPathFinder::~SubgoalPathFinder() {
   }
 }
 
+float Distance(const Vector2i &a, const Vector2i &b) {
+  Vector2f af = Util::ToVector2f(a);
+  Vector2f bf = Util::ToVector2f(b);
+  return Util::Distance(af, bf);
+}
+
 bool SubgoalPathFinder::SubgoalComparer::operator()(Subgoal *a, Subgoal *b) {
   float distance1 = PathingGrid::OctileDistance(a->Point(), point);
   float distance2 = PathingGrid::OctileDistance(b->Point(), point);
@@ -103,93 +110,42 @@ Vector2i SubgoalPathFinder::GetTile(const Vector2f &position) {
   return result;
 }
 
-// Adds the start and end points to the subgoal graph, and then A* searches through it.
-// Returns an empty path if no path exists. Returns the endpoint if start and
-// end are directly connected.
 std::vector<Waypoint*> SubgoalPathFinder::GetPath(const Vector2f &startpoint,
                                                  const Vector2f &endpoint) {
 
-  std::unordered_set<Vector2i, Vector2iHash> endGoals;
-  std::unordered_set<Vector2i, Vector2iHash> visitedList;
-
-  // Keeps track of all the nodes created so we can delete them.
-  std::vector<SearchNode*> usedNodes;
-
-  std::priority_queue<SearchNode*,
-                      std::vector<SearchNode*>,
-                      SearchNodeComparer> openList;
-
-  // We search from end to start so that when we trace back the path, it is
-  // already in the correct order.
-  Vector2i start = GetTile(endpoint);
-  Vector2i end = GetTile(startpoint);
+  Vector2i start = GetTile(startpoint);
+  Vector2i end = GetTile(endpoint);
 
   std::vector<Subgoal*> startSubgoals = GetDirectSubgoals(start);
   Subgoal *startGoal = new Subgoal(start, Vector2i(0, 0));
-
-  SearchNode *startNode = new SearchNode(nullptr, startGoal, end);
-  usedNodes.push_back(startNode);
-  for (int i = 0; i < startSubgoals.size(); ++i) {
-    SearchNode *node = new SearchNode(startNode, startSubgoals.at(i), end);
-    openList.push(node);
-    usedNodes.push_back(node);
+  for (auto subgoal : startSubgoals) {
+    startGoal->AddAdjacency(subgoal);
   }
 
+  auto endGoal = new Subgoal(end, Vector2i(0, 0));
   std::vector<Subgoal*> endSubgoals = GetDirectSubgoals(end);
-  for (int i = 0; i < endSubgoals.size(); ++i) { 
-    endGoals.insert(endSubgoals.at(i)->Point());
+  for (auto subgoal : endSubgoals) {
+    subgoal->AddAdjacency(endGoal);
+  }
+  if (AreDirectlyConnected(start, end))
+    startGoal->AddAdjacency(endGoal);
+
+  auto aStarSearch = std::unique_ptr<AStarSearch>(new AStarSearch());
+  auto vertexPath = aStarSearch->FindPath(startGoal, [end](const Vertex& v) {
+      return Distance(static_cast<const Subgoal&>(v).Point(), end);
+    });
+
+  std::vector<Waypoint*> waypointPath;
+  for (auto v : vertexPath) {
+    auto subgoal = static_cast<const Subgoal*>(v);
+    waypointPath.push_back(new Waypoint(subgoal, tileSize));
   }
 
-  SearchNode *endNode = nullptr;
-  while (!openList.empty()) {
-    SearchNode *node = openList.top();
-    openList.pop();
-    Subgoal *subgoal = node->GetSubgoal();
-
-    if (visitedList.count(subgoal->Point())) {
-      continue;
-    }
-    visitedList.insert(subgoal->Point());
-
-    if (endGoals.count(subgoal->Point())) { // We've found a path.
-      endNode = node;
-      break;
-    }
-
-    // Adds unvisited neighboring subgoals to the open list.
-    for (int i = 0; i < subgoal->AdjacencyList().size(); ++i) {
-      Subgoal *neighbor = subgoal->AdjacencyList().at(i);
-      if (!visitedList.count(neighbor->Point())) {
-        SearchNode *neighborNode = new SearchNode(node, neighbor, end);
-        openList.push(neighborNode);
-        usedNodes.push_back(neighborNode);
-      }
-    }
+  for (auto subgoal : endSubgoals) {
+    subgoal->RemoveAdjacency();
   }
 
-  std::vector<Waypoint*> path;
-
-  if (AreDirectlyConnected(end, start) && (!endNode ||
-      endNode->MinDist() > PathingGrid::OctileDistance(end, start))) {
-    path.push_back(new Waypoint(endpoint));
-  } else {
-    while (endNode) {
-      SearchNode *parent = endNode->Parent();
-      if (parent) {
-        path.push_back(new Waypoint(endNode->GetSubgoal(), tileSize));
-      } else {
-        path.push_back(new Waypoint(endpoint));
-      }
-      endNode = parent;
-    }
-  }
-
-  delete startGoal;
-  for (SearchNode *node : usedNodes) {
-    delete node;
-  }
-
-  return path;
+  return waypointPath;
 }
 
 SubgoalPathFinder::SearchNode::SearchNode(SearchNode *parent,

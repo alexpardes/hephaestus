@@ -37,7 +37,12 @@ sf::RenderWindow *MakeWindow(bool makeFullscreen) {
 
 Launcher::Launcher() {
   gameRunning = false;
+
+#if DEBUG
+  isFullscreen = false;
+#else
   isFullscreen = true;
+#endif
   window = MakeWindow(isFullscreen);
   window->setFramerateLimit(60);
   menu = new MainMenu();

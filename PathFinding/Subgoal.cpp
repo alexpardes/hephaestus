@@ -1,3 +1,4 @@
+#include <Hephaestus/Util.h>
 #include "Subgoal.h"
 #include "GridRegion.h"
 
@@ -6,6 +7,15 @@ Subgoal::Subgoal(const Vector2i &point, const Vector2i &direction) {
   this->direction = direction;
   region = new GridRegion(GridRegion::GetIndirect(Vector2i(point),
       this->point));
+}
+
+std::vector<Edge> Subgoal::Adjacencies() const {
+  std::vector<Edge> adjacencies;
+  for (auto subgoal : adjacencyList) {
+    float cost = Util::Distance(Util::ToVector2f(point), Util::ToVector2f(subgoal->point));
+    adjacencies.push_back(Edge(subgoal, cost));
+  }
+  return adjacencies;
 }
 
 bool Subgoal::IsPast(const Vector2i &point) const {
