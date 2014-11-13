@@ -105,6 +105,18 @@ void Hephaestus::StartGame() {
   }
 }
 
+void Hephaestus::HandleEvent(const sf::Event &event) {
+  if (event.type == sf::Event::KeyPressed
+      && event.key.code == sf::Keyboard::Escape) {
+    game_manager->EndGame();
+  } else {
+    auto command = game_interface->ProcessEvent(event, *window);
+    if (command) {
+      commandBuffer->AddCommand(command);
+    }
+  }
+}
+
 void Hephaestus::Update() {
   if (!IsRunning()) {
     networkManager->Reset();
@@ -117,21 +129,6 @@ void Hephaestus::Update() {
 
   float timestep = clock->getElapsedTime().asSeconds();
   clock->restart();
-  sf::Event event;
-  while (window->pollEvent(event)) {
-    if (event.type == sf::Event::Closed) {
-        game_manager->EndGame();
-        window->close();
-    } else if (event.type == sf::Event::KeyPressed
-        && event.KeyPressed == sf::Keyboard::Escape) {
-      game_manager->EndGame();
-    } else {
-      auto command = game_interface->ProcessEvent(event, *window);
-      if (command) {
-        commandBuffer->AddCommand(command);
-      }
-    }
-  }
   game_interface->MoveScreen(timestep);
   GameScene *updated_scene = game_manager->TakeScene();
   if (updated_scene) {

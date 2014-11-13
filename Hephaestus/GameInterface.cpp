@@ -24,10 +24,8 @@ GameInterface::GameInterface(sf::RenderWindow& window) : window(window) {
   is_selecting_ = false;
   cursor_action_ = kSelect;
   game_scene_ = NULL;
-  mainView = window.getDefaultView();
-  //mainView.setCenter(Vector2f(960, 540));
-  //mainView.setSize(Vector2f(1920, 1080));
-
+  //mainView = window.getDefaultView();
+  mainView.setSize(Vector2f(1920, 1280));
   RegisterCommands();
 }
 
@@ -50,6 +48,7 @@ std::shared_ptr<Command> GameInterface::ProcessEvent(const sf::Event &event,
 							is_selecting_ = true;
 							break;
 						case kAttack:
+
 							const UnitModel *unit = GetUnit(location);
 							if (unit) {
 								command = std::make_shared<AttackCommand>(unit->Id());

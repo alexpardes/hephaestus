@@ -19,24 +19,30 @@ int main() {
   return 0;
 }
 
-Launcher* Launcher::instance = nullptr;
+Launcher *Launcher::instance = nullptr;
 
-Launcher* Launcher::Instance() {
+Launcher *Launcher::Instance() {
   if (!instance) {
     instance = new Launcher();
   }
   return instance;
 }
 
-Launcher::Launcher() {
+sf::RenderWindow *MakeWindow(bool makeFullscreen) {
   sf::ContextSettings settings;
   settings.antialiasingLevel = 8;
-  window = new sf::RenderWindow(sf::VideoMode(1280, 720), "Paintball", sf::Style::Default, settings);
+  sf::Uint32 style = makeFullscreen ? sf::Style::Fullscreen : sf::Style::Default;
+  return new sf::RenderWindow(sf::VideoMode::getFullscreenModes()[0], "Paintball", style, settings);
+}
+
+Launcher::Launcher() {
+  gameRunning = false;
+  isFullscreen = true;
+  window = MakeWindow(isFullscreen);
   window->setFramerateLimit(60);
   menu = new MainMenu();
   hephaestus = new Hephaestus(window);  
   hephaestus->SetObserver(this);
-  gameRunning = false;
 }
 
 void Launcher::OnConnectionFailed() {
@@ -58,20 +64,29 @@ void Launcher::CancelHosting() {
 
 void Launcher::Launch() {
   while(window->isOpen()) {
-    if (!gameRunning) {
-      sf::Event event;
-      while (window->pollEvent(event)) {
-        switch (event.type) {
-        case sf::Event::Closed:
+    sf::Event event;
+    while (window->pollEvent(event)) {
+      switch (event.type) {
+      case sf::Event::Closed:
+        window->close();
+        break;
+      case sf::Event::KeyPressed:
+        if (event.key.code == sf::Keyboard::Key::F4 &&
+            sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LAlt)) {
           window->close();
-          break;
-        case sf::Event::KeyPressed:
-          if (event.KeyPressed == sf::Keyboard::Key::F4 &&
-              sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LAlt)) {
-            window->close();
-          }
-          break;
         }
+        if (event.key.code == sf::Keyboard::Key::Return &&
+            sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LAlt)) {
+          delete window;
+          isFullscreen = !isFullscreen;
+          window = MakeWindow(isFullscreen);
+        }
+        break;
+      }
+
+      if (gameRunning) {
+        hephaestus->HandleEvent(event);
+      } else {
         menu->HandleEvent(event);
       }
     }

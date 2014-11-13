@@ -27,6 +27,7 @@ class Hephaestus {
     void JoinGame(const std::string &hostname, const std::string& port);
     void CancelHosting();
     void SetObserver(HephaestusObserver* observer);
+    void HandleEvent(const sf::Event &event);
 
     void Update();
     bool IsRunning() const;

@@ -14,7 +14,7 @@ class SubgoalPathFinder : public PathFinder {
         const Vector2f &endpoint);
     virtual const PathingGrid *GetPathingGrid() const { return grid; }
     virtual ~SubgoalPathFinder();
-    virtual void SetTileSize(const Vector2f& newSize) { tileSize = newSize; }
+    virtual void SetTileSize(const Vector2f &newSize) { tileSize = newSize; }
 
 
     class SearchNode {

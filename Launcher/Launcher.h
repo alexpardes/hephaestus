@@ -29,4 +29,5 @@ class Launcher : public HephaestusObserver {
     sf::RenderWindow *window;
     MainMenu* menu;
     bool gameRunning;
+    bool isFullscreen;
 };

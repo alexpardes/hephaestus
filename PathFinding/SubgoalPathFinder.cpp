@@ -127,7 +127,7 @@ std::vector<Waypoint*> SubgoalPathFinder::GetPath(const Vector2f &startpoint,
   std::vector<Subgoal*> startSubgoals = GetDirectSubgoals(start);
   Subgoal *startGoal = new Subgoal(start, Vector2i(0, 0));
 
-  SearchNode *startNode = new SearchNode(NULL, startGoal, end);
+  SearchNode *startNode = new SearchNode(nullptr, startGoal, end);
   usedNodes.push_back(startNode);
   for (int i = 0; i < startSubgoals.size(); ++i) {
     SearchNode *node = new SearchNode(startNode, startSubgoals.at(i), end);
@@ -140,7 +140,7 @@ std::vector<Waypoint*> SubgoalPathFinder::GetPath(const Vector2f &startpoint,
     endGoals.insert(endSubgoals.at(i)->Point());
   }
 
-  SearchNode *endNode = NULL;
+  SearchNode *endNode = nullptr;
   while (!openList.empty()) {
     SearchNode *node = openList.top();
     openList.pop();
@@ -197,7 +197,7 @@ SubgoalPathFinder::SearchNode::SearchNode(SearchNode *parent,
                                           const Vector2i &goal) :
     parent(parent), subgoal(subgoal) {
   Vector2f myPoint = Util::ToVector2f(GetSubgoal()->Point());
-  if (parent == NULL) {
+  if (parent == nullptr) {
     dist = 0;
   } else {
     Vector2f parentPoint = Util::ToVector2f(parent->GetSubgoal()->Point());
