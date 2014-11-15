@@ -4,6 +4,7 @@
 #include <SFML/Window/Mouse.hpp>
 #include <cegui/CEGUI.h>
 #include <cegui/RendererModules/OpenGL/GLRenderer.h>
+#include <Hephaestus/GameStatus.h>
 
 namespace sf {
   class Event;
@@ -15,7 +16,7 @@ class MainMenu {
     void Draw();
     void HandleEvent(sf::Event &event);
     void OnConnectionFailed();
-    void OnGameEnded();
+    void OnGameEnded(GameStatus status);
 
   private:
     CEGUI::OpenGLRenderer *renderer;

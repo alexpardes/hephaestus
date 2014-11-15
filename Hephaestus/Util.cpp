@@ -14,6 +14,10 @@ int Util::Sign(int x) {
   return (x > 0) - (x < 0);
 }
 
+size_t Util::HashStart() {
+  return 2166136261;
+}
+
 void Util::Limit(Vector2f &v, float length) {
   if (Length(v) > length) {
     Resize(v, length);

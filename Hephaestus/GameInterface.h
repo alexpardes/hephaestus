@@ -4,6 +4,7 @@
 #include <SFML/Graphics/Drawable.hpp>
 #include <SFML/Graphics/RectangleShape.hpp>
 #include "Command.h"
+#include "CommandTurn.h"
 #include "GameState.h"
 #include "GameUnit.h"
 #include "NetworkManager.h"

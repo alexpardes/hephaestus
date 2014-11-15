@@ -28,6 +28,8 @@ class GameState {
 	public:
 		GameState(const UnitDictionary &unitDictionary,
 				const Vector2i &mapSize, PathFinder *pathfinder);
+
+    size_t HashCode() const;
 		void AddUnit(const std::string &type, PlayerNumber owner,
 				const Vector2f &location, float rotation);
 		void RemoveUnit(std::shared_ptr<GameUnit> unit);
@@ -120,7 +122,6 @@ class GameState {
 		Vector2i mapSize;
     PathFinder *pathfinder;
     int lastUnitId;
-
     std::vector<LineSegment> walls;
 };
 

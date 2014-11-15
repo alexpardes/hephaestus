@@ -7,7 +7,7 @@
 
 class Command;
 class UnitCommand;
-typedef std::vector<const std::shared_ptr<const Command>> CommandTurn;
+class CommandTurn;
 
 class Player {
 	public:
@@ -19,6 +19,7 @@ class Player {
     void AddToSelection(UnitId id);
     void GiveOrder(const UnitCommand *command);
     void SetCommandSource(CommandSource* source);
+    const CommandTurn &NextTurn() const;
 
 	private:
     void DeselectDeadUnits();

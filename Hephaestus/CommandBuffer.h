@@ -9,6 +9,7 @@ class CommandBuffer : public CommandSource, public CommandSink {
     virtual std::shared_ptr<CommandTurn> TakeCommandTurn();
     virtual void AddCommand(std::shared_ptr<Command> command);
     virtual void AddCommands(std::shared_ptr<CommandTurn> commands);
+    virtual void SetGameHash(size_t gameHash);
 
     // Registered sinks will be sent the current command turn when
     // TakeCommandTurn is called.

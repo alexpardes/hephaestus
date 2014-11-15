@@ -14,16 +14,18 @@ UnitAction* AttackCommand::MakeUnitAction(GameState &gameState) const {
   return result;
 }
 
-std::vector<unsigned char> AttackCommand::Serialize() const {
-  std::vector<unsigned char> bytes;
-  Serialization::Add(bytes, target);
-  return bytes;
+void AttackCommand::SerializeInternal(char *&bytes) const {
+  Serialization::Write(bytes, target);
 }
 
-std::shared_ptr<Command> AttackCommand::Deserialize(ByteIterator start, ByteIterator end) {
-  return std::make_shared<AttackCommand>(Serialization::Deserialize<UnitId>(start));
+std::shared_ptr<Command> AttackCommand::Deserialize(char *&bytes) {
+  return std::make_shared<AttackCommand>(Serialization::Read<UnitId>(bytes));
 }
 
 void AttackCommand::Register() {
   type = Command::Register(&Deserialize);
+}
+
+std::string AttackCommand::ToString() const {
+  return "Attack";
 }

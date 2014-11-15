@@ -9,16 +9,18 @@ UnitAction *MoveCommand::MakeUnitAction(GameState &gameState) const {
   return new MoveAction(location);
 }
 
-std::vector<unsigned char> MoveCommand::Serialize() const {
-  std::vector<unsigned char> bytes;
-  Serialization::Add(bytes, location);
-  return bytes;
+void MoveCommand::SerializeInternal(char *&bytes) const {
+  Serialization::Write(bytes, location);
 }
 
-std::shared_ptr<Command> MoveCommand::Deserialize(ByteIterator start, ByteIterator end) {
-  return std::make_shared<MoveCommand>(Serialization::Deserialize<Vector2f>(start));
+std::shared_ptr<Command> MoveCommand::Deserialize(char *&bytes) {
+  return std::make_shared<MoveCommand>(Serialization::Read<Vector2f>(bytes));
 }
 
 void MoveCommand::Register() {
   type = Command::Register(&Deserialize);
+}
+
+std::string MoveCommand::ToString() const {
+  return "Move";
 }

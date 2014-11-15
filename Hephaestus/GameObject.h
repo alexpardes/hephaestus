@@ -1,8 +1,16 @@
 #pragma once
+#include "Util.h"
 #include "Vector2.h"
 
 class GameObject {
   public:
+    virtual size_t HashCode() const {
+      size_t hash = Util::HashStart();
+      Util::Hash(hash, position);
+      Util::Hash(hash, rotation);
+      return hash;
+    }
+
     virtual void PerformAction() = 0;
     virtual ~GameObject() { }
     Vector2f Position() const { return position; }

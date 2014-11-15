@@ -1,61 +1,48 @@
 #pragma once
-
-#include "Player.h"
 #include <mutex>
 #include <thread>
+#include "GameStatus.h"
+#include "Replay.h"
 
 class CommandSource;
+class GameScene;
+class GameState;
+class Player;
 
 class GameManager {
 	public:
 		GameManager(float timestep);
-    void SetCommandSource(int playerNumber, CommandSource* source);
+    void SetCommandSource(int playerNumber, CommandSource* source, bool isLocal = false);
 		void SetGameState(GameState *state);
-		void EndGame() {
-      isRunning = false;
-      thread.join();
-    }
-
-		float GetFrameTime() {
-			float frame_time;
-      scene_mutex_.lock();
-			if (lastScene) {
-				frame_time = 1.f;
-			} else {
-				frame_time = std::min(clock_.getElapsedTime().asMilliseconds() / timestep_, 1.f);
-			}
-      scene_mutex_.unlock();
-			return frame_time;
-		}
-
-		GameScene *TakeScene() {
-			GameScene *scene = NULL;
-			if (lastScene) {
-				scene_mutex_.lock();
-				scene = lastScene;
-				lastScene = NULL;
-				scene_mutex_.unlock();
-			}
-			return scene;
-		}
-
     void StartGame();
-    bool IsRunning() const { return isRunning; }
-
+		void EndGame();
+		GameScene *TakeScene();
+    GameStatus Status() const { return status; }
+		float GetFrameTime();
     float CycleRate() const { return currentStepsPerSecond; }
 
 	private:
-		void ApplyCommands();
-    bool QueueCommands();
+    enum Result {
+      kSuccess,
+      kDesync,
+      kConnectionFailure
+    };
+
+		Result ApplyCommands();
+    Result QueueCommands();
     void RunGame();
     void Reset();
+    void SetHash();
+
 		GameState *gameState;
 		GameScene *lastScene;
-		const float timestep_;
-		sf::Clock clock_;
-		bool isRunning;
-		std::mutex scene_mutex_;
+		const float timestep;
+		sf::Clock clock;
+		GameStatus status;
+		std::mutex sceneMutex;
     std::vector<Player*> players;
     std::thread thread;
+    std::vector<CommandSource*> localCommandSources;
     float currentStepsPerSecond;
+    ReplayWriter replayWriter;
 };

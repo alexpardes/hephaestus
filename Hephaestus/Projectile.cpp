@@ -23,6 +23,17 @@ Projectile::Projectile(GameState& gameState,
   rotation = direction;
 }
 
+size_t Projectile::HashCode() const {
+  size_t hash = GameObject::HashCode();
+  Util::Hash(hash, startPosition);
+  Util::Hash(hash, damage);
+  Util::Hash(hash, speed);
+  Util::Hash(hash, id);
+  Util::Hash(hash, isAlive);
+  Util::Hash(hash, name);
+  return hash;
+}
+
 void Projectile::PerformAction() {
   Vector2f v = speed * Util::MakeUnitVector(rotation);
 

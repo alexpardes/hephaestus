@@ -18,9 +18,9 @@ class Launcher : public HephaestusObserver {
     void JoinGame(const std::string& hostname, const std::string& port);
     void CancelHosting();
 
-    void OnConnectionFailed();
-    void OnGameStarted();
-    void OnGameEnded();
+    virtual void OnGameStarted();
+    virtual void OnGameEnded(GameStatus status);
+    virtual void OnConnectionFailed();
 
   private:
     Launcher();

@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "Player.h"
-#include "Command.h"
+#include "CommandTurn.h"
 #include "UnitCommand.h"
 #include "UnitAction.h"
 
@@ -8,13 +8,12 @@ Player::Player(GameState& gameState, CommandSource* commandSource) :
     gameState(gameState), commandSource(commandSource) { }
 
 bool Player::QueueCommandTurn() {
-  bool succeeded = false;
   auto turn = commandSource->TakeCommandTurn();
-  if (turn) {
-    turnQueue.push_back(turn);
-    succeeded = true;
-  }
-  return succeeded;
+  if (!turn)
+    return false;
+  
+  turnQueue.push_back(turn);
+  return true;
 }
 
 const std::shared_ptr<CommandTurn> Player::PopCommandTurn() {
@@ -29,9 +28,7 @@ const std::shared_ptr<CommandTurn> Player::PopCommandTurn() {
 
 void Player::ExecuteTurn() {
   const std::shared_ptr<CommandTurn> turn = PopCommandTurn();
-  CommandTurn::const_iterator it = turn->begin();
-  while (it != turn->end()) {
-    const std::shared_ptr<const Command> command = *it++;
+  for (auto command : *turn) {
     command->Execute(*this);
   }
 }
@@ -69,4 +66,8 @@ void Player::ClearSelection() {
 
 void Player::AddToSelection(UnitId id) {
   selectedUnits.push_back(id);
+}
+
+const CommandTurn &Player::NextTurn() const {
+  return *turnQueue.front();
 }

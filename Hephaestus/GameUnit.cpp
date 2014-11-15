@@ -11,7 +11,7 @@ GameUnit::GameUnit(UnitId id,
                    const Vector2f &position,
                    float rotation) {
 	id_ = id;
-	is_alive_ = true;
+	isAlive = true;
 	attributes_ = attributes;
 	this->position = position;
 	currentHealth = attributes_.MaxHealth();
@@ -19,6 +19,16 @@ GameUnit::GameUnit(UnitId id,
 	this->rotation = rotation;
   action = nullptr;
   facing = kRight;
+}
+
+size_t GameUnit::HashCode() const {
+  size_t hash = GameObject::HashCode();
+  Util::Hash(hash, isAlive);
+  Util::Hash(hash, currentHealth);
+  Util::Hash(hash, facing);
+  Util::Hash(hash, id_);
+  Util::Hash(hash, owner_);
+  return hash;
 }
 
 void GameUnit::SetAction(UnitAction *action) {
@@ -45,7 +55,7 @@ void GameUnit::AddPassiveAbility(UnitAbility *ability) {
 
 void GameUnit::PerformAction() {
   if (currentHealth <= 0) {
-    is_alive_ = false;
+    isAlive = false;
   } else if (action) {
     if (action->IsFinished()) {
       action = nullptr;

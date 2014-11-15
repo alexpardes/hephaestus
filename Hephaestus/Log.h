@@ -1,10 +1,10 @@
 #pragma once
-#include <string>
+#include <iostream>
 
-class DebugUtil {
+class Log {
   public:
     static void Write(const std::string &message);
 
   private:
-    static std::string logFile;
+    static std::ofstream logFile;
 };

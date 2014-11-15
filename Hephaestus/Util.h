@@ -12,6 +12,21 @@ class Util {
     static Vector2f MakeUnitVector(float angle);
 
     static int Sign(int x);
+    static size_t HashStart();
+
+    template<typename T> static void Hash(size_t &hash, const T &t) {
+      for (size_t i = 0; i < sizeof(t); ++i) {
+        hash = (hash * 16777619) ^ ((unsigned char *)&t)[i];
+      }
+    }
+
+    //static void Hash(size_t &h, size_t x);
+    //static void Hash(size_t &h, const Vector2f &v);
+    
+    template<> static void Hash<std::string>(size_t &h, const std::string &s) {
+      std::hash<std::string> hasher;
+      Hash(h, hasher(s));
+    }
 
     // Returns the angle between origin and origin + 2*pi.
     static float Angle(float angle, float origin = 0);

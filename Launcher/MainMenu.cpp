@@ -52,8 +52,22 @@ void MainMenu::OnConnectionFailed() {
   CEGUI::System::getSingleton().executeScriptGlobal("onConnectionFailed");
 }
 
-void MainMenu::OnGameEnded() {
-  CEGUI::System::getSingleton().executeScriptGlobal("onGameEnded");
+void MainMenu::OnGameEnded(GameStatus status) {
+  std::string message;
+  switch (status) {
+    case kFinished:
+      message = "Game ended.";
+      break;
+    case kDisconnected:
+      message = "Opponent has disconnected.";
+      break;
+    case kDesynced:
+      message = "Desync detected";
+      break;
+    default:
+      assert(false);
+  }
+  CEGUI::System::getSingleton().executeScriptString("onGameEnded(\"" + message + "\")");
 }
 
 void MainMenu::HandleEvent(sf::Event &Event) {
@@ -82,7 +96,7 @@ void MainMenu::HandleEvent(sf::Event &Event) {
       break;
     case sf::Event::Resized:
       CEGUI::System::getSingleton().notifyDisplaySizeChanged(
-          CEGUI::Sizef(Event.size.width, Event.size.height));
+          CEGUI::Sizef((float)Event.size.width, (float)Event.size.height));
   }
 }
 

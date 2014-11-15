@@ -31,8 +31,11 @@ Launcher *Launcher::Instance() {
 sf::RenderWindow *MakeWindow(bool makeFullscreen) {
   sf::ContextSettings settings;
   settings.antialiasingLevel = 8;
-  sf::Uint32 style = makeFullscreen ? sf::Style::Fullscreen : sf::Style::Default;
-  return new sf::RenderWindow(sf::VideoMode::getFullscreenModes()[0], "Paintball", style, settings);
+  if (makeFullscreen) {
+    return new sf::RenderWindow(sf::VideoMode::getFullscreenModes()[0], "Paintball",
+      sf::Style::Fullscreen, settings);
+  }
+  return new sf::RenderWindow(sf::VideoMode(1280, 720), "Paintball", sf::Style::Default, settings);
 }
 
 Launcher::Launcher() {
@@ -58,9 +61,9 @@ void Launcher::OnGameStarted() {
   gameRunning = true;
 }
 
-void Launcher::OnGameEnded() {
+void Launcher::OnGameEnded(GameStatus status) {
   gameRunning = false;
-  menu->OnGameEnded();
+  menu->OnGameEnded(status);
 }
 
 void Launcher::CancelHosting() {
@@ -78,6 +81,9 @@ void Launcher::Launch() {
       case sf::Event::KeyPressed:
         if (event.key.code == sf::Keyboard::Key::F4 &&
             sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LAlt)) {
+          if (hephaestus->IsRunning())
+            hephaestus->Stop();
+
           window->close();
         }
         if (event.key.code == sf::Keyboard::Key::Return &&

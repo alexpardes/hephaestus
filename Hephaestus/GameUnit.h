@@ -22,6 +22,8 @@ class GameUnit : public GameObject {
 		GameUnit(UnitId id, const UnitAttributes &attributes, PlayerNumber owner,
 				const Vector2f &position, float rotation);
 
+    virtual size_t HashCode() const;
+
 		Vector2f Position() const {return position;}
     LineSegment SegmentFromUnit(const Vector2f &viewPoint) const;
 
@@ -46,8 +48,8 @@ class GameUnit : public GameObject {
 		void SetAction(UnitAction *action);
     void PerformAction();
 
-		void Kill() {is_alive_ = false;}
-		bool IsAlive() const {return is_alive_;}
+		void Kill() {isAlive = false;}
+		bool IsAlive() const {return isAlive;}
 		bool operator==(const GameUnit &other) const {return this == &other;}
 		bool operator!=(const GameUnit &other) const {return this != &other;}
 		UnitId Id() const {return id_;}
@@ -63,7 +65,7 @@ class GameUnit : public GameObject {
     void SetFacing(Direction facing) { this->facing = facing; }
 
 	private:
-		bool is_alive_;
+		bool isAlive;
     SectorMap sightMap;
     std::vector<Vector2f> visiblePoints;
 		static std::vector<Vector2i>* pathing_offsets_;

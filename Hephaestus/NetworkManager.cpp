@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "Log.h"
 #include "NetworkManager.h"
 #include "NetworkConnection.h"
 
@@ -15,11 +16,12 @@ NetworkManager::NetworkManager() : work(ioService) {
 }
 
 NetworkManager::~NetworkManager() {
-	Reset();
+	Cancel();
 }
 
 void NetworkManager::Cancel() {
   socket->close();
+  Log::Write("Connection closed");
 }
 
 NetworkManager::AsioHandler
@@ -36,6 +38,7 @@ NetworkManager::CreateHandler(ConnectionHandler handler) {
 
 void NetworkManager::AcceptClient(int port, ConnectionHandler handler) {
 	acceptor = new tcp::acceptor(ioService, tcp::endpoint(tcp::v4(), port));
+  Log::Write("Waiting for client");
 	acceptor->async_accept(*socket, CreateHandler(handler));
 }
 
@@ -58,9 +61,10 @@ void NetworkManager::Connect(const std::string &hostname,
   tcp::resolver resolver(ioService);
   tcp::resolver::query query(hostname, port);
   tcp::resolver::iterator endpoints = resolver.resolve(query);
+  Log::Write("Attempting to connect to host");
   boost::asio::async_connect(*socket, endpoints, CreateJoinHandler(handler));
 }
 
 void NetworkManager::Reset() {
-  socket->close();
+  Cancel();
 }

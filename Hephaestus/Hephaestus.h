@@ -28,8 +28,8 @@ class Hephaestus {
     void CancelHosting();
     void SetObserver(HephaestusObserver* observer);
     void HandleEvent(const sf::Event &event);
-
     void Update();
+    void Stop();
     bool IsRunning() const;
 
   private:
@@ -40,7 +40,7 @@ class Hephaestus {
     sf::RenderWindow *window;
     sf::Clock *clock;
     GameInterface *game_interface;
-    GameManager *game_manager;
+    GameManager *gameManager;
     Graphics *graphics;
     ResourceManager *resource_manager;
     GameScene *game_scene1, *game_scene2;

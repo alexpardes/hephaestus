@@ -471,6 +471,17 @@ CollisionTestResult GameState::TestCollision(
       unit->Attributes().CollisionRadius(), unit);
 }
 
+size_t GameState::HashCode() const {
+  size_t hash = Util::HashStart();
+  for (auto unit : units) {
+    Util::Hash(hash, unit->HashCode());
+  }
+  for (auto projectile : projectiles) {
+    Util::Hash(hash, projectile->HashCode());
+  }
+  return hash;
+}
+
 const float GameScene::kUnitGridResolution = 25.f;
 
 GameScene::GameScene(const GameState &game_state) {

@@ -2,14 +2,18 @@
 #include "GameManager.h"
 #include "Commands.h"
 #include "CommandBuffer.h"
+#include "CommandTurn.h"
 #include "NetworkConnection.h"
+#include "Player.h"
 #include "Timer.h"
 
 GameManager::GameManager(float timestep) :
-		gameState(NULL),
-		lastScene(NULL),
-		timestep_(timestep) {
-  isRunning = false;
+		gameState(nullptr),
+		lastScene(nullptr),
+		timestep(timestep) {
+
+  replayWriter.OpenFile("replay.rep");
+  status = kFinished;
 }
 
 void GameManager::SetGameState(GameState *state) {
@@ -21,44 +25,53 @@ void GameManager::SetGameState(GameState *state) {
 	lastScene = new GameScene(*gameState);
 }
 
-void GameManager::SetCommandSource(int playerNumber, CommandSource* source) {
+void GameManager::SetCommandSource(int playerNumber, CommandSource* source, bool isLocal) {
   players[playerNumber]->SetCommandSource(source);
+  if (isLocal)
+    localCommandSources.push_back(source);
 }
 
 void GameManager::StartGame() {
+  status = kRunning;
   thread = std::thread(&GameManager::RunGame, this);
 }
 
 
 void GameManager::RunGame() {
-	isRunning = true;
-	while (isRunning) {
+  Log::Write("Game started");
+	while (status == kRunning) {
+    SetHash();
 
-    if (!QueueCommands()) {
-      isRunning = false;
+    if (QueueCommands() != kSuccess) {
+      Log::Write("Connection lost");
+      status = kDisconnected;
       break;
     }
 
-		ApplyCommands();
+		if (ApplyCommands() != kSuccess) {
+      Log::Write("Desync");
+      status = kDesynced;
+      break;
+    }
     
-    Timer::Start();
+    //Timer::Start();
     gameState->ExecuteTurn();
-    Timer::Stop();
+    //Timer::Stop();
 
-    float elapsed_time = clock_.getElapsedTime().asSeconds() * 1000;
-    while (elapsed_time < timestep_) {
+    float elapsed_time = clock.getElapsedTime().asSeconds() * 1000;
+    while (elapsed_time < timestep) {
       boost::this_thread::sleep(boost::posix_time::
-          milliseconds(int64_t(timestep_ - elapsed_time)));
-      elapsed_time = clock_.getElapsedTime().asSeconds() * 1000;
+          milliseconds(int64_t(timestep - elapsed_time)));
+      elapsed_time = clock.getElapsedTime().asSeconds() * 1000;
     }
 
     currentStepsPerSecond = 1000 / elapsed_time;
 
-		scene_mutex_.lock();
-		clock_.restart();
+		sceneMutex.lock();
+		clock.restart();
 		if (lastScene) delete lastScene;
 		lastScene = new GameScene(*gameState);
-		scene_mutex_.unlock();
+		sceneMutex.unlock();
 	}
 
   Reset();
@@ -70,17 +83,63 @@ void GameManager::Reset() {
   gameState = nullptr;
 }
 
-bool GameManager::QueueCommands() {
+auto GameManager::QueueCommands() -> Result {
   for (Player* player : players) {
     if (!player->QueueCommandTurn()) {
-      return false;
+      return kConnectionFailure;
     }
   }
-  return true;
+  return kSuccess;
 }
 
-void GameManager::ApplyCommands() {
+auto GameManager::ApplyCommands() -> Result {
+  auto gameHash = players[0]->NextTurn().GameHash();
   for (Player* player : players) {
+    const CommandTurn &turn = player->NextTurn();
+    replayWriter.WriteTurn(turn);
+    if (turn.GameHash() != gameHash)
+      return kDesync;
+
     player->ExecuteTurn();
+  }
+  return kSuccess;
+}
+
+void GameManager::EndGame() {
+  if (status == kRunning)
+    status = kFinished;
+
+  Log::Write("Creating human readable replay");
+  ReplayReader("replay.rep").WriteHumanReadable("replay.hrr");
+  thread.join();
+}
+
+float GameManager::GetFrameTime() {
+  float frameTime;
+  sceneMutex.lock();
+  if (lastScene) {
+    frameTime = 1.f;
+  } else {
+    frameTime = std::min(clock.getElapsedTime().asMilliseconds() / timestep, 1.f);
+  }
+  sceneMutex.unlock();
+  return frameTime;
+}
+
+GameScene *GameManager::TakeScene() {
+  GameScene *scene = NULL;
+  if (lastScene) {
+    sceneMutex.lock();
+    scene = lastScene;
+    lastScene = NULL;
+    sceneMutex.unlock();
+  }
+  return scene;
+}
+
+void GameManager::SetHash() {
+  size_t gameHash = gameState->HashCode();
+  for (auto commandSource : localCommandSources) {
+    commandSource->SetGameHash(gameHash);
   }
 }

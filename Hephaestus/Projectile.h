@@ -12,6 +12,7 @@ class Projectile : public GameObject {
         const Vector2f &position, float direction,
         float damage, float speed);
 
+    virtual size_t HashCode() const;
 		int Id() const {return id;}
 		static int serial_number_;
     virtual void PerformAction();

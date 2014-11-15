@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Command.h"
+#include "Serialization.h"
 
 std::vector<Command::Deserializer> Command::deserializers;
 
@@ -8,6 +9,12 @@ CommandType Command::Register(Deserializer deserializer) {
   return (CommandType) deserializers.size();
 }
 
-std::shared_ptr<Command> Command::Deserialize(CommandType type, ByteIterator start, ByteIterator end) {
-  return deserializers[type - 1](start, end);
+void Command::Serialize(char *&bytes) const {
+  Serialization::Write(bytes, Type());
+  SerializeInternal(bytes);
+}
+
+std::shared_ptr<Command> Command::Deserialize(char *&bytes) {
+  auto type = Serialization::Read<char>(bytes);
+  return deserializers[type - 1](bytes);
 }

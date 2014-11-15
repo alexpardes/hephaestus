@@ -2,9 +2,9 @@
 
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/ip/tcp.hpp>
-#include "Command.h"
 #include "Util.h"
 
+class CommandTurn;
 class NetworkConnection;
 typedef std::function<void(NetworkConnection*)> ConnectionHandler;
 

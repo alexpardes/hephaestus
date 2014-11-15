@@ -174,7 +174,8 @@
     <ClCompile Include="CommandBuffer.cpp" />
     <ClCompile Include="CommandSink.cpp" />
     <ClCompile Include="CommandSource.cpp" />
-    <ClCompile Include="DebugUtil.cpp" />
+    <ClCompile Include="CommandTurn.cpp" />
+    <ClCompile Include="Log.cpp" />
     <ClCompile Include="DirectedSegment.cpp" />
     <ClCompile Include="GameManager.cpp" />
     <ClCompile Include="GameUnit.cpp" />
@@ -196,6 +197,7 @@
     <ClCompile Include="SelectCommand.cpp" />
     <ClCompile Include="GameState.cpp" />
     <ClCompile Include="ShadowCaster.cpp" />
+    <ClCompile Include="Replay.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -222,7 +224,9 @@
     <ClInclude Include="Commands.h" />
     <ClInclude Include="CommandSink.h" />
     <ClInclude Include="CommandSource.h" />
-    <ClInclude Include="DebugUtil.h" />
+    <ClInclude Include="CommandTurn.h" />
+    <ClInclude Include="GameStatus.h" />
+    <ClInclude Include="Log.h" />
     <ClInclude Include="DirectedSegment.h" />
     <ClInclude Include="GameManager.h" />
     <ClInclude Include="GameObject.h" />
@@ -245,6 +249,7 @@
     <ClInclude Include="Player.h" />
     <ClInclude Include="Projectile.h" />
     <ClInclude Include="Rectangle.h" />
+    <ClInclude Include="Replay.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="ResourceManager.h" />
     <ClInclude Include="SectorMap.h" />
