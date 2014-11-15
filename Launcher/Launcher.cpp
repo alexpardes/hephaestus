@@ -10,12 +10,12 @@
 
 int main() {
 
-  //try {
+  try {
     Launcher::Instance()->Launch();
-  //} catch (std::exception &e) {
-  //  std::ofstream errorLog("ErrorLog.txt");
-  //  errorLog << e.what();
-  //}
+  } catch (std::exception &e) {
+    std::ofstream errorLog("ErrorLog.txt");
+    errorLog << e.what();
+  }
   return 0;
 }
 
@@ -131,4 +131,9 @@ void Launcher::JoinGame(const std::string& hostname,
   if (!hephaestus->IsRunning()) {
     hephaestus->JoinGame(hostname, port);
   }
+}
+
+void Launcher::PlayReplay(const std::string& replay) {
+  if (!hephaestus->IsRunning())
+    hephaestus->PlayReplay(replay);
 }

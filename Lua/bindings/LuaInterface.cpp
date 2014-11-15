@@ -1,6 +1,6 @@
 /*
 ** Lua binding: Launcher
-** Generated automatically by tolua++-1.0.92 on 02/17/14 08:45:43.
+** Generated automatically by tolua++-1.0.92 on 11/15/14 09:43:06.
 */
 
 #ifndef __cplusplus
@@ -79,6 +79,40 @@ static int tolua_Launcher_Launcher_StartSinglePlayerGame00(lua_State* tolua_S)
 #ifndef TOLUA_RELEASE
  tolua_lerror:
  tolua_error(tolua_S,"#ferror in function 'StartSinglePlayerGame'.",&tolua_err);
+ return 0;
+#endif
+}
+#endif //#ifndef TOLUA_DISABLE
+
+/* method: PlayReplay of class  Launcher */
+#ifndef TOLUA_DISABLE_tolua_Launcher_Launcher_PlayReplay00
+static int tolua_Launcher_Launcher_PlayReplay00(lua_State* tolua_S)
+{
+#ifndef TOLUA_RELEASE
+ tolua_Error tolua_err;
+ if (
+ !tolua_isusertype(tolua_S,1,"Launcher",0,&tolua_err) ||
+ !tolua_iscppstring(tolua_S,2,0,&tolua_err) ||
+ !tolua_isnoobj(tolua_S,3,&tolua_err)
+ )
+ goto tolua_lerror;
+ else
+#endif
+ {
+  Launcher* self = (Launcher*)  tolua_tousertype(tolua_S,1,0);
+  const std::string replay = ((const std::string)  tolua_tocppstring(tolua_S,2,0));
+#ifndef TOLUA_RELEASE
+ if (!self) tolua_error(tolua_S,"invalid 'self' in function 'PlayReplay'",NULL);
+#endif
+ {
+  self->PlayReplay(replay);
+ tolua_pushcppstring(tolua_S,(const char*)replay);
+ }
+ }
+ return 1;
+#ifndef TOLUA_RELEASE
+ tolua_lerror:
+ tolua_error(tolua_S,"#ferror in function 'PlayReplay'.",&tolua_err);
  return 0;
 #endif
 }
@@ -205,6 +239,7 @@ int tolua_Launcher_open (lua_State* tolua_S)
  tolua_beginmodule(tolua_S,"Launcher");
   tolua_function(tolua_S,"Instance",tolua_Launcher_Launcher_Instance00);
   tolua_function(tolua_S,"StartSinglePlayerGame",tolua_Launcher_Launcher_StartSinglePlayerGame00);
+  tolua_function(tolua_S,"PlayReplay",tolua_Launcher_Launcher_PlayReplay00);
   tolua_function(tolua_S,"HostGame",tolua_Launcher_Launcher_HostGame00);
   tolua_function(tolua_S,"JoinGame",tolua_Launcher_Launcher_JoinGame00);
   tolua_function(tolua_S,"CancelHosting",tolua_Launcher_Launcher_CancelHosting00);

@@ -11,38 +11,39 @@ void ReplayWriter::WriteTurn(const CommandTurn &turn) {
   char *bytesStart = &bytes[0];
   char *bytePointer = &bytes[0];
   turn.Serialize(bytePointer);
-  file.write(bytesStart, bytePointer - bytesStart);
+  size_t size = bytePointer - bytesStart;
+  file.write(bytesStart, size);
 }
 
 void ReplayWriter::CloseFile() {
   file.close();
 }
 
-ReplayReader::ReplayReader() { }
+ReplayReader::ReplayReader() {
+  rawReplayStart = nullptr;
+}
 
 ReplayReader::ReplayReader(const std::string &filename) {
   OpenFile(filename);
 }
 
-void ReplayReader::OpenFile(const std::string &filename) {
-  file.open(filename, std::ios::binary);
+ReplayReader::ReplayReader(const std::string &filename, int playerId) : playerId(playerId) {
+  OpenFile(filename);
+}
+
+ReplayReader::~ReplayReader() {
+  if (rawReplayStart)
+    delete rawReplayStart;
 }
 
 void ReplayReader::WriteHumanReadable(const std::string &filename) {
-  file.seekg(0, std::ios::end);
-  auto fileSize = (size_t) file.tellg();
-  file.seekg(0, std::ios::beg);
-  char *bytesStart = new char[fileSize];
-  file.read(bytesStart, fileSize);
   std::ofstream outputFile(filename);
-  char *bytes = bytesStart;
   int plyNumber = 0;
-  while (size_t(bytes - bytesStart) < fileSize) {
-    auto turn = CommandTurn::Deserialize(bytes);
+  while (size_t(rawReplayCurrent - rawReplayStart) < fileSize) {
+    auto turn = CommandTurn::Deserialize(rawReplayCurrent);
     WriteTurn(*turn, plyNumber++, outputFile);
   }
 
-  delete[] bytesStart;
   outputFile.close();
 }
 
@@ -53,4 +54,26 @@ void ReplayReader::WriteTurn(const CommandTurn &turn, int plyNumber, std::ofstre
   for (auto command : turn) {
     outputFile << prefix << command->ToString() << std::endl;
   }
+}
+
+std::shared_ptr<CommandTurn> ReplayReader::TakeCommandTurn() {
+  // TODO: Indicate that the replay has finished.
+  if (rawReplayCurrent >= rawReplayStart + fileSize)
+    return std::make_shared<CommandTurn>();
+
+  auto turn1 = CommandTurn::Deserialize(rawReplayCurrent);
+  auto turn2 = CommandTurn::Deserialize(rawReplayCurrent);
+  return playerId == 0 ? turn1 : turn2;
+}
+
+void ReplayReader::SetGameHash(size_t gameHash) { }
+
+void ReplayReader::OpenFile(const std::string &filename) {
+  std::ifstream file(filename, std::ios::binary);
+  file.seekg(0, std::ios::end);
+  fileSize = (size_t) file.tellg();
+  file.seekg(0, std::ios::beg);
+  rawReplayStart = new char[fileSize];
+  rawReplayCurrent = rawReplayStart;
+  file.read(rawReplayStart, fileSize);
 }

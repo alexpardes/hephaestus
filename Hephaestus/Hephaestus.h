@@ -23,6 +23,7 @@ class Hephaestus {
   public:
     Hephaestus(sf::RenderWindow *window);
     void StartSinglePlayerGame(const std::string &map);
+    void PlayReplay(const std::string &replay);
     void HostGame(const std::string &map, int port);
     void JoinGame(const std::string &hostname, const std::string& port);
     void CancelHosting();

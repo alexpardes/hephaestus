@@ -23,7 +23,7 @@ GameInterface::GameInterface(sf::RenderWindow& window) : window(window) {
   mouseVScroll = 0;
   is_selecting_ = false;
   cursor_action_ = kSelect;
-  game_scene_ = NULL;
+  game_scene_ = nullptr;
   //mainView = window.getDefaultView();
   mainView.setSize(Vector2f(1920, 1280));
   RegisterCommands();
@@ -31,6 +31,10 @@ GameInterface::GameInterface(sf::RenderWindow& window) : window(window) {
 
 std::shared_ptr<Command> GameInterface::ProcessEvent(const sf::Event &event,
                                                      const sf::RenderWindow &window) {
+
+  if (!game_scene_)
+    return nullptr;
+
 	Vector2f location;
 	std::shared_ptr<Command> command = nullptr;
 	switch (event.type) {
@@ -244,7 +248,7 @@ const sf::Drawable *GameInterface::GetInterfaceGrahic() const {
 }
 
 const UnitModel *GameInterface::GetUnit(const Vector2f &location) const {
-	const UnitModel *unit = NULL;
+	const UnitModel *unit = nullptr;
 	std::vector<const UnitModel *> units = game_scene_->
 			GetUnitsInRectangle(location, location);
 	if (units.size()) {

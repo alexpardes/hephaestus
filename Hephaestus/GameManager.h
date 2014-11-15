@@ -16,6 +16,7 @@ class GameManager {
 		void SetGameState(GameState *state);
     void StartGame();
 		void EndGame();
+    void SetSaveReplay(bool saveReplay);
 		GameScene *TakeScene();
     GameStatus Status() const { return status; }
 		float GetFrameTime();
@@ -45,4 +46,5 @@ class GameManager {
     std::vector<CommandSource*> localCommandSources;
     float currentStepsPerSecond;
     ReplayWriter replayWriter;
+    bool saveReplay;
 };

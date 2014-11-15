@@ -9,6 +9,7 @@
 #include "ResourceManager.h"
 #include "CommandBuffer.h"
 #include "NetworkConnection.h"
+#include "Replay.h"
 
 const float kTimestep = 50.f;
 
@@ -43,6 +44,17 @@ void Hephaestus::StartSinglePlayerGame(const std::string &map) {
   game_interface->SetPlayer(kPlayer1);
   gameManager->SetCommandSource(0, commandBuffer, true);
   gameManager->SetCommandSource(1, CommandSource::Null, true);
+  gameManager->SetSaveReplay(true);
+  StartGame();
+}
+
+void Hephaestus::PlayReplay(const std::string &replay) {
+  // TODO: Get map from replay file.
+  LoadMap("default.map");
+  game_interface->SetPlayer(kPlayer1);
+  gameManager->SetCommandSource(0, new ReplayReader(replay, 0), false);
+  gameManager->SetCommandSource(1, new ReplayReader(replay, 1), false);
+  gameManager->SetSaveReplay(false);
   StartGame();
 }
 
@@ -65,6 +77,7 @@ void Hephaestus::StartHostedGame(NetworkConnection* connection,
   commandBuffer->CreateTurnDelay(1);
 
   game_interface->SetPlayer(kPlayer1);
+  gameManager->SetSaveReplay(true);
   StartGame();
 }
 
@@ -90,6 +103,7 @@ void Hephaestus::StartJoinedGame(NetworkConnection* connection) {
     gameManager->SetCommandSource(1, commandBuffer, true);
     commandBuffer->RegisterCommandSink(opponentConnection);
     commandBuffer->CreateTurnDelay(1);
+    gameManager->SetSaveReplay(true);
     StartGame();
   } else {
     if (observer) observer->OnConnectionFailed();

@@ -16,6 +16,7 @@ class Launcher : public HephaestusObserver {
     void StartSinglePlayerGame(const std::string& map);
     void HostGame(const std::string& map, int port);
     void JoinGame(const std::string& hostname, const std::string& port);
+    void PlayReplay(const std::string& replay);
     void CancelHosting();
 
     virtual void OnGameStarted();

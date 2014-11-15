@@ -12,7 +12,7 @@ GameManager::GameManager(float timestep) :
 		lastScene(nullptr),
 		timestep(timestep) {
 
-  replayWriter.OpenFile("replay.rep");
+  saveReplay = true;
   status = kFinished;
 }
 
@@ -39,6 +39,9 @@ void GameManager::StartGame() {
 
 void GameManager::RunGame() {
   Log::Write("Game started");
+  if (saveReplay)
+    replayWriter.OpenFile("replay.rep");
+
 	while (status == kRunning) {
     SetHash();
 
@@ -96,7 +99,9 @@ auto GameManager::ApplyCommands() -> Result {
   auto gameHash = players[0]->NextTurn().GameHash();
   for (Player* player : players) {
     const CommandTurn &turn = player->NextTurn();
-    replayWriter.WriteTurn(turn);
+    if (saveReplay)
+      replayWriter.WriteTurn(turn);
+
     if (turn.GameHash() != gameHash)
       return kDesync;
 
@@ -109,9 +114,11 @@ void GameManager::EndGame() {
   if (status == kRunning)
     status = kFinished;
 
-  Log::Write("Creating human readable replay");
-  replayWriter.CloseFile();
-  ReplayReader("replay.rep").WriteHumanReadable("replay.hrr");
+  if (saveReplay) {
+    Log::Write("Creating human readable replay");
+    replayWriter.CloseFile();
+    ReplayReader("replay.rep").WriteHumanReadable("replay.hrr");
+  }
   thread.join();
 }
 
@@ -128,11 +135,11 @@ float GameManager::GetFrameTime() {
 }
 
 GameScene *GameManager::TakeScene() {
-  GameScene *scene = NULL;
+  GameScene *scene = nullptr;
   if (lastScene) {
     sceneMutex.lock();
     scene = lastScene;
-    lastScene = NULL;
+    lastScene = nullptr;
     sceneMutex.unlock();
   }
   return scene;
@@ -143,4 +150,8 @@ void GameManager::SetHash() {
   for (auto commandSource : localCommandSources) {
     commandSource->SetGameHash(gameHash);
   }
+}
+
+void GameManager::SetSaveReplay(bool saveReplay) {
+  this->saveReplay = saveReplay;
 }
