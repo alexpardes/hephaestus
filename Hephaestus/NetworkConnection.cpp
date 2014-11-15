@@ -31,7 +31,11 @@ std::shared_ptr<CommandTurn> NetworkConnection::TakeCommandTurn() {
 
   // TODO: instead of busy waiting, sleep and then wake the thread in the
   // callback.
+#if _DEBUG
+  while (isWaiting && (clock() - startTime) / CLOCKS_PER_SEC <= 3600);
+#else
   while (isWaiting && (clock() - startTime) / CLOCKS_PER_SEC <= 2);
+#endif
 
   if (isWaiting) { // The read has timed out.
     socket->close();

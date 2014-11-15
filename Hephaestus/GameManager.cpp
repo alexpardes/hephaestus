@@ -110,6 +110,7 @@ void GameManager::EndGame() {
     status = kFinished;
 
   Log::Write("Creating human readable replay");
+  replayWriter.CloseFile();
   ReplayReader("replay.rep").WriteHumanReadable("replay.hrr");
   thread.join();
 }

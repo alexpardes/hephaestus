@@ -14,6 +14,10 @@ void ReplayWriter::WriteTurn(const CommandTurn &turn) {
   file.write(bytesStart, bytePointer - bytesStart);
 }
 
+void ReplayWriter::CloseFile() {
+  file.close();
+}
+
 ReplayReader::ReplayReader() { }
 
 ReplayReader::ReplayReader(const std::string &filename) {
@@ -25,22 +29,21 @@ void ReplayReader::OpenFile(const std::string &filename) {
 }
 
 void ReplayReader::WriteHumanReadable(const std::string &filename) {
-  std::filebuf* fileBuffer = file.rdbuf();
-  auto fileSize = fileBuffer->pubseekoff(0, file.end, file.in);
-  fileBuffer->pubseekpos(0, file.in);
-  char *bytesStart = new char[(size_t) fileSize];
-  fileBuffer->sgetn(bytesStart, fileSize);
-
+  file.seekg(0, std::ios::end);
+  auto fileSize = (size_t) file.tellg();
+  file.seekg(0, std::ios::beg);
+  char *bytesStart = new char[fileSize];
+  file.read(bytesStart, fileSize);
   std::ofstream outputFile(filename);
   char *bytes = bytesStart;
-
   int plyNumber = 0;
-  while (bytes - bytesStart < fileSize) {
+  while (size_t(bytes - bytesStart) < fileSize) {
     auto turn = CommandTurn::Deserialize(bytes);
     WriteTurn(*turn, plyNumber++, outputFile);
   }
 
   delete[] bytesStart;
+  outputFile.close();
 }
 
 void ReplayReader::WriteTurn(const CommandTurn &turn, int plyNumber, std::ofstream &outputFile) {

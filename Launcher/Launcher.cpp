@@ -41,7 +41,7 @@ sf::RenderWindow *MakeWindow(bool makeFullscreen) {
 Launcher::Launcher() {
   gameRunning = false;
 
-#if DEBUG
+#if _DEBUG
   isFullscreen = false;
 #else
   isFullscreen = true;
@@ -79,14 +79,16 @@ void Launcher::Launch() {
         window->close();
         break;
       case sf::Event::KeyPressed:
-        if (event.key.code == sf::Keyboard::Key::F4 &&
+        if (event.key.code == sf::Keyboard::Key::Escape) {
+          if (!hephaestus->IsRunning())
+            window->close();
+        } else if (event.key.code == sf::Keyboard::Key::F4 &&
             sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LAlt)) {
           if (hephaestus->IsRunning())
             hephaestus->Stop();
 
           window->close();
-        }
-        if (event.key.code == sf::Keyboard::Key::Return &&
+        } else if (event.key.code == sf::Keyboard::Key::Return &&
             sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LAlt)) {
           delete window;
           isFullscreen = !isFullscreen;

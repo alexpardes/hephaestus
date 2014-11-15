@@ -6,7 +6,7 @@ class CommandTurn {
     typedef std::vector<const std::shared_ptr<const Command>>::iterator iterator;
     typedef std::vector<const std::shared_ptr<const Command>>::const_iterator const_iterator;
 
-    CommandTurn() { }
+    CommandTurn() : hash(0) { }
     CommandTurn(size_t gameHash) : hash(gameHash) { }
 
     iterator begin() { return commands.begin(); }

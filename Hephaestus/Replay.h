@@ -7,6 +7,7 @@ class ReplayWriter {
   public:
     void OpenFile(const std::string &filename);
     void WriteTurn(const CommandTurn &turn);
+    void CloseFile();
 
   private:
     std::ofstream file;
