@@ -10,7 +10,7 @@ class SubgoalPathFinder : public PathFinder {
         const std::vector<Subgoal*> &subgoals,
         const std::vector<const std::vector<int>> &adjacencyLists);
 
-    virtual std::vector<Waypoint*> GetPath(const Vector2f &startpoint,
+    virtual std::vector<const Waypoint*> GetPath(const Vector2f &startpoint,
         const Vector2f &endpoint);
     virtual const PathingGrid *GetPathingGrid() const { return grid; }
     virtual ~SubgoalPathFinder();

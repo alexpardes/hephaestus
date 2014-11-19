@@ -1,17 +1,18 @@
 #include "stdafx.h"
 #include "Coloring.h"
 #include "ResourceManager.h"
+#include <PathFinding/SpatialGraph.h>
 #include <PathFinding/SubgoalPathFinder.h>
-#include <PathFinding/VectorPathingGrid.h>
 #include <PathFinding/Subgoal.h>
+#include <PathFinding/VectorPathingGrid.h>
 
 GameState *ResourceManager::LoadMap(const std::string& filename) {
   LoadFonts();
 
 	std::ifstream mapFile(filename);
 	if (!mapFile.good()) {
-		assert(0);
-		return NULL;
+		assert(false);
+		return nullptr;
 	}
 	Json::Reader reader;
 	Json::Value map;
@@ -28,8 +29,9 @@ GameState *ResourceManager::LoadMap(const std::string& filename) {
   LoadPlayerColors(map);
   LoadUnits(map);
 
-  PathFinder* pathfinder = LoadPathingInfo(map["pathinginfo"]);
-	GameState* state = new GameState(unit_dictionary_, mapSize, pathfinder);
+  PathFinder *pathfinder = LoadPathingInfo(map["pathinginfo"]);
+  SpatialGraph *pathingGraph = LoadSpatialGraph(map["pathinginfo"]);
+	GameState *state = new GameState(unit_dictionary_, mapSize, pathfinder, pathingGraph);
 
   SetupGameState(map, state);
 
@@ -160,9 +162,52 @@ PathFinder *ResourceManager::LoadPathingInfo(const Json::Value& pathingInfo) {
     ++adjacencyList;
   }
 
-  return new SubgoalPathFinder(grid, Vector2f(8, 8),
+  return new SubgoalPathFinder(grid, Vector2f(kTileSize, kTileSize),
       subgoals, adjacencyLists);
 }
+
+SpatialGraph *ResourceManager::LoadSpatialGraph(const Json::Value& pathingInfo) {
+  std::vector<Vector2f> points;
+  Json::Value::const_iterator subgoal = pathingInfo["subgoals"].begin();
+  while (subgoal != pathingInfo["subgoals"].end()) {    
+    Json::Value::const_iterator coordinate = (*subgoal++).begin();
+    int x = (*coordinate++).asInt();
+    int y = (*coordinate++).asInt();
+    Vector2i direction;
+    switch ((*coordinate).asInt()) {
+    case 0:
+      break;
+    case 1:
+      ++x;
+      break;
+    case 2:
+      ++y;
+      break;
+    case 3:
+      ++x;
+      ++y;
+      break;
+    default:
+      assert(false);
+    }
+
+    points.push_back(Vector2f(float(kTileSize * x), float(kTileSize * y)));
+  }
+  std::vector<const std::vector<int>> adjacencyLists;
+  Json::Value::const_iterator adjacencyList = pathingInfo["adjacencies"].begin();
+  while (adjacencyList != pathingInfo["adjacencies"].end()) {
+    Json::Value::const_iterator it = (*adjacencyList).begin();
+    std::vector<int> neighbors;
+    while (it != (*adjacencyList).end()) {
+      neighbors.push_back((*it++).asInt());
+    }
+    adjacencyLists.push_back(neighbors);
+    ++adjacencyList;
+  }
+
+  return new SpatialGraph(points, adjacencyLists);
+}
+
 
 void ResourceManager::LoadUnitAttributes(const Json::Value& unit) {
 	std::string name = unit["name"].asString();

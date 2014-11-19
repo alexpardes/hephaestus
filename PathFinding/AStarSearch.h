@@ -10,8 +10,8 @@ struct SearchNodeGreater {
 };
 
 class AStarSearch : public SearchAlgorithm {
-  public:
-    virtual std::vector<const Vertex*> FindPath(const Vertex *start, SearchHeuristic h);    
+  public:    
+    virtual std::vector<const Vertex*> FindPath(const Vertex *start, SearchHeuristic h, AdjacencyList adjacencies = nullptr);    
 
   private:
     std::vector<std::shared_ptr<SearchNode>> searchNodes;
@@ -20,7 +20,7 @@ class AStarSearch : public SearchAlgorithm {
     SearchHeuristic heuristic;
 
     // Returns true iff the node's vertex is a destination (h(v) == 0).
-    bool Visit(const SearchNode *node);
+    bool Visit(const SearchNode *node, AdjacencyList adjacencies);
     std::vector<const Vertex*> Path(const SearchNode *node) const;
     void Reset();
     const SearchNode *AddNode(Edge edge, const SearchNode *parent);

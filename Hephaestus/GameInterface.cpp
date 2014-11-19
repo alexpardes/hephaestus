@@ -2,7 +2,7 @@
 #include "Commands.h"
 #include "GameInterface.h"
 
-const float GameInterface::kScrollSpeed = 500.f;
+const float GameInterface::kScrollSpeed = 800.f;
 bool GameInterface::hasRegisteredCommands = false;
 
 void GameInterface::RegisterCommands() {
@@ -12,6 +12,7 @@ void GameInterface::RegisterCommands() {
     AttackCommand::Register();
     AttackMoveCommand::Register();
     StopCommand::Register();
+    TargetGroundCommand::Register();
     hasRegisteredCommands = true;
   }
 }
@@ -22,10 +23,10 @@ GameInterface::GameInterface(sf::RenderWindow& window) : window(window) {
   mouseHScroll = 0;
   mouseVScroll = 0;
   is_selecting_ = false;
-  cursor_action_ = kSelect;
+  cursorAction = kSelect;
   game_scene_ = nullptr;
   //mainView = window.getDefaultView();
-  mainView.setSize(Vector2f(1920, 1280));
+  mainView.setSize(Vector2f(1920, 1080));
   RegisterCommands();
 }
 
@@ -45,26 +46,30 @@ std::shared_ptr<Command> GameInterface::ProcessEvent(const sf::Event &event,
       location = GetGameLocation(mouseLocation);
 			switch (event.mouseButton.button) {
 				case sf::Mouse::Left:
-					switch (cursor_action_) {
+					switch (cursorAction) {
 						case kSelect:
 							selection_corner1_ = location;
 							selection_corner2_ = location;
 							is_selecting_ = true;
 							break;
-						case kAttack:
-
+						case kAttack: {
 							const UnitModel *unit = GetUnit(location);
 							if (unit) {
 								command = std::make_shared<AttackCommand>(unit->Id());
 							} else {
 								command = std::make_shared<AttackMoveCommand>(location);
 							}
-							cursor_action_ = kSelect;
+							cursorAction = kSelect;
 							break;
+            }
+            case kTarget:
+              command = std::make_shared<TargetGroundCommand>(location);
+              cursorAction = kSelect;
+              break;
 					}
 					break;
 				case sf::Mouse::Right:
-					if (cursor_action_ == kSelect) {
+					if (cursorAction == kSelect) {
 						const UnitModel *unit = GetUnit(location);
 						if (unit && unit->Owner() != player_) {
 							command = std::make_shared<AttackCommand>(unit->Id());
@@ -72,7 +77,7 @@ std::shared_ptr<Command> GameInterface::ProcessEvent(const sf::Event &event,
 							command = std::make_shared<MoveCommand>(location);
 						}
 					} else {
-						cursor_action_ = kSelect;
+						cursorAction = kSelect;
 					}
 					break;
 			}
@@ -110,10 +115,13 @@ std::shared_ptr<Command> GameInterface::ProcessEvent(const sf::Event &event,
 		case sf::Event::KeyPressed:
 			switch (event.key.code) {
 				case sf::Keyboard::Key::A:
-					cursor_action_ = kAttack;
+					cursorAction = kAttack;
 					break;
         case sf::Keyboard::Key::S:
           command = std::make_shared<StopCommand>();
+          break;
+        case sf::Keyboard::Key::D:
+          cursorAction = kTarget;
           break;
 				case sf::Keyboard::Key::Left:
 					keyboardHScroll = -1;
@@ -131,7 +139,6 @@ std::shared_ptr<Command> GameInterface::ProcessEvent(const sf::Event &event,
 			break;
 		case sf::Event::KeyReleased:
 			switch (event.key.code) {
-        // TODO: are these ifs necessary?
 				case sf::Keyboard::Key::Left:
 					if (keyboardHScroll == -1)
 							keyboardHScroll = 0;

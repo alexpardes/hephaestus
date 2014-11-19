@@ -24,7 +24,9 @@ void AStarSearch::Reset() {
     openList.pop();
 }
 
-std::vector<const Vertex*> AStarSearch::FindPath(const Vertex *start, SearchHeuristic h) {
+std::vector<const Vertex*> AStarSearch::FindPath(const Vertex *start,
+                                                 SearchHeuristic h,
+                                                 AdjacencyList adjacencies) {
   Reset();
   this->heuristic = h;  
   openList.push(AddStartNode(start));
@@ -32,18 +34,20 @@ std::vector<const Vertex*> AStarSearch::FindPath(const Vertex *start, SearchHeur
     const SearchNode *node = openList.top();
     openList.pop();
 
-    if (Visit(node)) {
+    if (Visit(node, adjacencies)) {
       return Path(node);
     }
   }
   return std::vector<const Vertex*>();
 }
 
-bool AStarSearch::Visit(const SearchNode *node) {
+const float kHeuristicEpsilon = 0.01f;
+
+bool AStarSearch::Visit(const SearchNode *node, AdjacencyList adjacencies) {
   if (visitedList.count(node->vertex))
     return false;
 
-  if (node->h == 0) {
+  if (node->h <= kHeuristicEpsilon) {
     return true;
   }
 
@@ -52,13 +56,20 @@ bool AStarSearch::Visit(const SearchNode *node) {
     if (!visitedList.count(edge.vertex))
       openList.push(AddNode(edge, node));
   }
+
+  if (adjacencies) {
+    for (auto edge : adjacencies(*node->vertex)) {
+      if (!visitedList.count(edge.vertex))
+        openList.push(AddNode(edge, node));
+    }
+  }
   return false;
 }
 
 std::vector<const Vertex*> AStarSearch::Path(const SearchNode *node) const {
   const SearchNode *currentNode = node;
   std::vector<const Vertex*> path;
-  while (currentNode != nullptr) {
+  while (currentNode->parent != nullptr) {
     path.push_back(currentNode->vertex);
     currentNode = currentNode->parent;
   }

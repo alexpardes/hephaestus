@@ -11,24 +11,37 @@ class SectorMap {
     SectorMap();
 
     // Creates the visibility polygon.
-    void Create(const Vector2f& center, const std::vector<LineSegment> &segments);
+    void Create(const Vector2f& center, const std::vector<const LineSegment> &segments);
     bool Contains(const Vector2f &point) const;
     Vector2f Center() const { return center; }
     VisibilityPolygon ToPolygon() const;
-    bool IsAnyVisible (const LineSegment &segment) const;
+    bool IsVisible(const Vector2f &point) const;
+    bool IsAnyVisible(const LineSegment &segment) const;
+
+    // Largest in angular size
     LineSegment LargestVisibleSubsegment(const LineSegment &segment) const;
+    std::vector<const LineSegment> VisibleSubsegments(const LineSegment &segment) const;
+    std::vector<const LineSegment> VisibleSubsegments(const std::vector<const LineSegment> &segments) const;
+
+    // Returns line segments from the visibility polygon which are not walls.
+    std::vector<const LineSegment> PolygonBorder() const;
 
     // Returns the sum of the angular sizes of all visible subsegments of the input segment.
     float VisibleSize(const LineSegment &segment) const;
 
   private:
     typedef std::vector<Sector>::const_reverse_iterator iterator;
+    Sector SectorFromPoint(const Vector2f &point) const;
     std::vector<Sector> VisibleSubsectors(const Sector &sector) const;
     std::vector<Sector> VisibleSubsectors(const LineSegment &segment) const;
     const Sector &Next(iterator &sector1, iterator &sector2) const;
-    void CreateInputSectors(const std::vector<LineSegment> &segments);
+    void CreateInputSectors(const std::vector<const LineSegment> &segments);
     Sector PopNextSector();
     const Sector &FirstOccludingSector(const Sector &sector) const;
+    Vector2f GetPoint(float angle, float depth) const;
+    Sector SectorFromSegment(const LineSegment &segment) const;
+    LineSegment SegmentFromSector(const Sector &sector) const;
+    void AssertSectorValid(const Sector &sector) const;
 
     Vector2f center;
     // These two arrays do not represent any particular information. They are class members only to reduce dynamic allocation.

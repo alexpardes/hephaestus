@@ -16,7 +16,7 @@ public:
     adjacencyList.pop_back();
   }
 
-  virtual std::vector<Edge> Adjacencies() const; 
+  virtual std::vector<const Edge> Adjacencies() const; 
 
   ~Subgoal();
 

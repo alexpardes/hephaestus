@@ -8,6 +8,7 @@
 #include <SFML/Graphics/Shape.hpp>
 
 class SectorMap;
+class SpatialGraph;
 
 const float kTileSize = 10.f;
 typedef std::pair<std::string, UnitAttributes> UnitDefinition;
@@ -27,7 +28,7 @@ struct CollisionTestResult {
 class GameState {
 	public:
 		GameState(const UnitDictionary &unitDictionary,
-				const Vector2i &mapSize, PathFinder *pathfinder);
+				const Vector2i &mapSize, PathFinder *pathfinder, SpatialGraph *pathingGraph);
 
     size_t HashCode() const;
 		void AddUnit(const std::string &type, PlayerNumber owner,
@@ -70,7 +71,8 @@ class GameState {
     void MoveUnit(UnitId id, Vector2f location);
     Vector2f GetUnitPosition(UnitId id) const;
     std::vector<Rect> GetWallsInRectangle(const Rect &rectangle) const;
-    const std::vector<LineSegment> &GetWalls() const;
+    const std::vector<const LineSegment> &GetWalls() const;
+    const SpatialGraph &PathingGraph() const { return *pathingGraph; }
 
     //CollisionTestResult TestCollision(const GameUnit& unit,
     //    const Vector2f& end) const;
@@ -122,7 +124,8 @@ class GameState {
 		Vector2i mapSize;
     PathFinder *pathfinder;
     int lastUnitId;
-    std::vector<LineSegment> walls;
+    std::vector<const LineSegment> walls;
+    SpatialGraph *pathingGraph;
 };
 
 class GameScene {

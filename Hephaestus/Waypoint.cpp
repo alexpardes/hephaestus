@@ -21,6 +21,9 @@ Vector2f Waypoint::Position(float radius) const {
 }
 
 bool Waypoint::IsReached(const Vector2f &position, float radius) const {
+  if (direction == Vector2f(0, 0))
+    return position == this->position;
+
   bool reachedX = position.x * direction.x >= Position(radius).x * direction.x;
   bool reachedY = position.y * direction.y >= Position(radius).y * direction.y;
   return reachedX && reachedY;

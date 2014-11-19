@@ -16,6 +16,7 @@ class MoveAbility : public UnitAbility {
     virtual std::string Name() const { return "Move"; }
     void SetDestination(const Vector2f &destination);
     bool DestinationReached() const;
+    void SetPath(const std::deque<const Waypoint*> &path);
 
   private:
     void ApplyForce(Vector2f &force, bool useMaxAcceleration);
@@ -39,7 +40,7 @@ class MoveAbility : public UnitAbility {
     PathFinder *pathfinder;
     GameState *gameState;
 
-    std::deque<Waypoint*> path;
+    std::deque<const Waypoint*> path;
     Vector2f *destination;
     Vector2f velocity;
 };

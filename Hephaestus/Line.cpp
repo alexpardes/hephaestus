@@ -21,3 +21,12 @@ Vector2f Line::Perpendicular() const {
 float Line::NearestPointParam(const Vector2f &point) const {
   return Util::Dot(point - this->point, direction);
 }
+
+Vector2f Line::Intersection(const Line &line) const {
+  assert(line.direction != direction && line.direction != -direction);
+
+  float n = line.point.y - point.y + (point.x - line.point.x) * line.direction.y / line.direction.x;
+  float d = direction.y - line.direction.y * direction.x / line.direction.x;
+  float t = n / d;
+  return point + t * direction;
+}

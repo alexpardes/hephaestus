@@ -203,6 +203,9 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="StopCommand.cpp" />
+    <ClCompile Include="TargetGroundAbility.cpp" />
+    <ClCompile Include="TargetGroundAction.cpp" />
+    <ClCompile Include="TargetGroundCommand.cpp" />
     <ClCompile Include="TileMap.cpp" />
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="UnitBehavior.cpp" />
@@ -258,6 +261,9 @@
     <ClInclude Include="ShadowCaster.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="StopCommand.h" />
+    <ClInclude Include="TargetGroundAbility.h" />
+    <ClInclude Include="TargetGroundAction.h" />
+    <ClInclude Include="TargetGroundCommand.h" />
     <ClInclude Include="TileMap.h" />
     <ClInclude Include="Timer.h" />
     <ClInclude Include="UnitAbility.h" />

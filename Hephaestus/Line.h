@@ -9,6 +9,7 @@ class Line {
     Vector2f Perpendicular() const;
     Vector2f Evaluate(float t) const { return point + t*direction; }
     float NearestPointParam(const Vector2f &point) const;
+    Vector2f Intersection(const Line &line) const;
 
   private:
     Vector2f point, direction;

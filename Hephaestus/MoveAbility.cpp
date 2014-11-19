@@ -24,10 +24,10 @@ MoveAbility::MoveAbility(std::shared_ptr<GameUnit> owner,
 
 void MoveAbility::SetDestination(const Vector2f &destination) {
   Vector2f start = owner->Position();
-  std::vector<Waypoint*> gridPath = pathfinder->GetPath(start, destination);
+  std::vector<const Waypoint*> gridPath = pathfinder->GetPath(start, destination);
   path.clear();
 
-  for (Waypoint *waypoint : gridPath) {
+  for (auto waypoint : gridPath) {
     path.push_back(waypoint);
   }
 
@@ -44,7 +44,7 @@ void MoveAbility::Execute() {
     path.pop_front();
   }
 
-  Vector2f *currentGoal;
+  Vector2f *currentGoal = nullptr;
   if (!path.empty()) {
     currentGoal = new Vector2f(path.front()
         ->Position(owner->Attributes().CollisionRadius() + kPathingEpsilon));
@@ -55,14 +55,17 @@ void MoveAbility::Execute() {
   if (currentGoal) {
     Vector2f displacement = *currentGoal - owner->Position();
     Util::Limit(displacement, maxSpeed);
-    owner->SetRotation(Util::FindAngle(displacement));
+
+    if (Util::Length(displacement) != 0)
+      owner->SetRotation(Util::FindAngle(displacement));
+
     Vector2f newPosition = owner->Position() + displacement;
-    auto collision = gameState->TestWallCollision(owner->Position(), newPosition, owner->Attributes().CollisionRadius() - kPathingEpsilon);
-    if (collision.point != newPosition) {
-      Util::Limit(displacement, kPathingEpsilon);
-      newPosition = collision.point - displacement;
-      destination = nullptr;
-    }
+    //auto collision = gameState->TestWallCollision(owner->Position(), newPosition, owner->Attributes().CollisionRadius() - kPathingEpsilon);
+    //if (collision.point != newPosition) {
+    //  Util::Limit(displacement, kPathingEpsilon);
+    //  newPosition = collision.point - displacement;
+    //  destination = nullptr;
+    //}
 
     gameState->MoveUnit(owner->Id(), newPosition);
   }
@@ -250,4 +253,9 @@ void MoveAbility::ScaleForce(Vector2f &force, float distance) const {
 
 bool MoveAbility::DestinationReached() const {
   return !destination || Util::Distance(owner->Position(), *destination) < 5;
+}
+
+void MoveAbility::SetPath(const std::deque<const Waypoint*> &path) {
+  this->path = path;
+  destination = nullptr;
 }

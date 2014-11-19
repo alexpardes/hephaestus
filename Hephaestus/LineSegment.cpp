@@ -9,6 +9,10 @@ Vector2f LineSegment::NearestPoint(const Vector2f &point) const {
   return GetLine().Evaluate(t);
 }
 
+float LineSegment::Distance(const Vector2f &point) const {
+  return Util::Distance(point, NearestPoint(point));
+}
+
 float LineSegment::Length() const {
   return Util::Length(p1 - p2);
 }

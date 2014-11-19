@@ -9,8 +9,8 @@ Subgoal::Subgoal(const Vector2i &point, const Vector2i &direction) {
       this->point));
 }
 
-std::vector<Edge> Subgoal::Adjacencies() const {
-  std::vector<Edge> adjacencies;
+std::vector<const Edge> Subgoal::Adjacencies() const {
+  std::vector<const Edge> adjacencies;
   for (auto subgoal : adjacencyList) {
     float cost = Util::Distance(Util::ToVector2f(point), Util::ToVector2f(subgoal->point));
     adjacencies.push_back(Edge(subgoal, cost));

@@ -5,7 +5,7 @@
 
 void MoveAction::Start(GameUnit &unit) {
   UnitAbility *ability = unit.GetAbility("Move");
-  this->ability = dynamic_cast<MoveAbility*>(ability);
+  this->ability = static_cast<MoveAbility*>(ability);
   this->ability->SetDestination(location);
 }
 

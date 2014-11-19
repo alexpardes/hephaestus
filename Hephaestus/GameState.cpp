@@ -7,17 +7,21 @@
 #include "AutoAttackAbility.h"
 #include "HealthRegenAbility.h"
 #include "SectorMap.h"
+#include "TargetGroundAbility.h"
 #include "Timer.h"
+#include <PathFinding/SpatialGraph.h>
 
 //const float GameState::kPathingResolution = 25.f;
 const float GameState::kUnitGridResolution = 8.f;
 
 GameState::GameState(const UnitDictionary &unitDictionary, 
                      const Vector2i &mapSize,
-                     PathFinder *pathfinder) : 
+                     PathFinder *pathfinder,
+                     SpatialGraph *pathingGraph) : 
     unitDefinitions(unitDictionary) {
   this->pathfinder = pathfinder;
   pathfinder->SetTileSize(Vector2f(kTileSize, kTileSize));
+  this->pathingGraph = pathingGraph;
 	maxUnitRadius = 0.f;
 	this->mapSize = mapSize;
 	Vector2f mapPixelSize = kTileSize * Util::ToVector2f(mapSize);
@@ -34,7 +38,6 @@ GameState::GameState(const UnitDictionary &unitDictionary,
   FindWalls();
 }
 
-// TODO: Only use exterior segments.
 void GameState::FindWalls() {
   for (int x = 0; x < PathingGrid()->Size().x; ++x) {
     for (int y = 0; y < PathingGrid()->Size().y; ++y) {
@@ -86,6 +89,9 @@ Vector2f GameState::GetUnitPosition(UnitId id) const {
 }
 
 void GameState::MoveUnit(UnitId id, Vector2f location) {
+  assert(location.x >= 0 && location.x <= mapSize.x * kTileSize);
+  assert(location.y >= 0 && location.y <= mapSize.y * kTileSize);
+
   std::shared_ptr<GameUnit> unit = GetUnit(id);
   Vector2f previousPosition = unit->Position();
   unit->SetPosition(Constrain(location));
@@ -172,6 +178,8 @@ void GameState::AddUnit(const std::string &type,
 
   UnitAbility *attackMove = new AttackMoveAbility(*unit, *this);
   unit->AddAbility(attackMove);
+
+  unit->AddAbility(new TargetGroundAbility(*unit, *this));
 
   unit->AddPassiveAbility(new HealthRegenAbility(*unit, 0.01f));
 
@@ -312,7 +320,7 @@ Rect GameState::GetWall(const Vector2i& tile) const {
   return wall;
 }
 
-const std::vector<LineSegment> &GameState::GetWalls() const {
+const std::vector<const LineSegment> &GameState::GetWalls() const {
   return walls;
 }
 

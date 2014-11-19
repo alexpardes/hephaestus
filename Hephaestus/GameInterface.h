@@ -92,8 +92,8 @@ class GameInterface {
 		std::list<UnitId> selected_unit_ids_;
 		CommandTurn command_queue_;
 		static const float kScrollSpeed;
-		enum CursorAction {kSelect, kAttack};
-		CursorAction cursor_action_;
+		enum CursorAction {kSelect, kAttack, kTarget};
+		CursorAction cursorAction;
 		Vector2f mapSize;
 		sf::RectangleShape interface_graphic_;
 		GameScene *game_scene_;

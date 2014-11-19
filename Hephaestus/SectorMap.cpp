@@ -22,31 +22,37 @@ float Sector::Size() const {
 
 SectorMap::SectorMap() { }
 
+Vector2f Point(float angle, float depth) {
+  return depth * Util::MakeUnitVector(angle);
+}
+
+LineSegment Segment(const SectorMap::Sector &sector) {
+  return LineSegment(Point(sector.startAngle, sector.startDepth), Point(sector.endAngle, sector.endDepth));
+}
+
+float DepthAtAngle(const SectorMap::Sector &sector, float angle) {
+  Vector2f p1 = Point(sector.startAngle, sector.startDepth);
+  Vector2f p2 = Point(sector.endAngle, sector.endDepth);
+  float t = (std::tan(p2.x) - p2.y) / (std::tan(p2.x - p1.x) + p1.y - p2.y);
+  float term1 = std::pow(t*p1.x + (1 - t)*p2.x, 2);
+  float term2 = std::pow(t*p1.y + (1 - t)*p2.y, 2);
+  float depth = std::sqrt(term1 + term2);
+  return depth;
+}
+
 float SectorDepthAtAngle(const SectorMap::Sector &sector, float angle) {
-  if (sector.endAngle < sector.startAngle) {
-    float sizeCcwFrom0 = 2 * M_PI - sector.startAngle;
-    SectorMap::Sector newSector;
-    newSector.startAngle = 0;
-    newSector.endAngle = sector.endAngle + sizeCcwFrom0;
-    newSector.startDepth = sector.startDepth;
-    newSector.endDepth = sector.endDepth;
-    float depth = SectorDepthAtAngle(newSector, Util::Angle(angle + sizeCcwFrom0));
-    assert(depth > 0);
-    return depth;
-  }
-
-  assert(angle >= sector.startAngle);
-  assert(angle <= sector.endAngle);
-
-  if (sector.startAngle == sector.endAngle)
+  assert(Util::IsBetweenAnglesClosed(angle, sector.startAngle, sector.endAngle));
+  if (angle == sector.startAngle)
     return sector.startDepth;
 
-  float size = sector.endAngle - sector.startAngle;
-  float sizeCwFromAngle = sector.endAngle - angle;
-  float fractionCwFromAngle = sizeCwFromAngle / size;
-  float depth = fractionCwFromAngle * sector.startDepth + (1 - fractionCwFromAngle) * sector.endDepth;
-  assert(depth > 0);
-  return depth;
+  if (angle == sector.endAngle)
+    return sector.endDepth;
+
+  auto v1 = Point(sector.startAngle, sector.startDepth);
+  auto v2 = Point(sector.endAngle, sector.endDepth);
+  auto direction = Util::MakeUnitVector(angle);
+  auto intersection = LineSegment(v1, v2).GetLine().Intersection(Line(Vector2f(0, 0), direction));
+  return Util::Length(intersection);
 }
 
 std::pair<Sector, Sector> SplitSectorAtZero(const Sector &sector) {
@@ -71,8 +77,8 @@ void TrimSectorStart(Sector &sector, float startAngle) {
 }
 
 void TrimSectorEnd(Sector &sector, float endAngle) {
-  assert(endAngle >= sector.startAngle);
-  assert(endAngle <= sector.endAngle);
+  //assert(endAngle >= sector.startAngle);
+  //assert(endAngle <= sector.endAngle);
   sector.endDepth = SectorDepthAtAngle(sector, endAngle);
   sector.endAngle = endAngle;
 }
@@ -95,9 +101,12 @@ bool IsSectorShallower(const Sector &sector1, const Sector &sector2) {
   return SectorDepthAtAngle(sector1, comparisonAngle) <= SectorDepthAtAngle(sector2, comparisonAngle);
 }
 
-Sector SectorFromSegment(const LineSegment &segment, const Vector2f &center) {
+Sector SectorMap::SectorFromSegment(const LineSegment &segment) const {
   Vector2f v1 = segment.p1 - center;
   Vector2f v2 = segment.p2 - center;
+  if (v1 == Vector2f(0, 0) || v2 == Vector2f(0, 0))
+    return Nil;
+
   float angle1 = Util::FindAngle(v1);
   float angle2 = Util::FindAngle(v2);
   Sector sector;
@@ -118,18 +127,24 @@ Sector SectorFromSegment(const LineSegment &segment, const Vector2f &center) {
   if (sector.endAngle == 0 && sector.startAngle != 0)
     sector.endAngle = 2 * M_PI;
 
+  AssertSectorValid(sector);
   return sector;
 }
 
-void SectorMap::CreateInputSectors(const std::vector<LineSegment> &segments) {
+void SectorMap::CreateInputSectors(const std::vector<const LineSegment> &segments) {
   tempSectors1.clear();
 
   for (auto segment : segments) {
-    auto sector = SectorFromSegment(segment, center);
+    auto sector = SectorFromSegment(segment);
+    if (sector.IsNil())
+      continue;
+
     if (sector.startAngle <= sector.endAngle) {
       tempSectors1.push_back(sector);
     } else {
       auto splitSectors = SplitSectorAtZero(sector);
+      AssertSectorValid(splitSectors.first);
+      AssertSectorValid(splitSectors.second);
       tempSectors1.push_back(splitSectors.first);
       tempSectors1.push_back(splitSectors.second);
     }
@@ -204,7 +219,7 @@ Sector SectorMap::PopNextSector() {
 
 // Assumes that there is no ray from the center which does not intersect a segment.
 // Assumes no segments intersect.
-void SectorMap::Create(const Vector2f &center, const std::vector<LineSegment> &segments) {  
+void SectorMap::Create(const Vector2f &center, const std::vector<const LineSegment> &segments) {  
   this->center = center;
   sectors.clear();
   tempSectors2.clear();
@@ -216,6 +231,7 @@ void SectorMap::Create(const Vector2f &center, const std::vector<LineSegment> &s
 
   auto sector1 = PopNextSector();
   while (true) {
+    AssertSectorValid(sector1);
     auto sector2 = FirstOccludingSector(sector1);
     if (!sector2.IsNil()) {
       if (sector2.startAngle < sector1.startAngle)
@@ -223,13 +239,16 @@ void SectorMap::Create(const Vector2f &center, const std::vector<LineSegment> &s
 
       if (sector1.endAngle > sector2.endAngle) {
         Sector sector1Remainder = Subsector(sector1, sector2.endAngle, sector1.endAngle);
+        AssertSectorValid(sector1Remainder);
         auto insertionLocation = std::lower_bound(tempSectors2.begin(), tempSectors2.end(), sector1Remainder, startAngleGreater);
         tempSectors2.insert(insertionLocation, sector1Remainder);
       }
       TrimSectorEnd(sector1, sector2.startAngle);
     }
-    if (sector1.endAngle > sector1.startAngle)
+    if (sector1.endAngle > sector1.startAngle) {
+      AssertSectorValid(sector1);
       sectors.push_back(sector1);
+    }
 
     // Get the next sector which is not fully occluded by sector1.
      do {    
@@ -240,6 +259,7 @@ void SectorMap::Create(const Vector2f &center, const std::vector<LineSegment> &s
 
     TrimSectorStart(sector2, sector1.endAngle);
     sector1 = sector2;
+    AssertSectorValid(sector1);
   }
 }
 
@@ -255,19 +275,34 @@ VisibilityPolygon SectorMap::ToPolygon() const {
 
 // Returns the angle of intersection of the line segments represented by the sectors.
 float IntersectionAngle(const Sector &sector1, const Sector &sector2) {
-  float s1 = sector1.startAngle;
-  float s2 = sector2.startAngle;
-  float e1 = sector1.endAngle;
-  float e2 = sector2.endAngle;
-  float vs1 = sector1.startDepth;
-  float vs2 = sector2.startDepth;
-  float ve1 = sector1.endDepth;
-  float ve2 = sector2.endDepth;
-  float l1 = e1 - s1;
-  float l2 = e2 - s2;
-  float n = (e1*ve1 - s1*vs1)/l1 - (e2*ve2 - s2*vs2)/l2;
-  float d = (vs1 - ve1)/l1 - (vs2 - ve2)/l2;
-  return n / d;
+  //float s1 = sector1.startAngle;
+  //float s2 = sector2.startAngle;
+  //float e1 = sector1.endAngle;
+  //float e2 = sector2.endAngle;
+  //float vs1 = sector1.startDepth;
+  //float vs2 = sector2.startDepth;
+  //float ve1 = sector1.endDepth;
+  //float ve2 = sector2.endDepth;
+  //float l1 = e1 - s1;
+  //float l2 = e2 - s2;
+  //float n = (e1*ve1 - s1*vs1)/l1 - (e2*ve2 - s2*vs2)/l2;
+  //float d = (vs1 - ve1)/l1 - (vs2 - ve2)/l2;
+  //return n / d;
+
+  float startAngle = std::max(sector1.startAngle, sector2.startAngle);
+  float endAngle = std::min(sector1.endAngle, sector2.endAngle);
+  Vector2f intersection = Segment(sector1).GetLine().Intersection(Segment(sector2).GetLine());
+  float angle = Util::FindAngle(intersection);
+
+  // Necessary to clamp due to slight errors in calculation.
+  if (angle < startAngle) {
+    assert(startAngle - angle < 0.05);
+    angle = startAngle;
+  } else if (angle > endAngle) {
+    assert(angle - endAngle < 0.05);
+    angle = endAngle;
+  }
+  return angle;
 }
 
 // Returns the portion of sector2 which is contained in sector1.
@@ -285,13 +320,16 @@ Sector SectorIntersection(const Sector &sector1, const Sector &sector2) {
   bool startContained = sector2Trimmed.startDepth <= startDepth1;
   bool endContained = sector2Trimmed.endDepth <= endDepth1;
 
+  if (startContained && endContained)
+    return sector2Trimmed;
+
   if (!startContained && !endContained)
     return Nil;
 
   float angle = IntersectionAngle(sector1, sector2);
   if (!endContained) {
     TrimSectorEnd(sector2Trimmed, angle);
-  } else if (!startContained) {
+  } else {
     TrimSectorStart(sector2Trimmed, angle);
   }
   return sector2Trimmed;
@@ -307,10 +345,8 @@ bool TryCombineSectors(Sector &sector1, const Sector &sector2) {
   return true;
 }
 
-LineSegment SegmentFromSector(const Sector &sector, const Vector2f& center) {
-  Vector2f start(sector.startDepth * Util::MakeUnitVector(sector.startAngle) + center);
-  Vector2f end(sector.endDepth * Util::MakeUnitVector(sector.endAngle) + center);
-  return LineSegment(start, end);
+LineSegment SectorMap::SegmentFromSector(const Sector &sector) const {
+  return LineSegment(GetPoint(sector.startAngle, sector.startDepth), GetPoint(sector.endAngle, sector.endDepth));
 }
 
 struct {
@@ -319,19 +355,31 @@ struct {
   }
 } startAngleLess;
 
-// Caller must not modify tempSectors1 while holding the return value of this method.
+Sector SectorMap::SectorFromPoint(const Vector2f &point) const {
+  auto angle = Util::FindAngle(point - center);
+  auto distance = Util::Distance(point, center);
+  return Sector(angle, angle, distance, distance);
+}
+
+bool SectorMap::IsVisible(const Vector2f &point) const {
+  return VisibleSubsectors(SectorFromPoint(point)).size() > 0;
+}
+
+
 std::vector<Sector> SectorMap::VisibleSubsectors(const Sector &sector) const {
   std::vector<Sector> subsectors; // TODO: Remove this allocation.
 
   // This is the sector containing the start of the input sector.
   auto sector2 = std::upper_bound(sectors.begin(), sectors.end(), sector, startAngleLess) - 1;
   Sector lastSubsector = Nil;
-  while (sector2 != sectors.end() && sector2->startAngle < sector.endAngle) {
+  while (sector2 != sectors.end() && sector2->startAngle <= sector.endAngle) {
     auto subsector = SectorIntersection(*sector2, sector);
-    if (!subsector.IsNil() && !TryCombineSectors(lastSubsector, subsector)) {
-      subsectors.push_back(lastSubsector);
+    if (lastSubsector.IsNil()) {
       lastSubsector = subsector;
-    }    
+    } else if (!subsector.IsNil() && !TryCombineSectors(lastSubsector, subsector)) { 
+        subsectors.push_back(lastSubsector);
+        lastSubsector = subsector;
+    }
     ++sector2;
   }
   if (!lastSubsector.IsNil())
@@ -340,20 +388,21 @@ std::vector<Sector> SectorMap::VisibleSubsectors(const Sector &sector) const {
   return subsectors;
 }
 
-// TODO: Merge sectors at zero.
 std::vector<Sector> SectorMap::VisibleSubsectors(const LineSegment &segment) const {
   std::vector<Sector> subsectors;
-  auto segmentSector = SectorFromSegment(segment, center);
+  auto segmentSector = SectorFromSegment(segment);
   if (segmentSector.endAngle < segmentSector.startAngle) {
     auto splitSectors = SplitSectorAtZero(segmentSector);
     subsectors = VisibleSubsectors(splitSectors.first);
     auto subsectors2 = VisibleSubsectors(splitSectors.second);
 
-    // Since we artificially split at zero, attempts to reattach the sectors there.
-    if (!subsectors.empty() && !subsectors2.empty() && TryCombineSectors(subsectors2.front(), subsectors.back()))
-      subsectors.pop_back();
+    auto begin2 = subsectors2.begin();
 
-    subsectors.insert(subsectors.end(), subsectors2.begin(), subsectors2.end());
+    // Since we artificially split at zero, attempts to reattach the sectors there.
+    if (!subsectors.empty() && !subsectors2.empty() && TryCombineSectors(subsectors.back(), subsectors2.front()))
+      ++begin2;
+
+    subsectors.insert(subsectors.end(), begin2, subsectors2.end());
   } else {
     subsectors = VisibleSubsectors(segmentSector);
   }
@@ -370,7 +419,24 @@ LineSegment SectorMap::LargestVisibleSubsegment(const LineSegment &segment) cons
     if (sector.Size() > largestSector.Size())
       largestSector = sector;
   }
-  return SegmentFromSector(largestSector, center);
+  return SegmentFromSector(largestSector);
+}
+
+std::vector<const LineSegment> SectorMap::VisibleSubsegments(const LineSegment &segment) const {
+  std::vector<const LineSegment> subsegments;
+  for (auto sector : VisibleSubsectors(segment)) {
+    subsegments.push_back(SegmentFromSector(sector));
+  }
+  return subsegments;
+}
+
+std::vector<const LineSegment> SectorMap::VisibleSubsegments(const std::vector<const LineSegment> &segments) const {
+  std::vector<const LineSegment> allSubsegments;
+  for (auto segment : segments) {
+    auto subsegments = VisibleSubsegments(segment);
+    allSubsegments.insert(allSubsegments.end(), subsegments.begin(), subsegments.end());
+  }
+  return allSubsegments;
 }
 
 float SectorMap::VisibleSize(const LineSegment &segment) const {
@@ -379,4 +445,33 @@ float SectorMap::VisibleSize(const LineSegment &segment) const {
     size += sector.Size();
 
   return size;
+}
+
+Vector2f SectorMap::GetPoint(float angle, float depth) const {
+  return depth * Util::MakeUnitVector(angle) + center;
+}
+
+std::vector<const LineSegment> SectorMap::PolygonBorder() const {
+  std::vector<const LineSegment> border;
+  for (size_t i = 0; i < sectors.size() - 1; ++i) {
+    if (sectors[i].endDepth != sectors[i + 1].startDepth) {
+      float angle = sectors[i].endAngle;
+      border.push_back(LineSegment(GetPoint(angle, sectors[i].endDepth), GetPoint(angle, sectors[i + 1].startDepth)));
+    }
+  }
+  return border;
+}
+
+void SectorMap::AssertSectorValid(const Sector &sector) const {
+  const float kMin = -0.5f, kMax = 2000.5f;
+  auto startPoint = GetPoint(sector.startAngle, sector.startDepth);
+  auto endPoint = GetPoint(sector.endAngle, sector.endDepth);
+  assert(startPoint.x > kMin);
+  assert(startPoint.x < kMax);
+  assert(startPoint.y > kMin);
+  assert(startPoint.y < kMax);
+  assert(endPoint.x > kMin);
+  assert(endPoint.x < kMax);
+  assert(endPoint.y > kMin);
+  assert(endPoint.y < kMax);
 }

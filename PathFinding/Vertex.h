@@ -5,7 +5,7 @@ struct Edge;
 
 class Vertex {
   public:
-    virtual std::vector<Edge> Adjacencies() const = 0;
+    virtual std::vector<const Edge> Adjacencies() const = 0;
     virtual ~Vertex() { }
 };
 

@@ -110,7 +110,7 @@ Vector2i SubgoalPathFinder::GetTile(const Vector2f &position) {
   return result;
 }
 
-std::vector<Waypoint*> SubgoalPathFinder::GetPath(const Vector2f &startpoint,
+std::vector<const Waypoint*> SubgoalPathFinder::GetPath(const Vector2f &startpoint,
                                                  const Vector2f &endpoint) {
 
   Vector2i start = GetTile(startpoint);
@@ -135,7 +135,7 @@ std::vector<Waypoint*> SubgoalPathFinder::GetPath(const Vector2f &startpoint,
       return Distance(static_cast<const Subgoal&>(v).Point(), end);
     });
 
-  std::vector<Waypoint*> waypointPath;
+  std::vector<const Waypoint*> waypointPath;
   for (auto v : vertexPath) {
     auto subgoal = static_cast<const Subgoal*>(v);
     waypointPath.push_back(new Waypoint(subgoal, tileSize));

@@ -10,6 +10,7 @@ typedef std::unordered_map<std::string, bool> BoolDictionary;
 typedef unsigned char TerrainId;
 
 class PathFinder;
+class SpatialGraph;
 
 class ResourceManager {
 	public:
@@ -48,6 +49,7 @@ class ResourceManager {
 		void LoadTerrain(const Json::Value& map);
 		bool LoadTerrainImage(const Json::Value& tile);
     PathFinder *LoadPathingInfo(const Json::Value& pathingInfo);
+    SpatialGraph *LoadSpatialGraph(const Json::Value &pathingInfo);
 
 		UnitDictionary unit_dictionary_;
 		std::vector<std::string> tile_table_;
