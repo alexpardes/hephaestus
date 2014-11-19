@@ -29,3 +29,7 @@ void TargetGroundAbility::SetDestination(const Vector2f &point) {
   auto path = PolygonPathFinder::Path(startVertex.get(), gameState.GetWalls(), sectorMap.PolygonBorder());
   static_cast<MoveAbility*>(owner.GetAbility("Move"))->SetPath(path);
 }
+
+bool TargetGroundAbility::DestinationReached() const {
+  return static_cast<MoveAbility*>(owner.GetAbility("Move"))->DestinationReached();
+}

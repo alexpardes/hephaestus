@@ -252,7 +252,7 @@ void MoveAbility::ScaleForce(Vector2f &force, float distance) const {
 }
 
 bool MoveAbility::DestinationReached() const {
-  return !destination || Util::Distance(owner->Position(), *destination) < 5;
+  return !destination && path.empty() || destination && Util::Distance(owner->Position(), *destination) < 5;
 }
 
 void MoveAbility::SetPath(const std::deque<const Waypoint*> &path) {

@@ -21,5 +21,5 @@ std::string TargetGroundAction::Name() const {
 }
 
 bool TargetGroundAction::IsFinished() const {
-  return false;
+  return ability->DestinationReached();
 }

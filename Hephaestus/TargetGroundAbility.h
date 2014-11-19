@@ -11,6 +11,7 @@ class TargetGroundAbility : public UnitAbility {
     virtual void Execute();
     virtual std::string Name() const;
     void SetDestination(const Vector2f &point);
+    bool DestinationReached() const;
 
   private:
     GameUnit &owner;
