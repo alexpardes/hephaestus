@@ -7,7 +7,7 @@
 AutoAttackAbility::AutoAttackAbility(GameUnit &owner, GameState &gameState) :
     owner(owner), gameState(gameState) {
   
-  attackAbility = dynamic_cast<AttackAbility*>(owner.GetAbility("Attack"));
+  attackAbility = static_cast<AttackAbility*>(owner.GetAbility("Attack"));
 }
 
 void AutoAttackAbility::Execute() {

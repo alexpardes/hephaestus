@@ -68,26 +68,16 @@
   <ItemGroup>
     <ClInclude Include="AStarSearch.h" />
     <ClInclude Include="PathFinder.h" />
-    <ClInclude Include="GridRegion.h" />
-    <ClInclude Include="PolygonPathFinder.h" />
     <ClInclude Include="SearchAlgorithm.h" />
     <ClInclude Include="SpatialGraph.h" />
     <ClInclude Include="SpatialVertex.h" />
-    <ClInclude Include="Subgoal.h" />
-    <ClInclude Include="SubgoalPathFinder.h" />
-    <ClInclude Include="VectorPathingGrid.h" />
     <ClInclude Include="Vertex.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AStarSearch.cpp" />
     <ClCompile Include="PathFinder.cpp" />
-    <ClCompile Include="GridRegion.cpp" />
-    <ClCompile Include="PolygonPathFinder.cpp" />
     <ClCompile Include="SpatialGraph.cpp" />
     <ClCompile Include="SpatialVertex.cpp" />
-    <ClCompile Include="Subgoal.cpp" />
-    <ClCompile Include="SubgoalPathFinder.cpp" />
-    <ClCompile Include="VectorPathingGrid.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

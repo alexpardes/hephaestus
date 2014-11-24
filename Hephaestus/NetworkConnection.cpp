@@ -18,19 +18,16 @@ void NetworkConnection::AddCommand(std::shared_ptr<Command> command) { }
 
 std::shared_ptr<CommandTurn> NetworkConnection::TakeCommandTurn() {
   std::array<char, kMaxMessageSize> message;
-  bool isWaiting = true;
+  volatile bool isWaiting = true;
   std::clock_t startTime = std::clock();
   boost::system::error_code e;
   boost::asio::async_read(*socket, boost::asio::buffer(message), 
       [&isWaiting](const boost::system::error_code& e,
                     std::size_t bytes) {
-        if (!e) {
+        if (!e)
           isWaiting = false;
-        }
       });
 
-  // TODO: instead of busy waiting, sleep and then wake the thread in the
-  // callback.
 #if _DEBUG
   while (isWaiting && (clock() - startTime) / CLOCKS_PER_SEC <= 3600);
 #else

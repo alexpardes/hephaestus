@@ -13,7 +13,7 @@ AttackAbility::AttackAbility(std::shared_ptr<GameUnit> owner,
     owner(owner), gameState(gameState), damage(damage), speed(speed),
     range(range), loadTime(0) {
 
-  moveAbility = dynamic_cast<MoveAbility*>(owner->GetAbility("Move"));
+  moveAbility = static_cast<MoveAbility*>(owner->GetAbility("Move"));
   movementEnabled = moveAbility != nullptr;
   rightAttackOffset = Vector2f(0, 0.6f * owner->Attributes().CollisionRadius());
   leftAttackOffset = -rightAttackOffset;

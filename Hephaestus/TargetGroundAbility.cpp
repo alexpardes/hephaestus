@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include <PathFinding/PolygonPathFinder.h>
+#include <PathFinding/PathFinder.h>
 #include <PathFinding/SpatialGraph.h>
 #include <PathFinding/SpatialVertex.h>
 #include "GameState.h"
@@ -25,8 +25,8 @@ void TargetGroundAbility::Execute() {
 void TargetGroundAbility::SetDestination(const Vector2f &point) {
   SectorMap sectorMap;
   sectorMap.Create(point, gameState.GetWalls());
-  auto startVertex = gameState.PathingGraph().MakeVertex(owner.Position(), owner.SightMap());
-  auto path = PolygonPathFinder::Path(startVertex.get(), gameState.GetWalls(), sectorMap.PolygonBorder());
+  auto startVertex = gameState.PathingGraph().MakeVertex(owner.Position());
+  auto path = PathFinder::Path(startVertex.get(), gameState.GetWalls(), sectorMap.PolygonBorder());
   static_cast<MoveAbility*>(owner.GetAbility("Move"))->SetPath(path);
 }
 

@@ -10,7 +10,6 @@
 class SectorMap;
 class SpatialGraph;
 
-const float kTileSize = 10.f;
 typedef std::pair<std::string, UnitAttributes> UnitDefinition;
 typedef std::unordered_map<std::string, const UnitAttributes> UnitDictionary;
 
@@ -28,7 +27,7 @@ struct CollisionTestResult {
 class GameState {
 	public:
 		GameState(const UnitDictionary &unitDictionary,
-				const Vector2i &mapSize, PathFinder *pathfinder, SpatialGraph *pathingGraph);
+				const Vector2i &mapSize, SpatialGraph *pathingGraph);
 
     size_t HashCode() const;
 		void AddUnit(const std::string &type, PlayerNumber owner,
@@ -64,14 +63,11 @@ class GameState {
 		const static float kUnitGridResolution;
 		std::shared_ptr<GameUnit> GetUnit(UnitId id) const;
 		Vector2i map_size() const {return mapSize;}
-    Vector2i GetTile(UnitId id) const;
-    Vector2i GetTile(const Vector2f &gameLocation) const;
-    Vector2f GetLocation(const Vector2i &gridLocation) const;
     void ExecuteTurn();
     void MoveUnit(UnitId id, Vector2f location);
     Vector2f GetUnitPosition(UnitId id) const;
     std::vector<Rect> GetWallsInRectangle(const Rect &rectangle) const;
-    const std::vector<const LineSegment> &GetWalls() const;
+    const std::vector<const Poly> &GetWalls() const;
     const SpatialGraph &PathingGraph() const { return *pathingGraph; }
 
     //CollisionTestResult TestCollision(const GameUnit& unit,
@@ -91,38 +87,24 @@ class GameState {
       const Vector2f& end, float radius) const;
 
 	private:
-    const PathingGrid* PathingGrid() const { return pathfinder->GetPathingGrid(); }
-    void FindWalls();
-    Rect GetWall(const Vector2i& tile) const;
-    void GameState::AddWalls(int tileX, int tileY);
-
-    //CollisionTestResult TestWallCollision(const GameUnit& unit,
-    //    const Vector2f& end) const;
+    typedef std::vector<std::vector<std::list<std::shared_ptr<GameUnit>>>> UnitGrid;
 
     CollisionTestResult TestUnitCollision(const Vector2f& start,
       const Vector2f& end, float radius,
       std::shared_ptr<const GameUnit> unitToIgnore = nullptr) const;
 
-    //CollisionTestResult TestUnitCollision(const GameUnit& unit,
-    //    const Vector2f& end, float radius) const;
-
     // Returns the closest point which is on the map.
     Vector2f Constrain(Vector2f location) const;
-    Vector2i Constrain(Vector2i location) const;
-
     void UpdateSightMap(GameUnit& unit);
 
 		std::list<std::shared_ptr<GameUnit>> units;
 		std::list<Projectile *> projectiles;
-
-    typedef std::vector<std::vector<std::list<std::shared_ptr<GameUnit>>>> UnitGrid;
 		UnitGrid unitGrid;
 		int unitGridWidth, unitGridHeight;
 		float maxUnitRadius;
 		const UnitDictionary &unitDefinitions;
 		std::unordered_map<UnitId, std::shared_ptr<GameUnit>> unitTable;
 		Vector2i mapSize;
-    PathFinder *pathfinder;
     int lastUnitId;
     std::vector<const LineSegment> walls;
     SpatialGraph *pathingGraph;
@@ -130,7 +112,9 @@ class GameState {
 
 class GameScene {
 	public:
-		GameScene(const GameState &game_state);
+    const static float kUnitGridResolution;
+
+    GameScene(const GameState &gameState);
 		GameScene(const GameScene &scene1, const GameScene &scene2,
 				float weight);
 		~GameScene();
@@ -144,10 +128,9 @@ class GameScene {
 		std::vector<const UnitModel *> GetUnitsInRectangle(
 				const Vector2f &corner1, const Vector2f &corner2) const;
 		UnitModel *GetUnit(UnitId id) const;
-
-		const static float kUnitGridResolution;
-
     std::vector<const SectorMap*> UnitViews() const { return unitViews; }
+
+    const std::vector<const Poly> &walls;
 
 	private:
     void ComputeUnitVisibility(PlayerNumber player,
@@ -158,6 +141,7 @@ class GameScene {
 		void CreateUnit(const UnitModel &unit);
 		void AddUnit(UnitModel *unit);
 		void AddToUnitGrid(const UnitModel &unit);
+
 		std::list<UnitModel *> units_;
 		std::list<ProjectileModel *> projectiles_;
 		std::list<const UnitModel *> **unit_grid_;

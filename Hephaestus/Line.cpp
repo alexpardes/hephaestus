@@ -23,10 +23,14 @@ float Line::NearestPointParam(const Vector2f &point) const {
 }
 
 Vector2f Line::Intersection(const Line &line) const {
-  assert(line.direction != direction && line.direction != -direction);
+  assert(!IsParallel(line));
 
   float n = line.point.y - point.y + (point.x - line.point.x) * line.direction.y / line.direction.x;
   float d = direction.y - line.direction.y * direction.x / line.direction.x;
   float t = n / d;
   return point + t * direction;
+}
+
+bool Line::IsParallel(const Line &line) const {
+  return direction == line.direction || direction == -line.direction;
 }

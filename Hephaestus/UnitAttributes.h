@@ -17,7 +17,7 @@ public:
 
   const std::string &name() const {return name_;}
 
-  float speed() const {return speed_;}
+  float Speed() const {return speed_;}
   float CollisionRadius() const {return collision_radius_;}
   float selection_radius()  const {return selection_radius_;}
   float attack_damage() const {return attack_damage_;}

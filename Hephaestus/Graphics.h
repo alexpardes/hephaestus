@@ -9,16 +9,16 @@
 class Graphics {
 	public:
 		Graphics(sf::RenderWindow &window,
-				const GameInterface &game_interface,
-				ResourceManager &resource_manager) :
-				window_(window), gameInterface(game_interface),
-				resource_manager_(resource_manager) {
+				const GameInterface &gameInterface,
+				ResourceManager &resourceManager) :
+				window(window), gameInterface(gameInterface),
+				resourceManager(resourceManager) {
     }
 		void DrawGame(const GameScene &scene, float framerate, float cycleRate);
 	private:
-    Vector2i MapSize() const { return resource_manager_.MapSize(); }
-		sf::RenderWindow &window_;
-		ResourceManager &resource_manager_;
+    Vector2i MapSize() const { return resourceManager.MapSize(); }
+		sf::RenderWindow &window;
+		ResourceManager &resourceManager;
 		const GameInterface &gameInterface;
     void DrawFogOfWar(const GameScene& scene);
     void DrawFramerate(float framerate, float cycleRate) const;
@@ -28,5 +28,6 @@ class Graphics {
 		void DrawGameInterface(const GameScene& scene) const;
     void DrawSelectionGraphics(const GameScene& scene) const;
     void DrawVisibilityGraphics(const GameScene& scene) const;
-		void Graphics::DrawMiniMap(const GameScene &scene) const;
+		void DrawMiniMap(const GameScene &scene) const;
+    void DrawDilation(const GameScene &scene) const;
 };

@@ -115,7 +115,7 @@ void Hephaestus::LoadMap(const std::string &map) {
 	gameManager->SetGameState(resource_manager->LoadMap("default.map"));
   Log::Write("Map loaded");
   Vector2i map_size = resource_manager->MapSize(); 
-  game_interface->SetMapSize(kTileSize * Util::ToVector2f(map_size));
+  game_interface->SetMapSize(Util::ToVector2f(map_size));
   game_interface->Resize();
 }
 

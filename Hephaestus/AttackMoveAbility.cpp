@@ -10,8 +10,8 @@ AttackMoveAbility::AttackMoveAbility(GameUnit &owner,
                                      GameState &gameState) :
     owner(owner), gameState(gameState) {
 
-  autoAttackAbility = dynamic_cast<AutoAttackAbility*>(owner.GetAbility("AutoAttack"));
-  moveAbility = dynamic_cast<MoveAbility*>(owner.GetAbility("Move"));
+  autoAttackAbility = static_cast<AutoAttackAbility*>(owner.GetAbility("AutoAttack"));
+  moveAbility = static_cast<MoveAbility*>(owner.GetAbility("Move"));
 }
 
 void AttackMoveAbility::SetDestination(const Vector2f &destination) {

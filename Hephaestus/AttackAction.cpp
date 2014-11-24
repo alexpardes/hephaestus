@@ -6,12 +6,12 @@
 void AttackAction::Start(GameUnit &unit) {
   UnitAbility *ability = unit.GetAbility("Attack");
   if (ability) {
-    attackAbility = dynamic_cast<AttackAbility*>(ability);
+    attackAbility = static_cast<AttackAbility*>(ability);
     attackAbility->SetTarget(target);
   }
   ability = unit.GetAbility("Move");
   if (ability) {
-    moveAbility = dynamic_cast<MoveAbility*>(ability);
+    moveAbility = static_cast<MoveAbility*>(ability);
   }
 }
 

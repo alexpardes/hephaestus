@@ -3,6 +3,7 @@
 #include "Util.h"
 #include "Circle.h"
 #include "Timer.h"
+#include "Poly.h"
 
 typedef SectorMap::Sector Sector;
 typedef std::vector<Sector>::const_reverse_iterator iterator;
@@ -26,6 +27,10 @@ Vector2f Point(float angle, float depth) {
   return depth * Util::MakeUnitVector(angle);
 }
 
+float Angle(const Vector2f &p, const Vector2f &center) {
+  return Util::FindAngle(p - center);
+}
+
 LineSegment Segment(const SectorMap::Sector &sector) {
   return LineSegment(Point(sector.startAngle, sector.startDepth), Point(sector.endAngle, sector.endDepth));
 }
@@ -47,6 +52,9 @@ float SectorDepthAtAngle(const SectorMap::Sector &sector, float angle) {
 
   if (angle == sector.endAngle)
     return sector.endDepth;
+
+  if (sector.startDepth == 0 && sector.endDepth == 0)
+    return 0;
 
   auto v1 = Point(sector.startAngle, sector.startDepth);
   auto v2 = Point(sector.endAngle, sector.endDepth);
@@ -131,24 +139,33 @@ Sector SectorMap::SectorFromSegment(const LineSegment &segment) const {
   return sector;
 }
 
-void SectorMap::CreateInputSectors(const std::vector<const LineSegment> &segments) {
+void SectorMap::CreateInputSectors(const std::vector<const Poly> &polygons) {
   tempSectors1.clear();
 
-  for (auto segment : segments) {
-    auto sector = SectorFromSegment(segment);
-    if (sector.IsNil())
-      continue;
+  for (auto polygon : polygons)
+    for (auto vertex : polygon) {
+      Sector sector;
+      if (vertex.Point() == center) {
+        float startAngle = Angle(vertex.Next().Point(), center);
+        float endAngle = Angle(vertex.Prev().Point(), center);
+        sector = Sector(startAngle, endAngle, 0, 0);
+      } else {
+        auto segment = vertex.Segment();
+        sector = SectorFromSegment(segment);
+        if (sector.IsNil())
+          continue;
+      }
 
-    if (sector.startAngle <= sector.endAngle) {
-      tempSectors1.push_back(sector);
-    } else {
-      auto splitSectors = SplitSectorAtZero(sector);
-      AssertSectorValid(splitSectors.first);
-      AssertSectorValid(splitSectors.second);
-      tempSectors1.push_back(splitSectors.first);
-      tempSectors1.push_back(splitSectors.second);
+      if (sector.startAngle <= sector.endAngle) {
+        tempSectors1.push_back(sector);
+      } else {
+        auto splitSectors = SplitSectorAtZero(sector);
+        AssertSectorValid(splitSectors.first);
+        AssertSectorValid(splitSectors.second);
+        tempSectors1.push_back(splitSectors.first);
+        tempSectors1.push_back(splitSectors.second);
+      }
     }
-  }
 }
 
 struct {
@@ -219,12 +236,12 @@ Sector SectorMap::PopNextSector() {
 
 // Assumes that there is no ray from the center which does not intersect a segment.
 // Assumes no segments intersect.
-void SectorMap::Create(const Vector2f &center, const std::vector<const LineSegment> &segments) {  
+void SectorMap::Create(const Vector2f &center, const std::vector<const Poly> &polygons) {  
   this->center = center;
   sectors.clear();
   tempSectors2.clear();
 
-  CreateInputSectors(segments);
+  CreateInputSectors(polygons);
 
   // Sort in reverse order so we can pop elements off the back;
   std::sort(tempSectors1.begin(), tempSectors1.end(), startAngleGreater);
@@ -367,7 +384,7 @@ bool SectorMap::IsVisible(const Vector2f &point) const {
 
 
 std::vector<Sector> SectorMap::VisibleSubsectors(const Sector &sector) const {
-  std::vector<Sector> subsectors; // TODO: Remove this allocation.
+  std::vector<Sector> subsectors;
 
   // This is the sector containing the start of the input sector.
   auto sector2 = std::upper_bound(sectors.begin(), sectors.end(), sector, startAngleLess) - 1;

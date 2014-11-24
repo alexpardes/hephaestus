@@ -4,17 +4,18 @@
 void Graphics::DrawGame(const GameScene &scene,
                         float framerate,
                         float cycleRate) {
-	window_.clear();
-  window_.setView(gameInterface.MainView());
+	window.clear();
+  window.setView(gameInterface.MainView());
 	DrawTerrain();
 	DrawUnits(scene.units());
 	DrawProjectiles(scene.projectiles());
 
   DrawFogOfWar(scene);
+  DrawDilation(scene);
 
   DrawGameInterface(scene);
 
-  window_.setView(gameInterface.MinimapView());
+  window.setView(gameInterface.MinimapView());
   DrawTerrain();
   DrawUnits(scene.units());
   DrawProjectiles(scene.projectiles());
@@ -22,12 +23,23 @@ void Graphics::DrawGame(const GameScene &scene,
   DrawFramerate(framerate, cycleRate);
 
 
-  window_.setView(gameInterface.MainView());
-	window_.display();
+  window.setView(gameInterface.MainView());
+	window.display();
+}
+
+void Graphics::DrawDilation(const GameScene &scene) const {
+  for (auto polygon : scene.walls) {
+    sf::VertexArray verts(sf::LinesStrip);
+    for (auto v : polygon) {
+      verts.append(sf::Vertex(v.Point(), sf::Color::Red));
+    }
+    verts.append(sf::Vertex(polygon.begin().Point(), sf::Color::Red));
+    window.draw(verts);
+  }
 }
 
 void Graphics::DrawFogOfWar(const GameScene& scene) {
-  sf::RenderTexture& fogTexture = resource_manager_.FogTexture();
+  sf::RenderTexture &fogTexture = resourceManager.FogTexture();
   fogTexture.clear(sf::Color(0, 0, 0, 150));
 
   sf::VertexArray visibleArea(sf::Triangles);
@@ -51,43 +63,43 @@ void Graphics::DrawFogOfWar(const GameScene& scene) {
 
   fogTexture.draw(visibleArea, sf::BlendNone);
   fogTexture.display();
-  window_.draw(sf::Sprite(fogTexture.getTexture()));
+  window.draw(sf::Sprite(fogTexture.getTexture()));
 }
 
 void Graphics::DrawFramerate(float framerate, float cycleRate) const {
-  window_.setView(window_.getDefaultView());
-  sf::Font font = resource_manager_.GetDefaultFont();
+  window.setView(window.getDefaultView());
+  sf::Font font = resourceManager.GetDefaultFont();
 
   std::string framerateString = std::to_string(int(framerate));
   sf::Text framerateDisplay(framerateString, font);
   framerateDisplay.setCharacterSize(15);
   framerateDisplay.setColor(sf::Color::White);
   float width = framerateDisplay.getLocalBounds().width;
-  float left = window_.getSize().x - width - 10;
+  float left = window.getSize().x - width - 10;
   float top = 10;
   framerateDisplay.setPosition(left, top);
-  window_.draw(framerateDisplay);
+  window.draw(framerateDisplay);
 
   std::string cycleRateString = std::to_string(int(cycleRate));
   sf::Text cycleRateDisplay(cycleRateString, font);
   cycleRateDisplay.setCharacterSize(15);
   cycleRateDisplay.setColor(sf::Color::White);
   width = cycleRateDisplay.getLocalBounds().width;
-  left = window_.getSize().x - width - 10;
+  left = window.getSize().x - width - 10;
   top = 20 + framerateDisplay.getLocalBounds().height;
   cycleRateDisplay.setPosition(left, top);
-  window_.draw(cycleRateDisplay);
+  window.draw(cycleRateDisplay);
 }
 
 void Graphics::DrawTerrain() const {
-  sf::Sprite mapSprite(resource_manager_.GetMapImage());
-  window_.draw(mapSprite);
+  sf::Sprite mapSprite(resourceManager.GetMapImage());
+  window.draw(mapSprite);
 }
 
 void Graphics::DrawUnits(const std::list<UnitModel *> &units) const {
   for (UnitModel* unit : units) {
     if (unit->IsVisible()) {
-		  const sf::Texture &unit_image = resource_manager_.GetImage(unit->Name(),
+		  const sf::Texture &unit_image = resourceManager.GetImage(unit->Name(),
 				  unit->Owner());
 		  sf::Sprite unit_sprite(unit_image);
 		  Vector2f image_center(unit_image.getSize().x * 0.5f,
@@ -98,7 +110,7 @@ void Graphics::DrawUnits(const std::list<UnitModel *> &units) const {
       if (unit->Facing() == kLeft)
         unit_sprite.setScale(1, -1);
 
-		  window_.draw(unit_sprite);
+		  window.draw(unit_sprite);
     }
 	}
 }
@@ -107,13 +119,13 @@ void Graphics::DrawProjectiles(const std::list<ProjectileModel *> &projectiles)
 		const {
   for (ProjectileModel* projectile : projectiles) {
     const sf::Texture &image =
-        resource_manager_.GetImage(projectile->Name());
+        resourceManager.GetImage(projectile->Name());
 		sf::Sprite projectile_sprite(image);
 		Vector2f imageCenter(image.getSize().x * 0.5f, image.getSize().y * 0.5f);
 		projectile_sprite.setOrigin(imageCenter);
 		projectile_sprite.setPosition(projectile->position());
     projectile_sprite.setRotation(Util::Degrees(projectile->Rotation()));
-		window_.draw(projectile_sprite);
+		window.draw(projectile_sprite);
 	}
 }
 
@@ -129,7 +141,7 @@ void Graphics::DrawGameInterface(const GameScene &scene) const {
 		selectionCircle.setFillColor(sf::Color(0, 0, 0, 0));
 		selectionCircle.setOutlineColor(sf::Color(75, 255, 150, 150));
 		selectionCircle.setOutlineThickness(1.9f);
-		window_.draw(selectionCircle);
+		window.draw(selectionCircle);
 	}
 
   for (UnitModel* unit : scene.units()) {
@@ -149,13 +161,13 @@ void Graphics::DrawGameInterface(const GameScene &scene) const {
       healthBar.setFillColor(sf::Color::Green);
       healthBar.setOrigin(healthBarOutline.getOrigin());
       healthBar.setPosition(healthBarOutline.getPosition());
-      window_.draw(healthBar);
-      window_.draw(healthBarOutline);
+      window.draw(healthBar);
+      window.draw(healthBarOutline);
     }
   }
 
 	if (gameInterface.is_selecting()) {
-		window_.draw(*gameInterface.GetSelectionBoxGraphic());
+		window.draw(*gameInterface.GetSelectionBoxGraphic());
 	}
   
   //Vector2i mapSize = resource_manager_.MapSize();
@@ -172,8 +184,8 @@ void Graphics::DrawGameInterface(const GameScene &scene) const {
   //  }
   //}
 
-  window_.setView(window_.getDefaultView());
-	window_.draw(*gameInterface.GetInterfaceGrahic());
+  window.setView(window.getDefaultView());
+	window.draw(*gameInterface.GetInterfaceGrahic());
 
 	//DrawMiniMap(scene);
 }
@@ -183,10 +195,10 @@ void Graphics::DrawMiniMap(const GameScene &scene) const {
   for (UnitModel* unit : scene.units()) {
 		Vector2f position;
 		position.x = unit->position().x * minimap_size.x /
-				resource_manager_.MapSize().x / kTileSize;
-		position.y = window_.getSize().y - minimap_size.y +
+				resourceManager.MapSize().x;
+		position.y = window.getSize().y - minimap_size.y +
 				unit->position().y * minimap_size.y /
-				resource_manager_.MapSize().y / kTileSize;
+				resourceManager.MapSize().y;
 		sf::CircleShape minimap_graphic(3.f);
 		minimap_graphic.setPosition(position);
 		switch (unit->Owner()) {
@@ -197,6 +209,6 @@ void Graphics::DrawMiniMap(const GameScene &scene) const {
 				minimap_graphic.setFillColor(sf::Color(0, 0, 255, 255));
 				break;
 		}
-		window_.draw(minimap_graphic);
+		window.draw(minimap_graphic);
 	}
 }

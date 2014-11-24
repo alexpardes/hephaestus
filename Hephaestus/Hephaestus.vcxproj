@@ -184,19 +184,20 @@
     <ClCompile Include="Hephaestus.cpp" />
     <ClCompile Include="Line.cpp" />
     <ClCompile Include="LineSegment.cpp" />
+    <ClCompile Include="MinkowskiSum.cpp" />
     <ClCompile Include="MoveAbility.cpp" />
     <ClCompile Include="MoveAction.cpp" />
     <ClCompile Include="MoveCommand.cpp" />
     <ClCompile Include="NetworkConnection.cpp" />
     <ClCompile Include="NetworkManager.cpp" />
     <ClCompile Include="Player.cpp" />
+    <ClCompile Include="Poly.cpp" />
     <ClCompile Include="Projectile.cpp" />
     <ClCompile Include="Rectangle.cpp" />
     <ClCompile Include="ResourceManager.cpp" />
     <ClCompile Include="SectorMap.cpp" />
     <ClCompile Include="SelectCommand.cpp" />
     <ClCompile Include="GameState.cpp" />
-    <ClCompile Include="ShadowCaster.cpp" />
     <ClCompile Include="Replay.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -212,7 +213,6 @@
     <ClCompile Include="GameInterface.cpp" />
     <ClCompile Include="UnitCommand.cpp" />
     <ClCompile Include="Util.cpp" />
-    <ClCompile Include="Waypoint.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AttackAbility.h" />
@@ -244,12 +244,14 @@
     <ClInclude Include="Line.h" />
     <ClInclude Include="LineSegment.h" />
     <ClInclude Include="CommandBuffer.h" />
+    <ClInclude Include="MinkowskiSum.h" />
     <ClInclude Include="MoveAbility.h" />
     <ClInclude Include="MoveAction.h" />
     <ClInclude Include="MoveCommand.h" />
     <ClInclude Include="NetworkConnection.h" />
     <ClInclude Include="NetworkManager.h" />
     <ClInclude Include="Player.h" />
+    <ClInclude Include="Poly.h" />
     <ClInclude Include="Projectile.h" />
     <ClInclude Include="Rectangle.h" />
     <ClInclude Include="Replay.h" />
@@ -258,7 +260,6 @@
     <ClInclude Include="SectorMap.h" />
     <ClInclude Include="SelectCommand.h" />
     <ClInclude Include="Serialization.h" />
-    <ClInclude Include="ShadowCaster.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="StopCommand.h" />
     <ClInclude Include="TargetGroundAbility.h" />
@@ -276,7 +277,6 @@
     <ClInclude Include="Vector2.h" />
     <ClInclude Include="VectorSerialization.h" />
     <ClInclude Include="VisibilityPolygon.h" />
-    <ClInclude Include="Waypoint.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="projectile.png" />

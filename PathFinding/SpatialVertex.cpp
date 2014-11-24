@@ -1,5 +1,4 @@
 #include <Hephaestus/Util.h>
-#include "PolygonPathFinder.h"
 #include "SpatialVertex.h"
 
 SpatialVertex::SpatialVertex(const Vector2f &point) {

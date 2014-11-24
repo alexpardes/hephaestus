@@ -1,29 +1,21 @@
 #pragma once
+#include <deque>
 #include <vector>
 #include <Hephaestus/Vector2.h>
 
+class Poly;
+class LineSegment;
+class SpatialVertex;
 class Waypoint;
 
-class PathingGrid {
-  public:
-    virtual bool IsBlocked(const Vector2i &tile) const = 0;
-    bool IsBlocked(int x, int y) const { return IsBlocked(Vector2i(x, y)); }
-    virtual bool IsUnblocked(const Vector2i &tile) const = 0;
-    bool IsUnblocked(int x, int y) const { return IsUnblocked(Vector2i(x, y)); }
-    virtual void SetBlocked(const Vector2i &tile, bool isBlocked) = 0;
-    void SetBlocked(const Vector2i &tile) { SetBlocked(tile, true); }
-    void SetBlocked(int x, int y, bool isBlocked) { SetBlocked(Vector2i(x, y), isBlocked); }
-    void SetBlocked(int x, int y) { SetBlocked(Vector2i(x, y)); }
-    virtual Vector2i Size() const = 0;
-    virtual ~PathingGrid() { }
-    static float OctileDistance(const Vector2i &p1, const Vector2i &p2);
-};
+namespace PathFinder {
+  std::deque<const Vector2f> Path(
+    const SpatialVertex *start,
+    const std::vector<const Poly> &walls,
+    const Vector2f &goal);
 
-class PathFinder {
-  public:
-    virtual std::vector<const Waypoint*> GetPath(const Vector2f &startpoint,
-        const Vector2f &endpoint) = 0;
-    virtual ~PathFinder() { }
-    virtual const PathingGrid *GetPathingGrid() const = 0;
-    virtual void SetTileSize(const Vector2f& newSize) = 0;
+  std::deque<const Vector2f> Path(
+    const SpatialVertex *start,
+    const std::vector<const Poly> &walls,
+    const std::vector<const LineSegment> &segments);
 };
