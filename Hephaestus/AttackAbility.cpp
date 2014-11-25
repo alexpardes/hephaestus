@@ -36,6 +36,7 @@ void AttackAbility::ChooseAttackPoint() {
 }
 
 Vector2f AttackAbility::AttackPoint() const {
+  return owner->Position();
   if (owner->Facing() == kLeft) {
     return LeftAttackPoint();
   } else {

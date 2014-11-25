@@ -94,5 +94,11 @@ class Util {
 
     const static Vector2i kLeft, kUp, kRight, kDown;
     static Rect BoundingRectangle(const DirectedSegment &segment);
+
+    // Weight 0 -> angle1, weight 1 -> angle2
+    // Interpolates through shortest angle
     static float InterpolateAngles(float angle1, float angle2, float weight);
+
+    // Interpolates through counterclockwise angle
+    static float InterpolateAnglesCcw(float angle1, float angle2, float weight);
 };

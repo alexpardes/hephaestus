@@ -191,14 +191,29 @@ Rect Util::BoundingRectangle(const DirectedSegment &segment) {
 }
 
 float Util::InterpolateAngles(float angle1, float angle2, float weight) {
-  float result = 0.f;
+  float result;
   float a = 1.f - weight;
   float b = weight;
 
   if (std::abs(angle1 - angle2) > M_PI) {
     result = a*Util::Angle(angle1, M_PI / 2)
       + b*Util::Angle(angle2, M_PI / 2);
-    result = Util::Angle(result, 0.f);
+    result = Util::Angle(result);
+  } else {
+    result = a*angle1 + b*angle2;
+  }
+
+  return result;
+}
+
+float Util::InterpolateAnglesCcw(float angle1, float angle2, float weight) {
+  float result;
+  float a = 1.f - weight;
+  float b = weight;
+
+  if (angle1 > angle2) {
+    result = b*angle2 - a*(2*M_PI - angle1);
+    result = Util::Angle(result);
   } else {
     result = a*angle1 + b*angle2;
   }

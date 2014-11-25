@@ -5,15 +5,16 @@
 #include "SpatialVertex.h"
 
 SpatialGraph::SpatialGraph(const std::vector<const Poly> &polygons) {
-  this->polygons = MinkowskiSum::Dilate(polygons, 25);
-  for (auto polygon : this->polygons) {
+  this->polygons = polygons;
+  dilatedPolygons = MinkowskiSum::Dilate(polygons, 25);
+  for (auto polygon : dilatedPolygons) {
     for (auto vertex : polygon) {
       if (vertex.IsConvex())
         vertices.push_back(std::unique_ptr<SpatialVertex>(new SpatialVertex(vertex.Point())));
     }
   }
 
-  auto polygonIt = polygons.begin();
+  auto polygonIt = dilatedPolygons.begin();
   int vertexIndex = 0;
   for (size_t i = 0; i < vertices.size(); ++i) {
     SectorMap map;
@@ -39,7 +40,7 @@ SpatialGraph::SpatialGraph(const std::vector<const Poly> &polygons) {
 
 std::unique_ptr<const SpatialVertex> SpatialGraph::MakeVertex(const Vector2f &point) const {
   SectorMap sectorMap;
-  sectorMap.Create(point, polygons);
+  sectorMap.Create(point, dilatedPolygons);
   auto resultVertex = new SpatialVertex(point);
   for (auto vertex = vertices.begin(); vertex != vertices.end(); ++vertex) {
     if (sectorMap.IsVisible((*vertex)->Point()))
@@ -50,4 +51,8 @@ std::unique_ptr<const SpatialVertex> SpatialGraph::MakeVertex(const Vector2f &po
 
 const std::vector<const Poly> &SpatialGraph::Walls() const {
   return polygons;
+}
+
+const std::vector<const Poly> &SpatialGraph::DilatedWalls() const {
+  return dilatedPolygons;
 }

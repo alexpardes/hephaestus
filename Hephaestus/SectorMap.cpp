@@ -3,7 +3,6 @@
 #include "Util.h"
 #include "Circle.h"
 #include "Timer.h"
-#include "Poly.h"
 
 typedef SectorMap::Sector Sector;
 typedef std::vector<Sector>::const_reverse_iterator iterator;
@@ -63,14 +62,14 @@ float SectorDepthAtAngle(const SectorMap::Sector &sector, float angle) {
   return Util::Length(intersection);
 }
 
-std::pair<Sector, Sector> SplitSectorAtZero(const Sector &sector) {
+std::pair<Sector, Sector> SplitSector(const Sector &sector, float angle = 0) {
   Sector sector1, sector2;
   sector1.startAngle = sector.startAngle;
   sector1.startDepth = sector.startDepth;
-  sector1.endAngle = 2 * M_PI;
-  sector1.endDepth = SectorDepthAtAngle(sector, 0);
+  sector1.endAngle = angle == 0 ? 2 * M_PI : angle;
+  sector1.endDepth = SectorDepthAtAngle(sector, angle);
 
-  sector2.startAngle = 0;
+  sector2.startAngle = angle;
   sector2.startDepth = sector1.endDepth;
   sector2.endAngle = sector.endAngle;
   sector2.endDepth = sector.endDepth;
@@ -139,6 +138,32 @@ Sector SectorMap::SectorFromSegment(const LineSegment &segment) const {
   return sector;
 }
 
+void SectorMap::AddSector(const Sector &sector) {
+  if (sector.Size() > M_PI / 2) {
+    float midAngle = Util::InterpolateAnglesCcw(sector.startAngle, sector.endAngle, 0.5);
+    auto splitSectors = SplitSector(sector, midAngle);
+    AddSector(splitSectors.first);
+    AddSector(splitSectors.second);
+  } else if (sector.startAngle > sector.endAngle) {
+    auto splitSectors = SplitSector(sector);
+    AddSector(splitSectors.first);
+    AddSector(splitSectors.second);
+  }
+  else {
+    AssertSectorValid(sector);
+    tempSectors1.push_back(sector);
+  }
+}
+
+/* Gives the sector blocked by a polygon vertex when the sectormap is placed at
+ * the vertex. */
+Sector SectorFromVertex(const Poly::Vertex &vertex) {
+  float startAngle = Angle(vertex.Next().Point(), vertex.Point());
+  float endAngle = Angle(vertex.Prev().Point(), vertex.Point());
+  auto sector = Sector(startAngle, endAngle, 0, 0);
+  return sector;
+}
+
 void SectorMap::CreateInputSectors(const std::vector<const Poly> &polygons) {
   tempSectors1.clear();
 
@@ -146,25 +171,25 @@ void SectorMap::CreateInputSectors(const std::vector<const Poly> &polygons) {
     for (auto vertex : polygon) {
       Sector sector;
       if (vertex.Point() == center) {
-        float startAngle = Angle(vertex.Next().Point(), center);
-        float endAngle = Angle(vertex.Prev().Point(), center);
-        sector = Sector(startAngle, endAngle, 0, 0);
+        sector = SectorFromVertex(vertex);
+      } else if (vertex.Next().Point() == center) {
+        sector = SectorFromVertex(vertex.Next());
       } else {
         auto segment = vertex.Segment();
-        sector = SectorFromSegment(segment);
-        if (sector.IsNil())
-          continue;
-      }
 
-      if (sector.startAngle <= sector.endAngle) {
-        tempSectors1.push_back(sector);
-      } else {
-        auto splitSectors = SplitSectorAtZero(sector);
-        AssertSectorValid(splitSectors.first);
-        AssertSectorValid(splitSectors.second);
-        tempSectors1.push_back(splitSectors.first);
-        tempSectors1.push_back(splitSectors.second);
+        if (segment.Distance(center) < 0.001) {
+          sector.startAngle = Angle(vertex.Next().Point(), center);
+          sector.endAngle = Angle(vertex.Point(), center);
+          sector.startDepth = 0;
+          sector.endDepth = 0;
+          AssertSectorValid(sector);
+        } else {
+          sector = SectorFromSegment(segment);
+          if (sector.IsNil())
+            continue;
+        }
       }
+      AddSector(sector);
     }
 }
 
@@ -409,7 +434,7 @@ std::vector<Sector> SectorMap::VisibleSubsectors(const LineSegment &segment) con
   std::vector<Sector> subsectors;
   auto segmentSector = SectorFromSegment(segment);
   if (segmentSector.endAngle < segmentSector.startAngle) {
-    auto splitSectors = SplitSectorAtZero(segmentSector);
+    auto splitSectors = SplitSector(segmentSector);
     subsectors = VisibleSubsectors(splitSectors.first);
     auto subsectors2 = VisibleSubsectors(splitSectors.second);
 

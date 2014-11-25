@@ -10,8 +10,10 @@ class SpatialGraph {
     SpatialGraph(const std::vector<const Poly> &polygons);
     std::unique_ptr<const SpatialVertex> MakeVertex(const Vector2f &point) const;
     const std::vector<const Poly> &Walls() const;
+    const std::vector<const Poly> &DilatedWalls() const;
 
   private:
     std::vector<const std::unique_ptr<SpatialVertex>> vertices;
     std::vector<const Poly> polygons;
+    std::vector<const Poly> dilatedPolygons;
 };

@@ -2,8 +2,7 @@
 #include "Vector2.h"
 #include "Util.h"
 #include "VisibilityPolygon.h"
-
-class Poly;
+#include "Poly.h"
 
 // This class creates the visibility polygon for a point from a set of line segments.
 class SectorMap {
@@ -36,6 +35,7 @@ class SectorMap {
     std::vector<Sector> VisibleSubsectors(const LineSegment &segment) const;
     const Sector &Next(iterator &sector1, iterator &sector2) const;
     void CreateInputSectors(const std::vector<const Poly> &polygons);
+    void AddSector(const Sector &sector);
     Sector PopNextSector();
     const Sector &FirstOccludingSector(const Sector &sector) const;
     Vector2f GetPoint(float angle, float depth) const;

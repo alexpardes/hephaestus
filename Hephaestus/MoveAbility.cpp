@@ -18,7 +18,7 @@ MoveAbility::MoveAbility(std::shared_ptr<GameUnit> owner,
 
 void MoveAbility::SetDestination(const Vector2f &destination) {
   auto start = gameState.PathingGraph().MakeVertex(owner->Position());
-  path = PathFinder::Path(start.get(), gameState.GetWalls(), destination);
+  path = PathFinder::Path(start.get(), gameState.PathingGraph().DilatedWalls(), destination);
 }
 
 void MoveAbility::Execute() {

@@ -400,7 +400,7 @@ size_t GameState::HashCode() const {
 
 const float GameScene::kUnitGridResolution = 25.f;
 
-GameScene::GameScene(const GameState &gameState) : walls(gameState.GetWalls()) {
+GameScene::GameScene(const GameState &gameState) : walls(gameState.PathingGraph().DilatedWalls()) {
   mapSize = gameState.map_size();
 	unit_grid_width_ = int(gameState.map_size().x / kUnitGridResolution);
 	unit_grid_height_ = int(gameState.map_size().y / kUnitGridResolution);

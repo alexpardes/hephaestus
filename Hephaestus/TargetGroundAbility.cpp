@@ -15,10 +15,6 @@ std::string TargetGroundAbility::Name() const {
 
 void TargetGroundAbility::Execute() {
   auto moveAbility = static_cast<MoveAbility*>(owner.GetAbility("Move"));
-  //if (moveAbility->DestinationReached() && !path.empty()) {
-  //  moveAbility->SetDestination(path.front()->Point());
-  //  path.pop_front();
-  //}
   moveAbility->Execute();
 }
 
@@ -26,7 +22,7 @@ void TargetGroundAbility::SetDestination(const Vector2f &point) {
   SectorMap sectorMap;
   sectorMap.Create(point, gameState.GetWalls());
   auto startVertex = gameState.PathingGraph().MakeVertex(owner.Position());
-  auto path = PathFinder::Path(startVertex.get(), gameState.GetWalls(), sectorMap.PolygonBorder());
+  auto path = PathFinder::Path(startVertex.get(), gameState.PathingGraph().DilatedWalls(), sectorMap.PolygonBorder());
   static_cast<MoveAbility*>(owner.GetAbility("Move"))->SetPath(path);
 }
 
