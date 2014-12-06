@@ -1,11 +1,9 @@
 #include "stdafx.h"
 #include "Coloring.h"
 
-// TODO: see if calculations can be simplified by not changing to HSL.
-
 sf::Image Coloring::ColorImage(sf::Image image,
-                          const sf::Image& mask,
-                          const sf::Color& color) {
+                               const sf::Image& mask,
+                               const sf::Color& color) {
   HslColor hslColor = ConvertToHsl(color);
   for (unsigned int x = 0; x < image.getSize().x; ++x) {
     for (unsigned int y = 0; y < image.getSize().y; ++y) {

@@ -14,10 +14,10 @@
 //const float GameState::kPathingResolution = 25.f;
 const float GameState::kUnitGridResolution = 8.f;
 
-GameState::GameState(const UnitDictionary &unitDictionary, 
+GameState::GameState(const std::vector<const UnitAttributes> &unitDefinitions, 
                      const Vector2i &mapSize,
                      SpatialGraph *pathingGraph) : 
-    unitDefinitions(unitDictionary) {
+    unitDefinitions(unitDefinitions) {
 
   this->pathingGraph = pathingGraph;
 	maxUnitRadius = 0.f;
@@ -100,11 +100,11 @@ void GameState::UpdateSightMap(GameUnit& unit) {
 }
 
 
-void GameState::AddUnit(const std::string &type,
+void GameState::AddUnit(int type,
                         PlayerNumber owner,
                         const Vector2f &location,
                         float rotation) {
-	const UnitAttributes &attributes = unitDefinitions.at(type);
+	const UnitAttributes &attributes = unitDefinitions[type];
 	auto unit = std::make_shared<GameUnit>(++lastUnitId, attributes, owner, location, rotation);
 
   // TODO: remove the order dependency.
@@ -112,7 +112,7 @@ void GameState::AddUnit(const std::string &type,
   unit->AddAbility(move);
 
   UnitAbility *attack = new AttackAbility(unit, this,
-      attributes.attack_damage(), attributes.attack_speed(), attributes.attack_range());
+      attributes.AttackDamage(), attributes.AttackSpeed(), attributes.AttackRange());
   unit->AddAbility(attack);
 
   UnitAbility *autoAttack = new AutoAttackAbility(*unit, *this);
@@ -124,7 +124,7 @@ void GameState::AddUnit(const std::string &type,
 
   unit->AddAbility(new TargetGroundAbility(*unit, *this));
 
-  unit->AddPassiveAbility(new HealthRegenAbility(*unit, 0.01f));
+  unit->AddPassiveAbility(new HealthRegenAbility(*unit, 0.005f));
 
 	units.push_back(unit);
 	AddToUnitGrid(unit);
@@ -213,7 +213,7 @@ std::vector<std::shared_ptr<GameUnit> > GameState::GetUnitsInRectangle(const Vec
 					unitGrid[i][j].begin();
 					unit != unitGrid[i][j].end();
 					++unit) {
-				float r = (*unit)->Attributes().selection_radius();
+				float r = (*unit)->Attributes().SelectionRadius();
 				float x = (*unit)->Position().x;
 				float y = (*unit)->Position().y;
 				if (x + r >= left && x - r <= right &&
@@ -465,12 +465,12 @@ GameScene::GameScene(const GameScene &scene1,
 		ProjectileModel projectile1 = **projectile_iterator1;
 		if (projectile_iterator2 != scene2.projectiles().end()) {
 			ProjectileModel projectile2 = **projectile_iterator2;
-			if (projectile1.id() == projectile2.id()) {
+			if (projectile1.Id() == projectile2.Id()) {
 				projectiles_.push_back(new ProjectileModel(projectile1,
 						projectile2, weight));
 				++projectile_iterator1;
 				++projectile_iterator2;
-			} else if (projectile1.id() < projectile2.id()) {
+			} else if (projectile1.Id() < projectile2.Id()) {
 				projectiles_.push_back(new ProjectileModel(projectile1));
 				++projectile_iterator1;
 			} else {
@@ -526,8 +526,8 @@ void GameScene::CreateUnit(const UnitModel &unit) {
 }
 
 void GameScene::AddToUnitGrid(const UnitModel &unit) {
-	int x = (int) (unit.position().x / kUnitGridResolution);
-	int y = (int) (unit.position().y / kUnitGridResolution);
+	int x = (int) (unit.Position().x / kUnitGridResolution);
+	int y = (int) (unit.Position().y / kUnitGridResolution);
 	unit_grid_[x][y].push_back(&unit);
 }
 
@@ -552,8 +552,8 @@ std::vector<const UnitModel *> GameScene::GetUnitsInRectangle(
 		for (int j = start_y; j <= end_y; ++j) {
 			for (const UnitModel* unit : unit_grid_[i][j]) {
 				float r = unit->Radius();
-				float x = unit->position().x;
-				float y = unit->position().y;
+				float x = unit->Position().x;
+				float y = unit->Position().y;
 				if (x + r >= left && x - r <= right &&
 						y + r >= top && y - r <= bottom) {
 					units.push_back(unit);

@@ -16,18 +16,18 @@ class Projectile : public GameObject {
 		int Id() const {return id;}
 		static int serial_number_;
     virtual void PerformAction();
-    const std::string &Name() const {return name;}
+    int Type() const {return type;}
     bool IsAlive() const { return isAlive; }
+    float CalculateDamage(const GameUnit &unitHit) const;
+    Vector2f Origin() const;
 
 	private:
-    float CalculateDamage(const GameUnit &unitHit) const;
 		std::shared_ptr<GameUnit> owner;
     Vector2f startPosition;
 		float damage, speed;
-		int id;
+		int id, type;
     bool isAlive;
-    std::string name;
-    GameState& gameState;
+    GameState &gameState;
     SectorMap sectorMap;
 };
 
@@ -36,14 +36,13 @@ class ProjectileModel {
 		explicit ProjectileModel(const Projectile &projectile);
 		ProjectileModel(const ProjectileModel &projectile1,
 				const ProjectileModel &projectile2, float weight);
-		Vector2f position() const {return position_;}
+		Vector2f Position() const {return position;}
     float Rotation() const { return rotation; }
-		int id() const {return id_;}
-    const std::string &Name() const {return name;}
+		int Id() const {return id;}
+    int Type() const {return type;}
 
 	private:
-		Vector2f position_;
-		int id_;
+		Vector2f position;
+		int id, type;
     float rotation;
-    std::string name;
 };

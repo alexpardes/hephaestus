@@ -10,9 +10,6 @@
 class SectorMap;
 class SpatialGraph;
 
-typedef std::pair<std::string, UnitAttributes> UnitDefinition;
-typedef std::unordered_map<std::string, const UnitAttributes> UnitDictionary;
-
 struct CollisionTestResult {
   // Will be the endpoint of the movement if there is no collision.
   Vector2f point;
@@ -26,11 +23,11 @@ struct CollisionTestResult {
 
 class GameState {
 	public:
-		GameState(const UnitDictionary &unitDictionary,
+		GameState(const std::vector<const UnitAttributes> &unitDefinitions,
 				const Vector2i &mapSize, SpatialGraph *pathingGraph);
 
     size_t HashCode() const;
-		void AddUnit(const std::string &type, PlayerNumber owner,
+		void AddUnit(int type, PlayerNumber owner,
 				const Vector2f &location, float rotation);
 		void RemoveUnit(std::shared_ptr<GameUnit> unit);
 		void AddProjectile(std::shared_ptr<GameUnit> owner, const Vector2f &location,
@@ -102,7 +99,7 @@ class GameState {
 		UnitGrid unitGrid;
 		int unitGridWidth, unitGridHeight;
 		float maxUnitRadius;
-		const UnitDictionary &unitDefinitions;
+		const std::vector<const UnitAttributes> &unitDefinitions;
 		std::unordered_map<UnitId, std::shared_ptr<GameUnit>> unitTable;
 		Vector2i mapSize;
     int lastUnitId;

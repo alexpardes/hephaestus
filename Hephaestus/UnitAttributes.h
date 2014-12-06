@@ -4,37 +4,37 @@
 
 class UnitAttributes {
 public:
-  UnitAttributes(const std::string &name, float collision_radius,
-    float selection_radius, float speed,
-    float attack_damage,
-    float attack_speed, float attack_range,
-    float max_health) : name_(name), speed_(speed),
-    collision_radius_(collision_radius),
-    selection_radius_(selection_radius),
-    attack_damage_(attack_damage), attack_speed_(attack_speed),
-    attack_range_(attack_range), max_health_(max_health) { }
+  UnitAttributes(int type, float collisionRadius,
+    float selectionRadius, float speed,
+    float attackDamage,
+    float attackSpeed, float attackRange,
+    float maxHealth) : type(type), speed(speed),
+    collisionRadius(collisionRadius),
+    selectionRadius(selectionRadius),
+    attackDamage(attackDamage), attackSpeed(attackSpeed),
+    attackRange(attackRange), maxHealth(maxHealth) { }
   UnitAttributes() { }
 
-  const std::string &name() const {return name_;}
+  int Type() const {return type;}
 
-  float Speed() const {return speed_;}
-  float CollisionRadius() const {return collision_radius_;}
-  float selection_radius()  const {return selection_radius_;}
-  float attack_damage() const {return attack_damage_;}
-  float attack_speed() const {return attack_speed_;}
-  float attack_range() const {return attack_range_;}
-  float MaxHealth() const {return max_health_;}
+  float Speed() const {return speed;}
+  float CollisionRadius() const {return collisionRadius;}
+  float SelectionRadius()  const {return selectionRadius;}
+  float AttackDamage() const {return attackDamage;}
+  float AttackSpeed() const {return attackSpeed;}
+  float AttackRange() const {return attackRange;}
+  float MaxHealth() const {return maxHealth;}
 
-  void set_speed(float speed) {speed_ = speed;}
-  void set_collision_radius(float collision_radius) {collision_radius_ = collision_radius;}
-  void set_selection_radius(float selection_radius) {selection_radius_ = selection_radius;}
-  void set_attack_damage(float attack_damage) {attack_damage_ = attack_damage;}
-  void set_attack_speed(float attack_speed) {attack_speed_ = attack_speed;}
-  void set_attack_range(float attack_range) {attack_range_ = attack_range;}
-  void set_max_health(float max_health) {max_health_ = max_health;}
+  void SetSpeed(float speed) {this->speed = speed;}
+  void SetCollisionRadius(float collision_radius) {collisionRadius = collision_radius;}
+  void SetSelectionRadius(float selection_radius) {selectionRadius = selection_radius;}
+  void SetAttackDamage(float attack_damage) {attackDamage = attack_damage;}
+  void SetAttackSpeed(float attack_speed) {attackSpeed = attack_speed;}
+  void SetAttackRange(float attack_range) {attackRange = attack_range;}
+  void SetMaxHealth(float max_health) {maxHealth = max_health;}
 
 private:
-  std::string name_;
-  float speed_, collision_radius_, selection_radius_,	attack_damage_,
-    attack_speed_, attack_range_, max_health_;
+  int type;
+  float speed, collisionRadius, selectionRadius, attackDamage,
+    attackSpeed, attackRange, maxHealth;
 };

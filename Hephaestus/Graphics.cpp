@@ -15,10 +15,10 @@ void Graphics::DrawGame(const GameScene &scene,
 
   DrawGameInterface(scene);
 
-  window.setView(gameInterface.MinimapView());
-  DrawTerrain();
-  DrawUnits(scene.units());
-  DrawProjectiles(scene.projectiles());
+  //window.setView(gameInterface.MinimapView());
+  //DrawTerrain();
+  //DrawUnits(scene.units());
+  //DrawProjectiles(scene.projectiles());
 
   DrawFramerate(framerate, cycleRate);
 
@@ -99,14 +99,14 @@ void Graphics::DrawTerrain() const {
 void Graphics::DrawUnits(const std::list<UnitModel *> &units) const {
   for (UnitModel* unit : units) {
     if (unit->IsVisible()) {
-		  const sf::Texture &unit_image = resourceManager.GetImage(unit->Name(),
+		  const sf::Texture &unit_image = resourceManager.GetImage(unit->Type(),
 				  unit->Owner());
 		  sf::Sprite unit_sprite(unit_image);
 		  Vector2f image_center(unit_image.getSize().x * 0.5f,
           unit_image.getSize().y * 0.5f);
 		  unit_sprite.setOrigin(image_center);
-		  unit_sprite.setPosition(unit->position());
-		  unit_sprite.setRotation(Util::Degrees(unit->rotation()));
+		  unit_sprite.setPosition(unit->Position());
+		  unit_sprite.setRotation(Util::Degrees(unit->Rotation()));
       if (unit->Facing() == kLeft)
         unit_sprite.setScale(1, -1);
 
@@ -119,11 +119,11 @@ void Graphics::DrawProjectiles(const std::list<ProjectileModel *> &projectiles)
 		const {
   for (ProjectileModel* projectile : projectiles) {
     const sf::Texture &image =
-        resourceManager.GetImage(projectile->Name());
+        resourceManager.GetImage(projectile->Type());
 		sf::Sprite projectile_sprite(image);
 		Vector2f imageCenter(image.getSize().x * 0.5f, image.getSize().y * 0.5f);
 		projectile_sprite.setOrigin(imageCenter);
-		projectile_sprite.setPosition(projectile->position());
+		projectile_sprite.setPosition(projectile->Position());
     projectile_sprite.setRotation(Util::Degrees(projectile->Rotation()));
 		window.draw(projectile_sprite);
 	}
@@ -135,7 +135,7 @@ void Graphics::DrawGameInterface(const GameScene &scene) const {
 			gameInterface.GetSelectedUnits();
   for (UnitModel* unit : selectedUnits) {
 		selectionCircle = sf::CircleShape(unit->Radius() + 1.f);
-		selectionCircle.setPosition(unit->position());
+		selectionCircle.setPosition(unit->Position());
 		selectionCircle.setOrigin(selectionCircle.getRadius(),
 				selectionCircle.getRadius());
 		selectionCircle.setFillColor(sf::Color(0, 0, 0, 0));
@@ -150,7 +150,7 @@ void Graphics::DrawGameInterface(const GameScene &scene) const {
       float healthBarHeight = 5.f;
       sf::RectangleShape healthBarOutline(sf::Vector2f(healthBarWidth, healthBarHeight));
       healthBarOutline.setOrigin(healthBarWidth / 2, -unit->Radius());
-      healthBarOutline.setPosition(unit->position());
+      healthBarOutline.setPosition(unit->Position());
       healthBarOutline.setOutlineColor(sf::Color::Black);
       healthBarOutline.setOutlineThickness(1);
       healthBarOutline.setFillColor(sf::Color::Transparent);
@@ -169,23 +169,9 @@ void Graphics::DrawGameInterface(const GameScene &scene) const {
 	if (gameInterface.is_selecting()) {
 		window.draw(*gameInterface.GetSelectionBoxGraphic());
 	}
-  
-  //Vector2i mapSize = resource_manager_.MapSize();
-  //sf::Color fogColor(100, 100, 100, 50);
-  //sf::RectangleShape fogTile(Vector2f(kTileSize, kTileSize));
-  //fogTile.setFillColor(fogColor);
-  //for (int x = 0; x < mapSize.x; ++x) {
-  //  for (int y = 0; y < mapSize.y; ++y) {
-  //    Vector2f position(x*kTileSize, y*kTileSize);
-  //    if (!scene.IsVisible(x, y)) {
-  //      fogTile.setPosition(position);
-  //      //window_.draw(fogTile);
-  //    }
-  //  }
-  //}
 
   window.setView(window.getDefaultView());
-	window.draw(*gameInterface.GetInterfaceGrahic());
+	//window.draw(*gameInterface.GetInterfaceGrahic());
 
 	//DrawMiniMap(scene);
 }
@@ -194,10 +180,10 @@ void Graphics::DrawMiniMap(const GameScene &scene) const {
 	Vector2f minimap_size(200.f, 200.f);
   for (UnitModel* unit : scene.units()) {
 		Vector2f position;
-		position.x = unit->position().x * minimap_size.x /
+		position.x = unit->Position().x * minimap_size.x /
 				resourceManager.MapSize().x;
 		position.y = window.getSize().y - minimap_size.y +
-				unit->position().y * minimap_size.y /
+				unit->Position().y * minimap_size.y /
 				resourceManager.MapSize().y;
 		sf::CircleShape minimap_graphic(3.f);
 		minimap_graphic.setPosition(position);

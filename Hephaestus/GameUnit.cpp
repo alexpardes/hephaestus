@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "Circle.h"
 #include "GameUnit.h"
+#include "Projectile.h"
+#include "TargetGroundAction.h"
 #include "UnitAction.h"
 #include "UnitAbility.h"
 #include "Util.h"
@@ -10,12 +12,12 @@ GameUnit::GameUnit(UnitId id,
                    PlayerNumber owner,
                    const Vector2f &position,
                    float rotation) {
-	id_ = id;
+	this->id = id;
 	isAlive = true;
-	attributes_ = attributes;
+	this->attributes = attributes;
 	this->position = position;
-	currentHealth = attributes_.MaxHealth();
-	owner_ = owner;
+	currentHealth = attributes.MaxHealth();
+	this->owner = owner;
 	this->rotation = rotation;
   action = nullptr;
   facing = kRight;
@@ -26,8 +28,8 @@ size_t GameUnit::HashCode() const {
   Util::Hash(hash, isAlive);
   Util::Hash(hash, currentHealth);
   Util::Hash(hash, facing);
-  Util::Hash(hash, id_);
-  Util::Hash(hash, owner_);
+  Util::Hash(hash, id);
+  Util::Hash(hash, owner);
   return hash;
 }
 
@@ -73,6 +75,20 @@ void GameUnit::PerformAction() {
   }
 }
 
+void GameUnit::OnAttacked(const Projectile &projectile) {
+  ModifyHealth(-projectile.CalculateDamage(*this));
+  SetAction(new TargetGroundAction(projectile.Origin()));
+}
+
+void GameUnit::ModifyHealth(float health) {
+  currentHealth += health;
+  if (currentHealth < 0)
+    currentHealth = 0;
+
+  if (currentHealth > attributes.MaxHealth())
+    currentHealth = attributes.MaxHealth();
+}
+
 LineSegment GameUnit::SegmentFromUnit(const Vector2f &viewPoint) const {
   Circle circle(Position(), Attributes().CollisionRadius());
   auto widestPoints = circle.WidestPoints(viewPoint);
@@ -80,14 +96,14 @@ LineSegment GameUnit::SegmentFromUnit(const Vector2f &viewPoint) const {
 }
 
 UnitModel::UnitModel(const GameUnit &unit) {
-	current_health_ = unit.CurrentHealth();
+	currentHealth = unit.CurrentHealth();
   maxHealth = unit.Attributes().MaxHealth();
-	position_ = unit.Position();
-	rotation_ = unit.Rotation();
-	id_ = unit.Id();
-	name = unit.Attributes().name();
-	owner_ = unit.Owner();
-	radius_ = unit.Attributes().selection_radius();
+	position = unit.Position();
+	rotation = unit.Rotation();
+	id = unit.Id();
+	type = unit.Attributes().Type();
+	owner = unit.Owner();
+	radius = unit.Attributes().SelectionRadius();
   
   visibility = unit.SightMap().ToPolygon();
   facing = unit.Facing();
@@ -99,16 +115,16 @@ UnitModel::UnitModel(const UnitModel &unit1,
                      float weight) {
 	float b = weight;
 	float a = 1 - weight;
-	current_health_ = a*unit1.CurrentHealth() + b*unit2.CurrentHealth();
+	currentHealth = a*unit1.CurrentHealth() + b*unit2.CurrentHealth();
   maxHealth = unit2.MaxHealth();
-	position_ = a*unit1.position() + b*unit2.position();
-  rotation_ = Util::InterpolateAngles(unit1.rotation(),
-      unit2.rotation(), weight);
+	position = a*unit1.Position() + b*unit2.Position();
+  rotation = Util::InterpolateAngles(unit1.Rotation(),
+      unit2.Rotation(), weight);
 
-	id_ = unit1.Id();
-	name = unit1.Name();
-	owner_ = unit1.Owner();
-	radius_ = unit1.Radius();
+	id = unit1.Id();
+	type = unit1.Type();
+	owner = unit1.Owner();
+	radius = unit1.Radius();
   visibility = unit2.Visibility();
   isVisible = unit2.isVisible;
   facing = unit2.facing;

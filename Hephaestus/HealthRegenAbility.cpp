@@ -6,5 +6,5 @@ HealthRegenAbility::HealthRegenAbility(GameUnit &owner, float regenSpeed) :
   owner(owner), regenSpeed(regenSpeed) { }
 
 void HealthRegenAbility::Execute() {
-  owner.ModifyHealth(regenSpeed);
+  owner.ModifyHealth(regenSpeed * owner.Attributes().MaxHealth());
 }

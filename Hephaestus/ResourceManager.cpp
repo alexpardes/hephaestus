@@ -32,7 +32,7 @@ GameState *ResourceManager::LoadMap(const std::string& filename) {
   border.Add(Vector2f((float) mapSize.x, 0));
   polygons.push_back(border);
   auto spatialGraph = new SpatialGraph(polygons);
-	auto state = new GameState(unitDictionary, mapSize, spatialGraph);
+	auto state = new GameState(unitTable, mapSize, spatialGraph);
 
   SetupGameState(map, state);
 	return state;
@@ -49,10 +49,9 @@ void ResourceManager::SetupFogOfWar() {
 
 void ResourceManager::LoadUnits(const Json::Value& map) {
   Json::Value types = map["types"];
-  for (Json::Value::iterator type = types.begin(); type != types.end();
-    ++type) {
-      LoadUnitAttributes(*type);
-      LoadUnitImages(*type);
+  for (auto type : types) {
+      LoadUnitAttributes(type);
+      LoadUnitImages(type);
   }
 }
 
@@ -99,55 +98,57 @@ std::vector<const Poly> ResourceManager::LoadTerrain(const Json::Value& jsonPoly
 }
 
 void ResourceManager::LoadUnitAttributes(const Json::Value& unit) {
-	std::string name = unit["name"].asString();
-	float collision_radius = float(unit["cradius"].asDouble());
-	float selection_radius = float(unit["sradius"].asDouble());
-	float speed = float(unit["mspeed"].asDouble());
-	float damage = float(unit["damage"].asDouble());
-	float attack_speed  = float(unit["aspeed"].asDouble());
-	float range = float(unit["range"].asDouble());
-	float health = float(unit["health"].asDouble());
-	UnitAttributes attributes(name, collision_radius, selection_radius, speed,
+	std::string name = unit["Name"].asString();
+  int type = unit["Index"].asInt();
+	float collision_radius = float(unit["Collision Radius"].asDouble());
+	float selection_radius = float(unit["Selection Radius"].asDouble());
+	float speed = float(unit["Move Speed"].asDouble());
+	float damage = float(unit["Damage"].asDouble());
+	float attack_speed  = float(unit["Attack Speed"].asDouble());
+	//float range = float(unit["range"].asDouble());
+  float range = 1e6f;
+	float health = float(unit["Health"].asDouble());
+	UnitAttributes attributes(type, collision_radius, selection_radius, speed,
 			damage, attack_speed, range, health);
-	unitDictionary.insert(std::pair<std::string, UnitAttributes>(name,
-			attributes));
+	unitTable.push_back(attributes);
 }
 
-const sf::Texture& ResourceManager::GetImage(const std::string& name,
+const sf::Texture& ResourceManager::GetImage(int unitType,
 										   PlayerNumber owner) const {
 	switch (owner) {
 		case kPlayer2:
-			return unitImages.at(name)[1];
+			return unitImageTable[unitType][1];
 		default:
-			return unitImages.at(name)[0];
+			return unitImageTable[unitType][0];
 	}
 }
 
-const sf::Texture& ResourceManager::GetImage(const std::string& name) const {
-  return projectileImages.at(name);
+const sf::Texture& ResourceManager::GetImage(int projectileType) const {
+  return projectileImages[projectileType];
 }
 
 bool ResourceManager::LoadUnitImages(const Json::Value& unit) {
-	std::string type = unit["name"].asString();
-	std::string source1 = unit["source1"].asString();
-	std::string source2 = unit["source2"].asString();
-  std::string projectileSource = unit["projectilesource"].asString();
+	std::string type = unit["Name"].asString();
+	std::string source1 = unit["Image"].asString();
+	std::string source2 = unit["Color Mask"].asString();
+  std::string projectileSource = unit["Projectile"].asString();
 
   sf::Image base, mask;
 	base.loadFromFile(source1);
 	mask.loadFromFile(source2);
 
+  unitImageTable.push_back(std::vector<const sf::Texture>());
   for (sf::Color color : playerColors) {
     sf::Texture unitImage;
     unitImage.loadFromImage(Coloring::ColorImage(base, mask, color));
     unitImage.setSmooth(true);
-    unitImages[type].push_back(unitImage);
+    unitImageTable.back().push_back(unitImage);
   }
 
   sf::Texture projectileImage;
   projectileImage.loadFromFile(projectileSource);
   projectileImage.setSmooth(true);
-  projectileImages[type] = projectileImage;
+  projectileImages.push_back(projectileImage);
 	return true;
 }
 
@@ -156,12 +157,13 @@ void ResourceManager::SetupGameState(const Json::Value& map,
 
   Json::Value units = map["units"];
   for (auto unit : units) {
-    std::string unit_type = unit["type"].asString();
+    int unitType = unit["type"].asInt();
     int owner = unit["owner"].asInt();
-    float x = float(unit["x"].asDouble());
-    float y = float(unit["y"].asDouble());
+    auto position = unit["position"];
+    float x = float(position[0U].asDouble());
+    float y = float(position[1].asDouble());
     //float rotation = float((*unit)["rotation"].asDouble());
     float rotation = 0;
-    state->AddUnit(unit_type, PlayerNumber(owner), Vector2f(x, y), rotation);
+    state->AddUnit(unitType, PlayerNumber(owner), Vector2f(x, y), rotation);
   }
 }

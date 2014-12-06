@@ -9,6 +9,7 @@
 #include "SectorMap.h"
 #include "VisibilityPolygon.h"
 
+class Projectile;
 class UnitAction;
 class UnitAbility;
 
@@ -34,14 +35,8 @@ class GameUnit : public GameObject {
     SectorMap &SightMap() { return sightMap; }
     const SectorMap &SightMap() const { return sightMap; }
 
-		void ModifyHealth(float health) {
-			currentHealth += health;
-			if (currentHealth < 0)
-        currentHealth = 0;
-
-			if (currentHealth > attributes_.MaxHealth())
-				currentHealth = attributes_.MaxHealth();
-		}
+		void ModifyHealth(float health);
+    void OnAttacked(const Projectile &projectile);
 
 		float CurrentHealth() const {return currentHealth;}
 
@@ -52,9 +47,9 @@ class GameUnit : public GameObject {
 		bool IsAlive() const {return isAlive;}
 		bool operator==(const GameUnit &other) const {return this == &other;}
 		bool operator!=(const GameUnit &other) const {return this != &other;}
-		UnitId Id() const {return id_;}
-		PlayerNumber Owner() const {return owner_;}
-		const UnitAttributes Attributes() const {return attributes_;}
+		UnitId Id() const {return id;}
+		PlayerNumber Owner() const {return owner;}
+		const UnitAttributes Attributes() const {return attributes;}
 
     void AddAbility(UnitAbility *ability);
     UnitAbility *GetAbility(const std::string &name);
@@ -71,9 +66,9 @@ class GameUnit : public GameObject {
 		static std::vector<Vector2i>* pathing_offsets_;
 		float currentHealth;
     Direction facing;
-		UnitId id_;
-		UnitAttributes attributes_;
-		PlayerNumber owner_;
+		UnitId id;
+		UnitAttributes attributes;
+		PlayerNumber owner;
     UnitAction *action;
     std::unordered_map<std::string, UnitAbility*> abilities;
     std::vector<UnitAbility*> passiveAbilities;
@@ -86,30 +81,30 @@ class UnitModel {
 		explicit UnitModel(const GameUnit &unit);
 		UnitModel(const UnitModel &unit1, const UnitModel &unit2,
 				float weight);
-		float CurrentHealth() const { return current_health_; }
+		float CurrentHealth() const { return currentHealth; }
     float MaxHealth() const { return maxHealth; }
-		float Radius() const { return radius_; }
-		Vector2f position() const {return position_;}
-		void set_position(const Vector2f &position) {position_ = position;}
-		void set_rotation(float rotation) {rotation_ = rotation;}
-		float rotation() const {return rotation_;}
-		PlayerNumber Owner() const {return owner_;}
-		const std::string &Name() const {return name;}
-		int Id() const {return id_;}
+		float Radius() const { return radius; }
+		Vector2f Position() const {return position;}
+		void set_position(const Vector2f &position) {this->position = position;}
+		void set_rotation(float rotation) {this->rotation = rotation;}
+		float Rotation() const {return rotation;}
+		PlayerNumber Owner() const {return owner;}
+		int Type() const {return type;}
+		int Id() const {return id;}
     bool IsVisible() const { return isVisible; }
     void SetVisible(bool visible) { isVisible = visible; }
     const VisibilityPolygon &Visibility() const { return visibility; }
     Direction Facing() const { return facing; }
 
 	private:
-		Vector2f position_;
-		float rotation_;
-		float current_health_;
+		Vector2f position;
+		float rotation;
+		float currentHealth;
     float maxHealth;
-		float radius_;
-		int id_;
-		PlayerNumber owner_;
-		std::string name;
+		float radius;
+		int id;
+		PlayerNumber owner;
+		int type;
     VisibilityPolygon visibility;
     bool isVisible;
     Direction facing;

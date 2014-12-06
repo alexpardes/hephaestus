@@ -5,14 +5,14 @@
 
 int Projectile::serial_number_ = 0;
 
-Projectile::Projectile(GameState& gameState,
+Projectile::Projectile(GameState &gameState,
                        std::shared_ptr<GameUnit> owner,
-                       const Vector2f& position,
+                       const Vector2f &position,
                        float direction,
                        float damage,
                        float speed) : gameState(gameState) {
   this->owner = owner;
-  name = owner->Attributes().name();
+  type = owner->Attributes().Type();
   sectorMap = owner->SightMap();
   this->damage = damage;
   this->speed = speed;  
@@ -30,7 +30,7 @@ size_t Projectile::HashCode() const {
   Util::Hash(hash, speed);
   Util::Hash(hash, id);
   Util::Hash(hash, isAlive);
-  Util::Hash(hash, name);
+  Util::Hash(hash, type);
   return hash;
 }
 
@@ -44,8 +44,7 @@ void Projectile::PerformAction() {
     isAlive = false;
 
     if (collision.unitHit != nullptr) {
-      float effectiveDamage = CalculateDamage(*collision.unitHit);
-      collision.unitHit->ModifyHealth(-effectiveDamage);
+      collision.unitHit->OnAttacked(*this);
     }
   }
 
@@ -62,22 +61,26 @@ float Projectile::CalculateDamage(const GameUnit &unitHit) const {
   return damage * std::min(1.f, visibleSize / dispersion);
 }
 
+Vector2f Projectile::Origin() const {
+  return startPosition;
+}
+
 
 ProjectileModel::ProjectileModel(const Projectile &projectile) {
-	position_ = projectile.Position();
-	id_ = projectile.Id();
-  name = projectile.Name();
+	position = projectile.Position();
+	id = projectile.Id();
+  type = projectile.Type();
   rotation = projectile.Rotation();
 }
 
 ProjectileModel::ProjectileModel(const ProjectileModel &projectile1,
                                  const ProjectileModel &projectile2,
                                  float weight) {
-  name = projectile1.Name();
+  type = projectile1.Type();
 	float b = weight;
 	float a = 1 - weight;
-	position_ = a*projectile1.position() + b*projectile2.position();
-	id_ = projectile1.id();
+	position = a*projectile1.Position() + b*projectile2.Position();
+	id = projectile1.Id();
   rotation = Util::InterpolateAngles(projectile1.Rotation(),
       projectile2.Rotation(), weight);
 }

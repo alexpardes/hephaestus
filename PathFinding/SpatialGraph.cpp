@@ -18,7 +18,7 @@ SpatialGraph::SpatialGraph(const std::vector<const Poly> &polygons) {
   int vertexIndex = 0;
   for (size_t i = 0; i < vertices.size(); ++i) {
     SectorMap map;
-    map.Create(vertices[i]->Point(), this->polygons);
+    map.Create(vertices[i]->Point(), dilatedPolygons);
     bool isFirstVertex = vertexIndex == 0;
     auto lastVertexIndex = polygonIt->Size() - 1;
     bool isLastVertex = vertexIndex == lastVertexIndex;
