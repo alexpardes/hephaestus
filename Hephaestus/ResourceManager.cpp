@@ -39,7 +39,7 @@ GameState *ResourceManager::LoadMap(const std::string& filename) {
 }
 
 void ResourceManager::LoadMapImage() {
-  mapImage.loadFromFile("map.png");
+  mapImage.loadFromFile("default.png");
 }
 
 void ResourceManager::SetupFogOfWar() {
@@ -162,8 +162,7 @@ void ResourceManager::SetupGameState(const Json::Value& map,
     auto position = unit["position"];
     float x = float(position[0U].asDouble());
     float y = float(position[1].asDouble());
-    //float rotation = float((*unit)["rotation"].asDouble());
-    float rotation = 0;
+    float rotation = float((unit)["rotation"].asDouble());
     state->AddUnit(unitType, PlayerNumber(owner), Vector2f(x, y), rotation);
   }
 }

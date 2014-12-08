@@ -151,7 +151,8 @@ void SectorMap::AddSector(const Sector &sector) {
   }
   else {
     AssertSectorValid(sector);
-    tempSectors1.push_back(sector);
+    if (!sector.IsNil())
+      tempSectors1.push_back(sector);
   }
 }
 
