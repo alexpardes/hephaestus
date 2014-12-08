@@ -87,7 +87,7 @@ namespace MinkowskiSum {
         if (combined.Size()) {
           polygons[i] = combined;        
           polygons.erase(polygons.begin() + j);
-          --j;
+          j = i;
         }
       }
     }
