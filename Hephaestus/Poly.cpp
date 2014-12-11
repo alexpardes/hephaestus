@@ -4,6 +4,10 @@
 
 typedef Poly::Vertex Vertex;
 
+Poly::Poly() {
+  isReversed = false;
+}
+
 size_t Poly::Size() const {
   return vertices.size();
 }
@@ -20,6 +24,14 @@ Vertex Poly::end() const {
   return Vertex(*this, Size());
 }
 
+bool Poly::IsReversed() const {
+  return isReversed;
+}
+
+void Poly::SetReversed(bool reversed) {
+  isReversed = reversed;
+}
+
 bool Poly::Contains(const Vector2f &point) const {
   LineSegment ray(Vector2f(-10000, -10000), point);
   int nIntersections = 0;
@@ -27,7 +39,7 @@ bool Poly::Contains(const Vector2f &point) const {
     if (ray.Intersects(vertex.Segment()))
       ++nIntersections;
   }
-  return nIntersections % 2 == 1;
+  return (nIntersections % 2 == 1) ^ isReversed;
 }
 
 Vertex::Vertex() {

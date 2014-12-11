@@ -24,18 +24,28 @@ GameState *ResourceManager::LoadMap(const std::string& filename) {
   LoadUnits(map);
   LoadMapImage();
 
-  auto polygons = LoadTerrain(map["polygons"]);
+  polygons = LoadTerrain(map["polygons"]);
   Poly border;
   border.Add(Vector2f(0, 0));
   border.Add(Vector2f(0, (float) mapSize.y));
   border.Add(Vector2f((float) mapSize.x, (float) mapSize.y));
   border.Add(Vector2f((float) mapSize.x, 0));
+  border.SetReversed(true);
   polygons.push_back(border);
   auto spatialGraph = new SpatialGraph(polygons);
+  dilatedPolygons = spatialGraph->DilatedWalls();
 	auto state = new GameState(unitTable, mapSize, spatialGraph);
 
   SetupGameState(map, state);
 	return state;
+}
+
+const std::vector<const Poly> &ResourceManager::Walls() const {
+  return polygons;
+}
+
+const std::vector<const Poly> &ResourceManager::DilatedWalls() const {
+  return dilatedPolygons;
 }
 
 void ResourceManager::LoadMapImage() {

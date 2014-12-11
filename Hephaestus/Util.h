@@ -68,6 +68,7 @@ class Util {
 		static int Laterality(const Vector2f &vector1,
 							  const Vector2f &vector2);
 		static void Rotate(Vector2f &vector, float angle);
+    static Vector2f Rotated(const Vector2f &vector, float angle);
 		static Vector2i GetVector2i(const Vector2f &vector) {
 			return Vector2i((int) vector.x, (int) vector.y);
 		}

@@ -70,6 +70,8 @@ namespace MinkowskiSum {
     if (!areIntersecting)
       return result;
 
+    result.SetReversed(polygon1.IsReversed() || polygon2.IsReversed());
+
     auto pointIt = points.begin();
     while (pointIt != points.end() && *pointIt != currentPoint)
       ++pointIt;
@@ -87,22 +89,41 @@ namespace MinkowskiSum {
         if (combined.Size()) {
           polygons[i] = combined;        
           polygons.erase(polygons.begin() + j);
-          j = i;
+          j = i; // Have to test for intersections with everything polygons[j] had not been tested against.
         }
       }
     }
   }
 
-  // Return value would be a list of points if doing more accurate tessellation.
-  Vector2f Dilate(const Poly::Vertex &vertex, float radius) {
-    float distance = radius / std::sinf(vertex.InteriorAngle() / 2);
-    return vertex.Point() + distance * vertex.Normal();
+  std::vector<Vector2f> Dilate(const Poly::Vertex &vertex, float radius) {
+    std::vector<Vector2f> result;
+    auto angle = vertex.InteriorAngle() / 2;
+    if (angle >= M_PI / 3) {
+      // This case returns the intersection of the dilated segments containing the vertex.
+      float distance = radius / std::sinf(angle);
+      result.push_back(vertex.Point() + distance * vertex.Normal());
+    } else {
+      /* In this case a single point is a poor approximation. This returns the
+       * two points on the the dilated segments such that the resulting polygon
+       * fully contains the exact dilation. */
+      auto phi = (M_PI - angle) / 4;
+      auto length = radius / std::sinf(phi);
+      auto v = length * vertex.Normal();
+      auto p1 = vertex.Point() + Util::Rotated(v, -phi);
+      auto p2 = vertex.Point() + Util::Rotated(v, phi);
+      result.push_back(p1);
+      result.push_back(p2);
+    }
+    return result;
   }
 
   Poly Dilate(const Poly &polygon, float radius) {
     Poly dilatedPolygon;
+    dilatedPolygon.SetReversed(polygon.IsReversed());
     for (auto vertex : polygon) {
-      dilatedPolygon.Add(Dilate(vertex, radius));
+      for (auto dilatedVertex : Dilate(vertex, radius)) {
+        dilatedPolygon.Add(dilatedVertex);
+      }
     }
     return dilatedPolygon;
   }

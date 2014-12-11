@@ -175,6 +175,12 @@ void Util::Rotate(Vector2f &vector, float angle) {
 	vector.y = y;
 }
 
+Vector2f Util::Rotated(const Vector2f &vector, float angle) {
+  auto result = vector;
+  Rotate(result, angle);
+  return result;
+}
+
 float Util::Square(float x) {
 	return x * x;
 }

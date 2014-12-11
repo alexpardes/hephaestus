@@ -7,15 +7,21 @@
 class Poly {
   public:
     class Vertex;
+    Poly();
     Vertex begin() const;
     Vertex end() const;
     size_t Size() const;
     bool Contains(const Vector2f &point) const;
     void Add(const Vector2f &vertex);
+    bool IsReversed() const;
+    void SetReversed(bool reversed);
 
   private:
     friend class Vertex;
-    std::vector<const Vector2f> vertices; // Assumed to be in CCW order
+
+    // Assumed to be in CW order if reversed, CCW otherwise.
+    std::vector<const Vector2f> vertices;
+    bool isReversed; // True iff the polygon represents the area geometrically outside the shape.
 };
 
 class Poly::Vertex {

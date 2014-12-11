@@ -27,6 +27,9 @@ class ResourceManager {
 
     sf::RenderTexture &FogTexture() { return fogImage; }
 
+    const std::vector<const Poly> &Walls() const;
+    const std::vector<const Poly> &DilatedWalls() const;
+
 	private:
     void SetupFogOfWar();
     void SetupGameState(const Json::Value &map, GameState *state);
@@ -47,4 +50,6 @@ class ResourceManager {
     Vector2i mapSize;
     sf::Texture mapImage;
     sf::RenderTexture fogImage;
+    std::vector<const Poly> polygons;
+    std::vector<const Poly> dilatedPolygons;
 };

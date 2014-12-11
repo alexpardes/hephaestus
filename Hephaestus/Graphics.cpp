@@ -28,7 +28,16 @@ void Graphics::DrawGame(const GameScene &scene,
 }
 
 void Graphics::DrawDilation(const GameScene &scene) const {
-  for (auto polygon : scene.walls) {
+  for (auto polygon : resourceManager.Walls()) {
+    sf::VertexArray verts(sf::LinesStrip);
+    for (auto v : polygon) {
+      verts.append(sf::Vertex(v.Point(), sf::Color::Blue));
+    }
+    verts.append(sf::Vertex(polygon.begin().Point(), sf::Color::Blue));
+    window.draw(verts);
+  }
+
+  for (auto polygon : resourceManager.DilatedWalls()) {
     sf::VertexArray verts(sf::LinesStrip);
     for (auto v : polygon) {
       verts.append(sf::Vertex(v.Point(), sf::Color::Red));

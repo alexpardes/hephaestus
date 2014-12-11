@@ -77,7 +77,8 @@ void GameUnit::PerformAction() {
 
 void GameUnit::OnAttacked(const Projectile &projectile) {
   ModifyHealth(-projectile.CalculateDamage(*this));
-  SetAction(new TargetGroundAction(projectile.Origin()));
+  if (!action)
+    SetAction(new TargetGroundAction(projectile.Origin()));
 }
 
 void GameUnit::ModifyHealth(float health) {
