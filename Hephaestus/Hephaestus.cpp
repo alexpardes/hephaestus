@@ -59,6 +59,9 @@ void Hephaestus::PlayReplay(const std::string &replay) {
 }
 
 void Hephaestus::HostGame(const std::string &map, int port) {
+  /* Calling LoadMap in the callback causes problems. Need to mark some fields
+   * volatile? */
+  LoadMap(map);
   networkManager->AcceptClient(port,
      [this, map](NetworkConnection* connection) {
        Log::Write("Client connected");
@@ -69,7 +72,6 @@ void Hephaestus::HostGame(const std::string &map, int port) {
 void Hephaestus::StartHostedGame(NetworkConnection* connection,
                                  const std::string& map) {
   assert(connection);
-  LoadMap(map);
   opponentConnection = connection;
   gameManager->SetCommandSource(0, commandBuffer, true);
   gameManager->SetCommandSource(1, opponentConnection);

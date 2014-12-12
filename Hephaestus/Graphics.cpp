@@ -10,6 +10,7 @@ void Graphics::DrawGame(const GameScene &scene,
 	DrawUnits(scene.units());
 	DrawProjectiles(scene.projectiles());
 
+
   DrawFogOfWar(scene);
   DrawDilation(scene);
 
