@@ -11,7 +11,8 @@ void NetworkConnection::AddCommands(std::shared_ptr<CommandTurn> commands) {
   std::array<char, kMaxMessageSize> message;
   char* bytes = &message[0];
   commands->Serialize(bytes);
-  boost::asio::write(*socket, boost::asio::buffer(message));
+  boost::system::error_code ec;
+  boost::asio::write(*socket, boost::asio::buffer(message), ec);
 }
 
 void NetworkConnection::AddCommand(std::shared_ptr<Command> command) { }
@@ -31,7 +32,7 @@ std::shared_ptr<CommandTurn> NetworkConnection::TakeCommandTurn() {
 #if _DEBUG
   while (isWaiting && (clock() - startTime) / CLOCKS_PER_SEC <= 3600);
 #else
-  while (isWaiting && (clock() - startTime) / CLOCKS_PER_SEC <= 2);
+  while (isWaiting && (clock() - startTime) / CLOCKS_PER_SEC <= 1);
 #endif
 
   if (isWaiting) { // The read has timed out.

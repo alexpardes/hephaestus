@@ -110,16 +110,18 @@ std::vector<const Poly> ResourceManager::LoadTerrain(const Json::Value& jsonPoly
 void ResourceManager::LoadUnitAttributes(const Json::Value& unit) {
 	std::string name = unit["Name"].asString();
   int type = unit["Index"].asInt();
-	float collision_radius = float(unit["Collision Radius"].asDouble());
-	float selection_radius = float(unit["Selection Radius"].asDouble());
+	float collisionRadius = float(unit["Collision Radius"].asDouble());
+	float selectionRadius = float(unit["Selection Radius"].asDouble());
 	float speed = float(unit["Move Speed"].asDouble());
 	float damage = float(unit["Damage"].asDouble());
-	float attack_speed  = float(unit["Attack Speed"].asDouble());
-	//float range = float(unit["range"].asDouble());
+  float dispersion = (float) unit["Dispersion"].asDouble();
+	float attackSpeed  = float(unit["Attack Speed"].asDouble());
+  float projectileSpeed = (float) unit["Projectile Speed"].asDouble();
   float range = 1e6f;
 	float health = float(unit["Health"].asDouble());
-	UnitAttributes attributes(type, collision_radius, selection_radius, speed,
-			damage, attack_speed, range, health);
+  float healthRegen = (float) unit["Health Regen"].asDouble();
+	UnitAttributes attributes(type, collisionRadius, selectionRadius, speed,
+			damage, attackSpeed, range, dispersion, projectileSpeed, health, healthRegen);
 	unitTable.push_back(attributes);
 }
 
@@ -146,6 +148,8 @@ bool ResourceManager::LoadUnitImages(const Json::Value& unit) {
   sf::Image base, mask;
 	base.loadFromFile(source1);
 	mask.loadFromFile(source2);
+  if (mask.getSize() != base.getSize())
+    mask = base;
 
   unitImageTable.push_back(std::vector<const sf::Texture>());
   for (sf::Color color : playerColors) {

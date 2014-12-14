@@ -16,12 +16,12 @@ const float kTimestep = 50.f;
 Hephaestus::Hephaestus(sf::RenderWindow *window) {
   isRunning = false;
   this->window = window;
-  resource_manager = new ResourceManager();
+  resourceManager = new ResourceManager();
   gameManager = new GameManager(kTimestep);
   clock = new sf::Clock();
-  game_scene1 = nullptr;
-  game_scene2 = nullptr;
-  game_interface = new GameInterface(*window);
+  gameScene1 = nullptr;
+  gameScene2 = nullptr;
+  gameInterface = new GameInterface(*window);
   commandBuffer = new CommandBuffer();
   networkManager = new NetworkManager();
   observer = nullptr;
@@ -41,7 +41,7 @@ void Hephaestus::SetObserver(HephaestusObserver* observer) {
 
 void Hephaestus::StartSinglePlayerGame(const std::string &map) {
   LoadMap(map);
-  game_interface->SetPlayer(kPlayer1);
+  gameInterface->SetPlayer(kPlayer1);
   gameManager->SetCommandSource(0, commandBuffer, true);
   gameManager->SetCommandSource(1, CommandSource::Null, true);
   gameManager->SetSaveReplay(true);
@@ -51,7 +51,7 @@ void Hephaestus::StartSinglePlayerGame(const std::string &map) {
 void Hephaestus::PlayReplay(const std::string &replay) {
   // TODO: Get map from replay file.
   LoadMap("default.map");
-  game_interface->SetPlayer(kPlayer1);
+  gameInterface->SetPlayer(kPlayer1);
   gameManager->SetCommandSource(0, new ReplayReader(replay, 0), false);
   gameManager->SetCommandSource(1, new ReplayReader(replay, 1), false);
   gameManager->SetSaveReplay(false);
@@ -76,9 +76,9 @@ void Hephaestus::StartHostedGame(NetworkConnection* connection,
   gameManager->SetCommandSource(0, commandBuffer, true);
   gameManager->SetCommandSource(1, opponentConnection);
   commandBuffer->RegisterCommandSink(opponentConnection);
-  commandBuffer->CreateTurnDelay(1);
+  commandBuffer->CreateTurnDelay(3);
 
-  game_interface->SetPlayer(kPlayer1);
+  gameInterface->SetPlayer(kPlayer1);
   gameManager->SetSaveReplay(true);
   StartGame();
 }
@@ -100,11 +100,11 @@ void Hephaestus::CancelHosting() {
 void Hephaestus::StartJoinedGame(NetworkConnection* connection) {
   if (connection) {
     opponentConnection = connection;
-    game_interface->SetPlayer(kPlayer2);
+    gameInterface->SetPlayer(kPlayer2);
     gameManager->SetCommandSource(0, opponentConnection);
     gameManager->SetCommandSource(1, commandBuffer, true);
     commandBuffer->RegisterCommandSink(opponentConnection);
-    commandBuffer->CreateTurnDelay(1);
+    commandBuffer->CreateTurnDelay(3);
     gameManager->SetSaveReplay(true);
     StartGame();
   } else {
@@ -114,15 +114,15 @@ void Hephaestus::StartJoinedGame(NetworkConnection* connection) {
 
 void Hephaestus::LoadMap(const std::string &map) {
   Log::Write("Loading map");
-	gameManager->SetGameState(resource_manager->LoadMap("default.map"));
+	gameManager->SetGameState(resourceManager->LoadMap("default.map"));
   Log::Write("Map loaded");
-  Vector2i map_size = resource_manager->MapSize(); 
-  game_interface->SetMapSize(Util::ToVector2f(map_size));
-  game_interface->Resize();
+  Vector2i map_size = resourceManager->MapSize(); 
+  gameInterface->SetMapSize(Util::ToVector2f(map_size));
+  gameInterface->Resize();
 }
 
 void Hephaestus::StartGame() {
-  graphics = new Graphics(*window, *game_interface, *resource_manager);
+  graphics = new Graphics(*window, *gameInterface, *resourceManager);
   gameManager->StartGame();
   isRunning = true;
   if (observer) {
@@ -135,7 +135,7 @@ void Hephaestus::HandleEvent(const sf::Event &event) {
       && event.key.code == sf::Keyboard::Escape) {
     gameManager->EndGame();
   } else {
-    auto command = game_interface->ProcessEvent(event, *window);
+    auto command = gameInterface->ProcessEvent(event, *window);
     if (command) {
       Log::Write("Local command processed");
       commandBuffer->AddCommand(command);
@@ -146,6 +146,9 @@ void Hephaestus::HandleEvent(const sf::Event &event) {
 void Hephaestus::Update() {
   //Log::Write("Update started");
   if (!IsRunning()) {
+    if (gameManager->Status() != kFinished)
+      gameManager->EndGame();
+
     Log::Write("Game ended");
     networkManager->Reset();
     if (observer) {
@@ -156,19 +159,19 @@ void Hephaestus::Update() {
 
   float timestep = clock->getElapsedTime().asSeconds();
   clock->restart();
-  game_interface->MoveScreen(timestep);
+  gameInterface->MoveScreen(timestep);
   GameScene *updated_scene = gameManager->TakeScene();
   if (updated_scene) {
-    if (game_scene1) delete game_scene1;
-    game_scene1 = game_scene2;
-    game_scene2 = updated_scene;
+    if (gameScene1) delete gameScene1;
+    gameScene1 = gameScene2;
+    gameScene2 = updated_scene;
   }
-  if (game_scene1 && game_scene2) {
+  if (gameScene1 && gameScene2) {
     float weight = gameManager->GetFrameTime();
-    GameScene *display_scene = new GameScene(*game_scene1,
-      *game_scene2, weight);
-    game_interface->set_scene(display_scene);
-    game_interface->DeselectDeadUnits();
+    GameScene *display_scene = new GameScene(*gameScene1,
+      *gameScene2, weight);
+    gameInterface->set_scene(display_scene);
+    gameInterface->DeselectDeadUnits();
 
     float framerate = 1 / timestep;
     //Log::Write("Drawing frame");

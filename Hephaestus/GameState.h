@@ -31,7 +31,7 @@ class GameState {
 				const Vector2f &location, float rotation);
 		void RemoveUnit(std::shared_ptr<GameUnit> unit);
 		void AddProjectile(std::shared_ptr<GameUnit> owner, const Vector2f &location,
-        float direction, float damage, float speed);
+        float direction, float damage, float dispersion, float speed);
 		void RemoveProjectile(Projectile *projectile);
 		const std::list<std::shared_ptr<GameUnit>> &Units() const {return units;}
 		const std::list<Projectile *> &Projectiles() const {

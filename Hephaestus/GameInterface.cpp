@@ -17,15 +17,19 @@ void GameInterface::RegisterCommands() {
   }
 }
 
-GameInterface::GameInterface(sf::RenderWindow& window) : window(window) {
+void GameInterface::Reset() {
   keyboardHScroll = 0;
   keyboardVScroll = 0;
   mouseHScroll = 0;
   mouseVScroll = 0;
-  is_selecting_ = false;
+  isSelecting = false;
   cursorAction = kSelect;
-  game_scene_ = nullptr;
-  //mainView = window.getDefaultView();
+  gameScene = nullptr;
+  selectedUnitIds.clear();
+}
+
+GameInterface::GameInterface(sf::RenderWindow &window) : window(window) {
+  Reset();
   mainView.setSize(Vector2f(1920, 1080));
   RegisterCommands();
 }
@@ -33,7 +37,7 @@ GameInterface::GameInterface(sf::RenderWindow& window) : window(window) {
 std::shared_ptr<Command> GameInterface::ProcessEvent(const sf::Event &event,
                                                      const sf::RenderWindow &window) {
 
-  if (!game_scene_)
+  if (!gameScene)
     return nullptr;
 
 	Vector2f location;
@@ -48,9 +52,9 @@ std::shared_ptr<Command> GameInterface::ProcessEvent(const sf::Event &event,
 				case sf::Mouse::Left:
 					switch (cursorAction) {
 						case kSelect:
-							selection_corner1_ = location;
-							selection_corner2_ = location;
-							is_selecting_ = true;
+							selectionCorner1 = location;
+							selectionCorner2 = location;
+							isSelecting = true;
 							break;
 						case kAttack: {
 							const UnitModel *unit = GetUnit(location);
@@ -71,7 +75,7 @@ std::shared_ptr<Command> GameInterface::ProcessEvent(const sf::Event &event,
 				case sf::Mouse::Right:
 					if (cursorAction == kSelect) {
 						const UnitModel *unit = GetUnit(location);
-						if (unit && unit->Owner() != player_) {
+						if (unit && unit->Owner() != player) {
 							command = std::make_shared<AttackCommand>(unit->Id());
 						} else {
 							command = std::make_shared<MoveCommand>(location);
@@ -88,26 +92,30 @@ std::shared_ptr<Command> GameInterface::ProcessEvent(const sf::Event &event,
       break;
 		case sf::Event::MouseMoved: {
       MouseScroll();
-			if (is_selecting_) {
+			if (isSelecting) {
         Vector2i mouseLocation = Vector2i(event.mouseMove.x,
             event.mouseMove.y);
         location = GetGameLocation(mouseLocation);
-				selection_corner2_ = location;
+				selectionCorner2 = location;
 			}
 			break;
     }
 		case sf::Event::MouseButtonReleased:
 			switch (event.mouseButton.button) {
 				case sf::Mouse::Left:
-					if (is_selecting_) {
-						selected_unit_ids_.clear();
-            std::vector<UnitId> ids = GetUnitIds(selection_corner1_,
-								selection_corner2_);
+					if (isSelecting) {
+						selectedUnitIds.clear();
+            std::vector<UnitId> ids = GetUnitIds(selectionCorner1,
+								selectionCorner2);
+            bool selectSingle = selectionCorner1 == selectionCorner2;
+            if (selectSingle)
+              ids.resize(1);
+
             for (UnitId id : ids) {
-              selected_unit_ids_.push_back(id);
+              selectedUnitIds.push_back(id);
             }
 						command = std::make_shared<SelectCommand>(ids);
-						is_selecting_ = false;
+						isSelecting = false;
 					}
 					break;
 			}
@@ -164,11 +172,11 @@ std::shared_ptr<Command> GameInterface::ProcessEvent(const sf::Event &event,
 void GameInterface::Resize() {
   float screenHeight = window.getDefaultView().getSize().y;
   float graphicSize = 0.32f * screenHeight;
-  interface_graphic_ = sf::RectangleShape(Vector2f(graphicSize,
+  interfaceGraphic = sf::RectangleShape(Vector2f(graphicSize,
     graphicSize));
-  interface_graphic_.setPosition(Vector2f(0,
+  interfaceGraphic.setPosition(Vector2f(0,
     screenHeight - graphicSize));
-  interface_graphic_.setFillColor(sf::Color(0, 0, 0, 255));
+  interfaceGraphic.setFillColor(sf::Color(0, 0, 0, 255));
 
   SetMapSize(mapSize);
 }
@@ -176,8 +184,8 @@ void GameInterface::Resize() {
 const std::list<UnitModel *> GameInterface::GetSelectedUnits() const {
 	std::list<UnitModel *> units;
 	for (std::list<UnitId>::const_iterator id =
-			selected_unit_ids_.begin(); id != selected_unit_ids_.end(); ++id) {
-		units.push_back(game_scene_->GetUnit(*id));
+			selectedUnitIds.begin(); id != selectedUnitIds.end(); ++id) {
+		units.push_back(gameScene->GetUnit(*id));
 	}
 	return units;
 }
@@ -241,8 +249,8 @@ void GameInterface::ConstrainView() {
 
 sf::Drawable *GameInterface::GetSelectionBoxGraphic() const {
 	sf::RectangleShape *selection_box =
-			new sf::RectangleShape(selection_corner2_ - selection_corner1_);
-	selection_box->setPosition(selection_corner1_);
+			new sf::RectangleShape(selectionCorner2 - selectionCorner1);
+	selection_box->setPosition(selectionCorner1);
 	selection_box->setFillColor(sf::Color(100, 100, 255, 100));
 	selection_box->setOutlineColor(sf::Color(0, 0, 255, 200));
 	selection_box->setOutlineThickness(1.f);
@@ -251,12 +259,12 @@ sf::Drawable *GameInterface::GetSelectionBoxGraphic() const {
 }
 
 const sf::Drawable *GameInterface::GetInterfaceGrahic() const {
-	return &interface_graphic_;
+	return &interfaceGraphic;
 }
 
 const UnitModel *GameInterface::GetUnit(const Vector2f &location) const {
 	const UnitModel *unit = nullptr;
-	std::vector<const UnitModel *> units = game_scene_->
+	std::vector<const UnitModel *> units = gameScene->
 			GetUnitsInRectangle(location, location);
 	if (units.size()) {
 		unit = units.front();
@@ -267,10 +275,10 @@ const UnitModel *GameInterface::GetUnit(const Vector2f &location) const {
 const std::vector<UnitId> GameInterface::GetUnitIds(
 		const Vector2f &location1, const Vector2f &location2) const {
 	std::vector<UnitId> ids;
-	const std::vector<const UnitModel *> units = game_scene_->
+	const std::vector<const UnitModel *> units = gameScene->
 			GetUnitsInRectangle(location1, location2);
 	for (const UnitModel * unit : units) {
-		if (unit->Owner() == player_) {
+		if (unit->Owner() == player) {
 			ids.push_back(unit->Id());
 		}
 	}
@@ -279,13 +287,13 @@ const std::vector<UnitId> GameInterface::GetUnitIds(
 
 void GameInterface::DeselectDeadUnits() {
 	std::vector<std::list<UnitId>::const_iterator> dead_unit_ids;
-	for (std::list<UnitId>::const_iterator unit_id = selected_unit_ids_.begin();
-			unit_id != selected_unit_ids_.end(); ++unit_id) {
-		if (!game_scene_->GetUnit(*unit_id)) {
+	for (std::list<UnitId>::const_iterator unit_id = selectedUnitIds.begin();
+			unit_id != selectedUnitIds.end(); ++unit_id) {
+		if (!gameScene->GetUnit(*unit_id)) {
 			dead_unit_ids.push_back(unit_id);
 		}
 	}
 	for (size_t i = 0; i < dead_unit_ids.size(); ++i) {
-		selected_unit_ids_.erase(dead_unit_ids[i]);
+		selectedUnitIds.erase(dead_unit_ids[i]);
 	}
 }

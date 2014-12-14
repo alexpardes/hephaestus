@@ -40,11 +40,11 @@ class Hephaestus {
     void LoadMap(const std::string &map);
     sf::RenderWindow *window;
     sf::Clock *clock;
-    GameInterface *game_interface;
+    GameInterface *gameInterface;
     GameManager *gameManager;
     Graphics *graphics;
-    ResourceManager *resource_manager;
-    GameScene *game_scene1, *game_scene2;
+    ResourceManager *resourceManager;
+    GameScene *gameScene1, *gameScene2;
     CommandBuffer *commandBuffer;
     NetworkManager *networkManager;
     NetworkConnection *opponentConnection;

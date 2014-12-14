@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include <boost/filesystem.hpp>
 #include <SFML/Graphics.hpp>
 #include <SFML/Window/Keyboard.hpp>
 #include <Hephaestus/Hephaestus.h>
@@ -41,6 +42,9 @@ sf::RenderWindow *MakeWindow(bool makeFullscreen) {
 Launcher::Launcher() {
   gameRunning = false;
 
+  gameFolder = std::string(std::getenv("APPDATA")) + "/Firefight/";
+  boost::filesystem::create_directory(gameFolder);
+
 #if _DEBUG
   isFullscreen = false;
 #else
@@ -48,7 +52,7 @@ Launcher::Launcher() {
 #endif
   window = MakeWindow(isFullscreen);
   window->setFramerateLimit(60);
-  menu = new MainMenu();
+  menu = new MainMenu(gameFolder);
   hephaestus = new Hephaestus(window);  
   hephaestus->SetObserver(this);
 }
@@ -128,6 +132,10 @@ void Launcher::HostGame(const std::string &map, int port) {
 
 void Launcher::JoinGame(const std::string& hostname,
                         const std::string& port) {
+  auto defaultFilename = gameFolder + "defaults.txt";
+  std::ofstream file(defaultFilename);
+  file << hostname;
+
   if (!hephaestus->IsRunning()) {
     hephaestus->JoinGame(hostname, port);
   }
@@ -135,5 +143,5 @@ void Launcher::JoinGame(const std::string& hostname,
 
 void Launcher::PlayReplay(const std::string& replay) {
   if (!hephaestus->IsRunning())
-    hephaestus->PlayReplay(replay);
+    hephaestus->PlayReplay(gameFolder + replay);
 }

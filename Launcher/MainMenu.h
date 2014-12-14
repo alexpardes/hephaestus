@@ -12,7 +12,7 @@ namespace sf {
 
 class MainMenu {
   public:
-    MainMenu();
+    MainMenu(const std::string &gameFolder);
     void Draw();
     void HandleEvent(sf::Event &event);
     void OnConnectionFailed();
@@ -30,4 +30,5 @@ class MainMenu {
     void initializeMaps();
     CEGUI::Key::Scan toCEGUIKey(sf::Keyboard::Key Code);
     CEGUI::MouseButton toCEGUIMouseButton(sf::Mouse::Button Button);
+    std::string gameFolder;
 };

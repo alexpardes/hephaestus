@@ -10,12 +10,14 @@ Projectile::Projectile(GameState &gameState,
                        const Vector2f &position,
                        float direction,
                        float damage,
+                       float dispersion,
                        float speed) : gameState(gameState) {
   this->owner = owner;
   type = owner->Attributes().Type();
   sectorMap = owner->SightMap();
   this->damage = damage;
-  this->speed = speed;  
+  this->dispersion = dispersion;
+  this->speed = speed;
   this->position = position;
   startPosition = position;
 	id = serial_number_++;
@@ -43,7 +45,7 @@ void Projectile::PerformAction() {
   if (collision.point != position + v) {
     isAlive = false;
 
-    if (collision.unitHit != nullptr) {
+    if (collision.unitHit != nullptr && collision.unitHit->Owner() != owner->Owner()) {
       collision.unitHit->OnAttacked(*this);
     }
   }
@@ -57,7 +59,6 @@ float Projectile::CalculateDamage(const GameUnit &unitHit) const {
   float visibleSize = sectorMap.VisibleSize(unitHit.SegmentFromUnit(startPosition));
 
   // This represents the angular size of the cone of fire.
-  float dispersion = Util::Radians(10);
   return damage * std::min(1.f, visibleSize / dispersion);
 }
 

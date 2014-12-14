@@ -18,6 +18,7 @@ GameManager::GameManager(float timestep) :
 
 void GameManager::SetGameState(GameState *state) {
 	gameState = state;
+  players.clear();
   while (players.size() < 2) {
     players.push_back(new Player(*gameState));
   }
@@ -25,7 +26,7 @@ void GameManager::SetGameState(GameState *state) {
 	lastScene = new GameScene(*gameState);
 }
 
-void GameManager::SetCommandSource(int playerNumber, CommandSource* source, bool isLocal) {
+void GameManager::SetCommandSource(int playerNumber, CommandSource *source, bool isLocal) {
   players[playerNumber]->SetCommandSource(source);
   if (isLocal)
     localCommandSources.push_back(source);
@@ -40,7 +41,7 @@ void GameManager::StartGame() {
 void GameManager::RunGame() {
   Log::Write("Game started");
   if (saveReplay)
-    replayWriter.OpenFile("replay.rep");
+    replayWriter.OpenFile(GameFolder() + "replay.rep");
 
 	while (status == kRunning) {
     SetHash();
@@ -117,9 +118,10 @@ void GameManager::EndGame() {
   if (saveReplay) {
     Log::Write("Creating human readable replay");
     replayWriter.CloseFile();
-    ReplayReader("replay.rep").WriteHumanReadable("replay.hrr");
+    ReplayReader(GameFolder() + "replay.rep").WriteHumanReadable(GameFolder() + "replay.hrr");
   }
   thread.join();
+  localCommandSources.clear();
 }
 
 float GameManager::GetFrameTime() {
@@ -154,4 +156,9 @@ void GameManager::SetHash() {
 
 void GameManager::SetSaveReplay(bool saveReplay) {
   this->saveReplay = saveReplay;
+}
+
+
+std::string GameManager::GameFolder() const {
+  return std::string(std::getenv("APPDATA")) + "/Firefight/";
 }

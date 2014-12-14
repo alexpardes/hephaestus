@@ -11,8 +11,8 @@ class CommandTurn;
 
 class Player {
 	public:
-    Player(GameState& gameState,
-        CommandSource* commandSource = CommandSource::Null);
+    Player(GameState &gameState,
+        CommandSource *commandSource = CommandSource::Null);
     bool QueueCommandTurn();
     void ExecuteTurn();
     void ClearSelection();
@@ -26,6 +26,6 @@ class Player {
     const std::shared_ptr<CommandTurn> PopCommandTurn();
 		std::list<UnitId> selectedUnits;
 		std::deque<const std::shared_ptr<CommandTurn>> turnQueue;
-    GameState& gameState;
-    CommandSource* commandSource;
+    GameState &gameState;
+    CommandSource *commandSource;
 };

@@ -29,6 +29,7 @@ class GameManager {
       kConnectionFailure
     };
 
+    std::string GameFolder() const;
 		Result ApplyCommands();
     Result QueueCommands();
     void RunGame();
@@ -47,4 +48,5 @@ class GameManager {
     float currentStepsPerSecond;
     ReplayWriter replayWriter;
     bool saveReplay;
+
 };

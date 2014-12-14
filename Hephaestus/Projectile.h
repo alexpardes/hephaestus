@@ -10,7 +10,7 @@ class Projectile : public GameObject {
 	public:
     Projectile(GameState& gameState, std::shared_ptr<GameUnit> owner,
         const Vector2f &position, float direction,
-        float damage, float speed);
+        float damage, float dispersion, float speed);
 
     virtual size_t HashCode() const;
 		int Id() const {return id;}
@@ -24,7 +24,7 @@ class Projectile : public GameObject {
 	private:
 		std::shared_ptr<GameUnit> owner;
     Vector2f startPosition;
-		float damage, speed;
+		float damage, speed, dispersion;
 		int id, type;
     bool isAlive;
     GameState &gameState;

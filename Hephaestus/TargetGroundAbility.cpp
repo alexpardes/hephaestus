@@ -16,9 +16,14 @@ std::string TargetGroundAbility::Name() const {
 void TargetGroundAbility::Execute() {
   auto moveAbility = static_cast<MoveAbility*>(owner.GetAbility("Move"));
   moveAbility->Execute();
+  if (DestinationReached()) {
+    auto v = target - owner.Position();
+    owner.SetRotation(Util::FindAngle(v));
+  }
 }
 
 void TargetGroundAbility::SetDestination(const Vector2f &point) {
+  target = point;
   SectorMap sectorMap;
   sectorMap.Create(point, gameState.GetWalls());
   auto startVertex = gameState.PathingGraph().MakeVertex(owner.Position());

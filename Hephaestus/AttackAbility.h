@@ -8,7 +8,7 @@ class MoveAbility;
 class AttackAbility : public UnitAbility {
   public:
     AttackAbility(std::shared_ptr<GameUnit> owner, GameState *gameState,
-        float damage, float speed, float range);
+        float damage, float dispersion, float speed, float projectileSpeed, float range);
 
     virtual void Execute();
     virtual std::string Name() const { return "Attack"; }
@@ -43,7 +43,7 @@ class AttackAbility : public UnitAbility {
     MoveAbility *moveAbility;
     GameState *gameState;
     UnitId target;
-    float damage, speed, range, loadTime;
+    float damage, dispersion, projectileSpeed, speed, range, loadTime;
     bool movementEnabled;
 
     // These are the locations that the unit's projectile can spawn from when

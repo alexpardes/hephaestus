@@ -4,28 +4,22 @@
 #include <SFML/Graphics/Drawable.hpp>
 #include <SFML/Graphics/RectangleShape.hpp>
 #include "Command.h"
-#include "CommandTurn.h"
 #include "GameState.h"
 #include "GameUnit.h"
 #include "NetworkManager.h"
 
 class GameInterface {
 	public:
-		GameInterface(sf::RenderWindow& window);
+		GameInterface(sf::RenderWindow &window);
 
     void Resize();
+    void Reset();
 
     const sf::View &MainView() const { return mainView; }
     const sf::View &MinimapView() const { return minimapView; }
 
 		std::shared_ptr<Command> ProcessEvent(const sf::Event &event, const sf::RenderWindow &window);
 		void MoveScreen(float time_step);
-
-		CommandTurn TakeCommands() {
-			CommandTurn old_queue = command_queue_;
-			command_queue_ = CommandTurn();
-			return old_queue;
-		}
 
     void SetMapSize(const Vector2f &mapSize) {
       
@@ -42,24 +36,24 @@ class GameInterface {
     }
 
     void SetPlayer(PlayerNumber player) {
-      player_ = player;
+      this->player = player;
     }
 
-    PlayerNumber Player() const { return player_; }
+    PlayerNumber Player() const { return player; }
 
 		//Vector2f screen_position() const {return screen_position_;}
 		//void set_screen_position(Vector2f location) {
 		//	screen_position_ = location;
 		//}
 
-		bool is_selecting() const {return is_selecting_;}
+		bool is_selecting() const {return isSelecting;}
 		sf::Drawable *GetSelectionBoxGraphic() const;
 		const sf::Drawable *GetInterfaceGrahic() const;
 		const std::list<UnitModel *> GetSelectedUnits() const;
 
 		void set_scene(GameScene *scene) {
-			if (game_scene_) delete game_scene_;
-			game_scene_ = scene;
+			if (gameScene) delete gameScene;
+			gameScene = scene;
 		}
 
 		void DeselectDeadUnits();
@@ -72,8 +66,8 @@ class GameInterface {
 		const UnitModel *GetUnit(const Vector2f &location) const;
 		const std::vector<UnitId> GetUnitIds(const Vector2f &location1,
 				const Vector2f &location2) const;
-		Vector2i selection_corner1() const {return Util::GetVector2i(selection_corner1_);}
-		Vector2i selection_corner2() const {return Util::GetVector2i(selection_corner2_);}
+		Vector2i selection_corner1() const {return Util::GetVector2i(selectionCorner1);}
+		Vector2i selection_corner2() const {return Util::GetVector2i(selectionCorner2);}
 		Vector2f GetGameLocation(const Vector2i &screen_location) const {
 			return window.mapPixelToCoords(screen_location, mainView);
 		}
@@ -82,20 +76,19 @@ class GameInterface {
 		//	return window.mapPixelToCoords(screen_location);
 		//}
 
-    sf::RenderWindow& window;
+    sf::RenderWindow &window;
     sf::View mainView, minimapView;
 		int mouseHScroll, mouseVScroll, keyboardHScroll, keyboardVScroll;
 		void Select(const Vector2i &corner1, const Vector2i &corner2);
-		Vector2f selection_corner1_;
-		Vector2f selection_corner2_;
-		bool is_selecting_;
-		std::list<UnitId> selected_unit_ids_;
-		CommandTurn command_queue_;
+		Vector2f selectionCorner1;
+		Vector2f selectionCorner2;
+		bool isSelecting;
+		std::list<UnitId> selectedUnitIds;
 		static const float kScrollSpeed;
 		enum CursorAction {kSelect, kAttack, kTarget};
 		CursorAction cursorAction;
 		Vector2f mapSize;
-		sf::RectangleShape interface_graphic_;
-		GameScene *game_scene_;
-		PlayerNumber player_;
+		sf::RectangleShape interfaceGraphic;
+		GameScene *gameScene;
+		PlayerNumber player;
 };

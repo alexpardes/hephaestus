@@ -8,10 +8,12 @@
 AttackAbility::AttackAbility(std::shared_ptr<GameUnit> owner,
                              GameState *gameState,
                              float damage,
+                             float dispersion,
                              float speed,
+                             float projectileSpeed,
                              float range) :
-    owner(owner), gameState(gameState), damage(damage), speed(speed),
-    range(range), loadTime(0) {
+    owner(owner), gameState(gameState), damage(damage), dispersion(dispersion),
+    speed(speed), projectileSpeed(projectileSpeed), range(range), loadTime(0) {
 
   moveAbility = static_cast<MoveAbility*>(owner->GetAbility("Move"));
   movementEnabled = moveAbility != nullptr;
@@ -87,7 +89,7 @@ void AttackAbility::Attack(const GameUnit &unit) {
 
   if (loadTime <= 0.f) {
     gameState->AddProjectile(owner, AttackPoint(),
-      targetAngle, damage, 200.f);
+      targetAngle, damage, dispersion, projectileSpeed);
     loadTime += 10.f;
   }
 }

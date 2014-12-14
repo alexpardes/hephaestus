@@ -1,12 +1,39 @@
 #include "stdafx.h"
 #include "MainMenu.h"
+#include <boost/filesystem.hpp>
 #include <SFML/Window/Event.hpp>
 #include "Launcher.h"
 #include <cegui/ScriptModules/Lua/ScriptModule.h>
 
 int tolua_Launcher_open (lua_State* tolua_S);
 
-MainMenu::MainMenu() {
+class NoLogger : public CEGUI::Logger
+{
+  void logEvent (const CEGUI::String&, CEGUI::LoggingLevel)
+  {
+
+  }
+  void setLogFilename(const CEGUI::String&, bool)
+  {      
+
+  }
+};
+
+NoLogger nL;
+
+const std::string DefaultHost(const std::string &gameFolder) {
+  auto defaultFilename = gameFolder + "defaults.txt";
+  if (!boost::filesystem::exists(defaultFilename))
+    return "127.0.0.1";
+
+  std::ifstream file(defaultFilename);
+  std::string hostname;
+  std::getline(file, hostname);
+  return hostname;
+}
+
+MainMenu::MainMenu(const std::string &gameFolder) {
+  this->gameFolder = gameFolder;
   initializeMaps();
 
   renderer = &CEGUI::OpenGLRenderer::bootstrapSystem();
@@ -42,6 +69,8 @@ MainMenu::MainMenu() {
   CEGUI::System::getSingleton().getDefaultGUIContext().setRootWindow(root);
 
   CEGUI::System::getSingleton().executeScriptFile("Paintball.lua");
+
+  CEGUI::System::getSingleton().executeScriptString("setDefaultHost(\"" + DefaultHost(gameFolder) + "\")");
 }
 
 void MainMenu::Draw() { 

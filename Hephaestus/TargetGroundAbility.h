@@ -16,4 +16,5 @@ class TargetGroundAbility : public UnitAbility {
   private:
     GameUnit &owner;
     GameState &gameState;
+    Vector2f target;
 };

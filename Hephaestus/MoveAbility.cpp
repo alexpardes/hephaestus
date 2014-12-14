@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "MoveAbility.h"
+#include "AutoAttackAbility.h"
 #include "Util.h"
 #include "GameUnit.h"
 #include "GameState.h"
@@ -37,6 +38,8 @@ void MoveAbility::Execute() {
 
   Vector2f newPosition = owner->Position() + displacement;
   gameState.MoveUnit(owner->Id(), newPosition);
+
+  static_cast<AutoAttackAbility*>(owner->GetAbility("AutoAttack"))->Execute();
 }
 
 bool MoveAbility::DestinationReached() const {

@@ -111,8 +111,15 @@ void GameState::AddUnit(int type,
   UnitAbility *move = new MoveAbility(unit, *this);
   unit->AddAbility(move);
 
-  UnitAbility *attack = new AttackAbility(unit, this,
-      attributes.AttackDamage(), attributes.AttackSpeed(), attributes.AttackRange());
+  UnitAbility *attack = new AttackAbility(
+    unit,
+    this,
+    attributes.AttackDamage(),
+    attributes.Dispersion(),
+    attributes.AttackSpeed(),
+    attributes.ProjectileSpeed(),
+    attributes.AttackRange());
+
   unit->AddAbility(attack);
 
   UnitAbility *autoAttack = new AutoAttackAbility(*unit, *this);
@@ -124,7 +131,7 @@ void GameState::AddUnit(int type,
 
   unit->AddAbility(new TargetGroundAbility(*unit, *this));
 
-  unit->AddPassiveAbility(new HealthRegenAbility(*unit, 0.005f));
+  unit->AddPassiveAbility(new HealthRegenAbility(*unit, attributes.HealthRegen()));
 
 	units.push_back(unit);
 	AddToUnitGrid(unit);
@@ -152,9 +159,10 @@ void GameState::AddProjectile(std::shared_ptr<GameUnit> owner,
                               const Vector2f &location,
                               float direction,
                               float damage,
+                              float dispersion,
                               float speed) {
 	Projectile *projectile = new Projectile(*this, owner, location, direction,
-      damage, speed);
+      damage, dispersion, speed);
 	projectiles.push_back(projectile);
 }
 
