@@ -69,6 +69,7 @@ void AttackAbility::Execute() {
       Attack(*unit);
   }
   loadTime -= speed;
+  loadTime = std::max(loadTime, 0.f);
 }
 
 bool AttackAbility::CanAttack(UnitId target) const {
@@ -82,15 +83,26 @@ bool AttackAbility::CanAttack(UnitId target) const {
 void AttackAbility::Attack(const GameUnit &unit) {
   ChooseAttackPoint();
 
-  auto targetSegment = owner->SightMap().LargestVisibleSubsegment(unit.SegmentFromUnit(owner->Position()));
-  auto targetPoint = (targetSegment.p1 + targetSegment.p2) / 2.f;
-  float targetAngle = Util::FindAngle(targetPoint - AttackPoint());
-  owner->SetRotation(Util::FindAngle(targetPoint - owner->Position()));
+  // TODO: Make unit rotation precise.
+  auto velocity = unit.Position() - unit.PreviousPosition();
+  auto distance = Util::Distance(unit.Position(), owner->Position());
+  auto predictedTime = distance / projectileSpeed;
+  auto predictedLocation = unit.Position() + predictedTime * velocity;
+  Circle circle(predictedLocation, unit.Attributes().CollisionRadius());
+  owner->SetRotation(Util::FindAngle(predictedLocation - owner->Position()));
+  auto widestPoints = circle.WidestPoints(AttackPoint());
+  auto segment = LineSegment(widestPoints.first, widestPoints.second);
+  auto targetSegment = owner->SightMap().LargestVisibleSubsegment(segment);
+  if (targetSegment.Length() > 0) {
+    auto targetPoint = (targetSegment.p1 + targetSegment.p2) / 2.f;
+    float targetAngle = Util::FindAngle(targetPoint - AttackPoint());
+    owner->SetRotation(Util::FindAngle(targetPoint - owner->Position()));
 
-  if (loadTime <= 0.f) {
-    gameState->AddProjectile(owner, AttackPoint(),
-      targetAngle, damage, dispersion, projectileSpeed);
-    loadTime += 10.f;
+    if (loadTime <= 0.f) {
+      gameState->AddProjectile(owner, AttackPoint(),
+        targetAngle, damage, dispersion, projectileSpeed);
+      loadTime += 10.f;
+    }
   }
 }
 

@@ -6,6 +6,7 @@
 
 SpatialGraph::SpatialGraph(const std::vector<const Poly> &polygons) {
   this->polygons = polygons;
+  MinkowskiSum::CombineIntersections(this->polygons);
   dilatedPolygons = MinkowskiSum::Dilate(polygons, 25);
   for (auto polygon : dilatedPolygons) {
     for (auto vertex : polygon) {

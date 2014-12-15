@@ -76,6 +76,8 @@ float Util::FindAngle(const Vector2f &vector) {
 float Util::FindAngle(const Vector2f &vector1, const Vector2f &vector2) {
 	float angle = std::acosf(Dot(vector1, vector2) / Length(vector1) / Length(vector2));
 	if (Cross(vector1, vector2) < 0) angle = 2*M_PI - angle;
+  angle = Angle(angle);
+  assert(angle == angle);
 	return angle;
 }
 

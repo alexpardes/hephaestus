@@ -114,7 +114,7 @@ void ResourceManager::LoadUnitAttributes(const Json::Value& unit) {
 	float selectionRadius = float(unit["Selection Radius"].asDouble());
 	float speed = float(unit["Move Speed"].asDouble());
 	float damage = float(unit["Damage"].asDouble());
-  float dispersion = (float) unit["Dispersion"].asDouble();
+  float dispersion = Util::Radians((float) unit["Dispersion"].asDouble());
 	float attackSpeed  = float(unit["Attack Speed"].asDouble());
   float projectileSpeed = (float) unit["Projectile Speed"].asDouble();
   float range = 1e6f;

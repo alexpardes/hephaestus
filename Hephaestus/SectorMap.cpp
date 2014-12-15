@@ -419,7 +419,6 @@ bool SectorMap::IsVisible(const Vector2f &point) const {
   return VisibleSubsectors(sector).size() != 0;
 }
 
-
 std::vector<Sector> SectorMap::VisibleSubsectors(const Sector &sector) const {
   std::vector<Sector> subsectors;
   auto sector2 = std::lower_bound(sectors.begin(), sectors.end(), sector, startAngleLess);
@@ -518,15 +517,15 @@ std::vector<const LineSegment> SectorMap::PolygonBorder() const {
 }
 
 void SectorMap::AssertSectorValid(const Sector &sector) const {
-  const float kMin = -0.5f, kMax = 2000.5f;
-  auto startPoint = GetPoint(sector.startAngle, sector.startDepth);
-  auto endPoint = GetPoint(sector.endAngle, sector.endDepth);
-  assert(startPoint.x > kMin);
-  assert(startPoint.x < kMax);
-  assert(startPoint.y > kMin);
-  assert(startPoint.y < kMax);
-  assert(endPoint.x > kMin);
-  assert(endPoint.x < kMax);
-  assert(endPoint.y > kMin);
-  assert(endPoint.y < kMax);
+  //const float kMin = -0.5f, kMax = 2000.5f;
+  //auto startPoint = GetPoint(sector.startAngle, sector.startDepth);
+  //auto endPoint = GetPoint(sector.endAngle, sector.endDepth);
+  //assert(startPoint.x > kMin);
+  //assert(startPoint.x < kMax);
+  //assert(startPoint.y > kMin);
+  //assert(startPoint.y < kMax);
+  //assert(endPoint.x > kMin);
+  //assert(endPoint.x < kMax);
+  //assert(endPoint.y > kMin);
+  //assert(endPoint.y < kMax);
 }

@@ -24,8 +24,7 @@ class GameUnit : public GameObject {
 				const Vector2f &position, float rotation);
 
     virtual size_t HashCode() const;
-
-		Vector2f Position() const {return position;}
+    Vector2f PreviousPosition() const;
     LineSegment SegmentFromUnit(const Vector2f &viewPoint) const;
 
 		static std::vector<Vector2i> pathing_offsets(int x, int y) {
@@ -62,6 +61,7 @@ class GameUnit : public GameObject {
 	private:
 		bool isAlive;
     SectorMap sightMap;
+    Vector2f previousPosition;
     std::vector<Vector2f> visiblePoints;
 		static std::vector<Vector2i>* pathing_offsets_;
 		float currentHealth;
