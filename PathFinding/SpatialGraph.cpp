@@ -43,7 +43,8 @@ std::unique_ptr<const SpatialVertex> SpatialGraph::MakeVertex(const Vector2f &po
   sectorMap.Create(point, dilatedPolygons);
   auto resultVertex = new SpatialVertex(point);
   for (auto vertex = vertices.begin(); vertex != vertices.end(); ++vertex) {
-    if (sectorMap.IsVisible((*vertex)->Point()))
+    auto vertexPoint = (*vertex)->Point();
+    if (point == vertexPoint || sectorMap.IsVisible(vertexPoint))
       resultVertex->AddAdjacency(vertex->get());
   }
   return std::unique_ptr<const SpatialVertex>(resultVertex);

@@ -405,15 +405,27 @@ Sector SectorMap::SectorFromPoint(const Vector2f &point) const {
 }
 
 bool SectorMap::IsVisible(const Vector2f &point) const {
-  return VisibleSubsectors(SectorFromPoint(point)).size() > 0;
+  auto sector = SectorFromPoint(point);
+  if (VisibleSubsectors(sector).size()) {
+    return true;
+  }
+  if (sector.startAngle != 0)
+    return false;
+
+  /* If the point has angle zero, then it is possible that it is not contained
+   * in the first sector but is contained in the last one. */
+  sector.startAngle = 2 * M_PI;
+  sector.endAngle = sector.startAngle;
+  return VisibleSubsectors(sector).size() != 0;
 }
 
 
 std::vector<Sector> SectorMap::VisibleSubsectors(const Sector &sector) const {
   std::vector<Sector> subsectors;
+  auto sector2 = std::lower_bound(sectors.begin(), sectors.end(), sector, startAngleLess);
+  if (sector2 != sectors.begin())
+    --sector2;
 
-  // This is the sector containing the start of the input sector.
-  auto sector2 = std::upper_bound(sectors.begin(), sectors.end(), sector, startAngleLess) - 1;
   Sector lastSubsector = Nil;
   while (sector2 != sectors.end() && sector2->startAngle <= sector.endAngle) {
     auto subsector = SectorIntersection(*sector2, sector);
