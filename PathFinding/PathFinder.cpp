@@ -26,13 +26,24 @@ float Distance(const Vertex &v, const Vector2f &goal) {
   return Util::Distance(static_cast<const SpatialVertex &>(v).Point(), goal);
 }
 
+/* If the goal is inside a wall polygon, returns the nearest point on that
+ * polygon, otherwise returns the original goal. */
+Vector2f ClosestReachablePoint(const Vector2f &point, const std::vector<const Poly> &walls) {
+  for (auto poly : walls) {
+    if (poly.Contains(point))
+      return poly.NearestPoint(point);
+  }
+  return point;
+}
+
 std::deque<const Vector2f> Path(
     const SpatialVertex *start,
     const std::vector<const Poly> &walls,
     const Vector2f &goal) {
 
-  auto heuristic = std::bind(Distance, std::placeholders::_1, goal);
-  auto adjacencies = std::bind(PointVertex, std::placeholders::_1, walls, goal);
+  auto reachableGoal = ClosestReachablePoint(goal, walls);
+  auto heuristic = std::bind(Distance, std::placeholders::_1, reachableGoal);
+  auto adjacencies = std::bind(PointVertex, std::placeholders::_1, walls, reachableGoal);
   auto path = AStarSearch().FindPath(start, heuristic, adjacencies);
   std::deque<const Vector2f> result;
   for (auto vertex : path) {

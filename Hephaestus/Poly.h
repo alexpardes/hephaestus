@@ -12,6 +12,7 @@ class Poly {
     Vertex end() const;
     size_t Size() const;
     bool Contains(const Vector2f &point) const;
+    Vector2f NearestPoint(const Vector2f &point) const;
     void Add(const Vector2f &vertex);
     bool IsReversed() const;
     void SetReversed(bool reversed);

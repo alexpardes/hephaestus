@@ -33,7 +33,7 @@ class ResourceManager {
 	private:
     void SetupFogOfWar();
     void SetupGameState(const Json::Value &map, GameState *state);
-    void LoadMapImage();
+    void LoadMapImage(const std::string &map);
     void LoadUnits(const Json::Value &map);
     void LoadFonts();
     sf::Color CreateColor(std::string &rgb);

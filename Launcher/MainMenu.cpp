@@ -7,6 +7,7 @@
 
 int tolua_Launcher_open (lua_State* tolua_S);
 
+#if !DEBUG_
 class NoLogger : public CEGUI::Logger
 {
   void logEvent (const CEGUI::String&, CEGUI::LoggingLevel)
@@ -20,6 +21,7 @@ class NoLogger : public CEGUI::Logger
 };
 
 NoLogger nL;
+#endif
 
 const std::string DefaultHost(const std::string &gameFolder) {
   auto defaultFilename = gameFolder + "defaults.txt";
@@ -69,7 +71,6 @@ MainMenu::MainMenu(const std::string &gameFolder) {
   CEGUI::System::getSingleton().getDefaultGUIContext().setRootWindow(root);
 
   CEGUI::System::getSingleton().executeScriptFile("Paintball.lua");
-
   CEGUI::System::getSingleton().executeScriptString("setDefaultHost(\"" + DefaultHost(gameFolder) + "\")");
 }
 

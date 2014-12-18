@@ -114,7 +114,7 @@ void Hephaestus::StartJoinedGame(NetworkConnection* connection) {
 
 void Hephaestus::LoadMap(const std::string &map) {
   Log::Write("Loading map");
-	gameManager->SetGameState(resourceManager->LoadMap("default.map"));
+	gameManager->SetGameState(resourceManager->LoadMap(map));
   Log::Write("Map loaded");
   Vector2i map_size = resourceManager->MapSize(); 
   gameInterface->SetMapSize(Util::ToVector2f(map_size));
@@ -122,6 +122,7 @@ void Hephaestus::LoadMap(const std::string &map) {
 }
 
 void Hephaestus::StartGame() {
+  gameInterface->Reset();
   graphics = new Graphics(*window, *gameInterface, *resourceManager);
   gameManager->StartGame();
   isRunning = true;

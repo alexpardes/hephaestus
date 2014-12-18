@@ -22,8 +22,6 @@ void GameManager::SetGameState(GameState *state) {
   while (players.size() < 2) {
     players.push_back(new Player(*gameState));
   }
-
-	lastScene = new GameScene(*gameState);
 }
 
 void GameManager::SetCommandSource(int playerNumber, CommandSource *source, bool isLocal) {
@@ -77,8 +75,6 @@ void GameManager::RunGame() {
 		lastScene = new GameScene(*gameState);
 		sceneMutex.unlock();
 	}
-
-  Reset();
 }
 
 void GameManager::Reset() {

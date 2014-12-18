@@ -67,17 +67,21 @@ Vector2f Projectile::Origin() const {
 }
 
 
-ProjectileModel::ProjectileModel(const Projectile &projectile) {
+ProjectileModel::ProjectileModel(const Projectile &projectile, bool isVisible) {
 	position = projectile.Position();
 	id = projectile.Id();
   type = projectile.Type();
   rotation = projectile.Rotation();
+  this->isVisible = isVisible;
+  owner = projectile.Owner()->Owner();
 }
 
 ProjectileModel::ProjectileModel(const ProjectileModel &projectile1,
                                  const ProjectileModel &projectile2,
                                  float weight) {
   type = projectile1.Type();
+  isVisible = projectile2.isVisible;
+  owner = projectile1.owner;
 	float b = weight;
 	float a = 1 - weight;
 	position = a*projectile1.Position() + b*projectile2.Position();

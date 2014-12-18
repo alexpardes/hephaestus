@@ -408,23 +408,49 @@ size_t GameState::HashCode() const {
 
 const float GameScene::kUnitGridResolution = 25.f;
 
+bool IsVisible(const GameUnit &unit,
+               const std::list<std::shared_ptr<GameUnit>> &units) {
+  for (auto otherUnit : units) {
+    if (otherUnit->Owner() == unit.Owner())
+      continue;
+
+    auto segment = unit.SegmentFromUnit(otherUnit->SightMap().Center());
+    if (otherUnit->SightMap().IsAnyVisible(segment))
+      return true;
+  }
+  return false;
+}
+
+bool IsVisible(const Projectile &projectile,
+               const std::list<std::shared_ptr<GameUnit>> &units) {
+  for (auto unit : units) {
+    if (unit->Owner() == projectile.Owner()->Owner())
+      continue;
+
+    if (unit->SightMap().IsVisible(projectile.Position()))
+      return true;
+  }
+  return false;
+}
+
 GameScene::GameScene(const GameState &gameState) : walls(gameState.PathingGraph().DilatedWalls()) {
   mapSize = gameState.map_size();
-	unit_grid_width_ = int(gameState.map_size().x / kUnitGridResolution);
-	unit_grid_height_ = int(gameState.map_size().y / kUnitGridResolution);
-	unit_grid_ = new std::list<const UnitModel *> *[unit_grid_width_];
-	for (int i = 0; i < unit_grid_width_; ++i) {
-		unit_grid_[i] = new std::list<const UnitModel *>[unit_grid_height_];
+	unitGridWidth = int(gameState.map_size().x / kUnitGridResolution);
+	unitGridHeight = int(gameState.map_size().y / kUnitGridResolution);
+	unitGrid = new std::list<const UnitModel*> *[unitGridWidth];
+	for (int i = 0; i < unitGridWidth; ++i) {
+		unitGrid[i] = new std::list<const UnitModel*>[unitGridHeight];
 	}
 
-	max_unit_radius_ = 0;
+	maxUnitRadius = 0;
 
-	for (std::shared_ptr<GameUnit> unit : gameState.Units()) {
-		CreateUnit(*unit);
+	for (auto unit : gameState.Units()) {
+		CreateUnit(*unit, IsVisible(*unit, gameState.Units()));
 	}
 
-	for (Projectile*projectile : gameState.Projectiles()) {
-		projectiles_.push_back(new ProjectileModel(*projectile));
+	for (auto projectile : gameState.Projectiles()) {
+    bool isVisible = IsVisible(*projectile, gameState.Units());
+		projectiles.push_back(new ProjectileModel(*projectile, isVisible));
 	}
 }
 
@@ -435,20 +461,20 @@ GameScene::GameScene(const GameScene &scene1,
   assert(weight >= 0.f);
   assert(weight <= 1.f);
 
-	unit_grid_width_ = scene1.unit_grid_width_;
-	unit_grid_height_ = scene2.unit_grid_height_;
-	unit_grid_ = new std::list<const UnitModel*> *[unit_grid_width_];
-	for (int i = 0; i < unit_grid_width_; ++i) {
-		unit_grid_[i] = new std::list<const UnitModel*>[unit_grid_height_];
+	unitGridWidth = scene1.unitGridWidth;
+	unitGridHeight = scene2.unitGridHeight;
+	unitGrid = new std::list<const UnitModel*> *[unitGridWidth];
+	for (int i = 0; i < unitGridWidth; ++i) {
+		unitGrid[i] = new std::list<const UnitModel*>[unitGridHeight];
 	}
-	max_unit_radius_ = 0;
+	maxUnitRadius = 0;
 	std::list<UnitModel*>::const_iterator unit_iterator1 =
-			scene1.units().begin();
+			scene1.Units().begin();
 	std::list<UnitModel*>::const_iterator unit_iterator2 =
-			scene2.units().begin();
-	while (unit_iterator1 != scene1.units().end()) {
+			scene2.Units().begin();
+	while (unit_iterator1 != scene1.Units().end()) {
 		UnitModel &unit1 = **unit_iterator1;
-		if (unit_iterator2 != scene2.units().end()) {
+		if (unit_iterator2 != scene2.Units().end()) {
 			UnitModel &unit2 = **unit_iterator2;
 			if (unit1.Id() == unit2.Id()) {
 				CreateUnit(unit1, unit2, weight);
@@ -461,31 +487,31 @@ GameScene::GameScene(const GameScene &scene1,
 				++unit_iterator2;
 			}
 		} else {
-			units_.push_back(new UnitModel(unit1));
+			units.push_back(new UnitModel(unit1));
 			++unit_iterator1;
 		}
 	}
 	std::list<ProjectileModel *>::const_iterator projectile_iterator1,
 			projectile_iterator2;
-	projectile_iterator1 = scene1.projectiles().begin();
-	projectile_iterator2 = scene2.projectiles().begin();
-	while (projectile_iterator1 != scene1.projectiles().end()) {
+	projectile_iterator1 = scene1.Projectiles().begin();
+	projectile_iterator2 = scene2.Projectiles().begin();
+	while (projectile_iterator1 != scene1.Projectiles().end()) {
 		ProjectileModel projectile1 = **projectile_iterator1;
-		if (projectile_iterator2 != scene2.projectiles().end()) {
+		if (projectile_iterator2 != scene2.Projectiles().end()) {
 			ProjectileModel projectile2 = **projectile_iterator2;
 			if (projectile1.Id() == projectile2.Id()) {
-				projectiles_.push_back(new ProjectileModel(projectile1,
+				projectiles.push_back(new ProjectileModel(projectile1,
 						projectile2, weight));
 				++projectile_iterator1;
 				++projectile_iterator2;
 			} else if (projectile1.Id() < projectile2.Id()) {
-				projectiles_.push_back(new ProjectileModel(projectile1));
+				projectiles.push_back(new ProjectileModel(projectile1));
 				++projectile_iterator1;
 			} else {
 				++projectile_iterator2;
 			}
 		} else {
-			projectiles_.push_back(new ProjectileModel(projectile1));
+			projectiles.push_back(new ProjectileModel(projectile1));
 			++projectile_iterator1;
 		}
 	}
@@ -494,30 +520,33 @@ GameScene::GameScene(const GameScene &scene1,
 }
 
 GameScene::~GameScene() {
-	for (std::list<UnitModel *>::iterator unit = units_.begin();
-			unit != units_.end(); ++unit) {
+	for (std::list<UnitModel *>::iterator unit = units.begin();
+			unit != units.end(); ++unit) {
 		delete *unit;
 	}
 	for (std::list<ProjectileModel *>::iterator projectile =
-			projectiles_.begin();
-			projectile != projectiles_.end(); ++projectile) {
+			projectiles.begin();
+			projectile != projectiles.end(); ++projectile) {
 		delete *projectile;
 	}
-	for (int i = 0; i < unit_grid_width_; ++i) {
-		delete[] unit_grid_[i];
+	for (int i = 0; i < unitGridWidth; ++i) {
+		delete[] unitGrid[i];
 	}
-	delete[] unit_grid_;
+	delete[] unitGrid;
 }
 
 void GameScene::AddUnit(UnitModel *model) {
-	units_.push_back(model);
+	units.push_back(model);
 	AddToUnitGrid(*model);
-	if (model->Radius() > max_unit_radius_) max_unit_radius_ = model->Radius();
-	unit_table_[model->Id()] = model;
+	if (model->Radius() > maxUnitRadius)
+    maxUnitRadius = model->Radius();
+
+	unitTable[model->Id()] = model;
 }
 
-void GameScene::CreateUnit(const GameUnit &unit) {
+void GameScene::CreateUnit(const GameUnit &unit, bool isVisible) {
 	UnitModel *model = new UnitModel(unit);
+  model->SetVisible(isVisible);
 	AddUnit(model);
 }
 
@@ -536,14 +565,14 @@ void GameScene::CreateUnit(const UnitModel &unit) {
 void GameScene::AddToUnitGrid(const UnitModel &unit) {
 	int x = (int) (unit.Position().x / kUnitGridResolution);
 	int y = (int) (unit.Position().y / kUnitGridResolution);
-	unit_grid_[x][y].push_back(&unit);
+	unitGrid[x][y].push_back(&unit);
 }
 
 std::vector<const UnitModel *> GameScene::GetUnitsInRectangle(
 		const Vector2f &corner1,
 		const Vector2f &corner2) const {
 	std::vector<const UnitModel *> units;
-	int margin = int(max_unit_radius_ / kUnitGridResolution + 1);
+	int margin = int(maxUnitRadius / kUnitGridResolution + 1);
 	float left = std::min(corner1.x, corner2.x);
 	float right = std::max(corner1.x, corner2.x);
 	float top = std::min(corner1.y, corner2.y);
@@ -554,11 +583,11 @@ std::vector<const UnitModel *> GameScene::GetUnitsInRectangle(
 	int end_y = int(bottom / kUnitGridResolution + margin);
 	if (start_x < 0) start_x = 0;
 	if (start_y < 0) start_y = 0;
-	if (end_x >= unit_grid_width_) end_x = unit_grid_width_ - 1;
-	if (end_y >= unit_grid_height_) end_y = unit_grid_height_ - 1;
+	if (end_x >= unitGridWidth) end_x = unitGridWidth - 1;
+	if (end_y >= unitGridHeight) end_y = unitGridHeight - 1;
 	for (int i = start_x; i <= end_x; ++i) {
 		for (int j = start_y; j <= end_y; ++j) {
-			for (const UnitModel* unit : unit_grid_[i][j]) {
+			for (const UnitModel* unit : unitGrid[i][j]) {
 				float r = unit->Radius();
 				float x = unit->Position().x;
 				float y = unit->Position().y;
@@ -574,6 +603,6 @@ std::vector<const UnitModel *> GameScene::GetUnitsInRectangle(
 
 UnitModel *GameScene::GetUnit(UnitId id) const {
 	UnitModel *unit = NULL;
-	if (unit_table_.count(id)) unit = unit_table_.at(id);
+	if (unitTable.count(id)) unit = unitTable.at(id);
 	return unit;
 }

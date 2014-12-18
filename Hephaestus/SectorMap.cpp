@@ -360,8 +360,11 @@ Sector SectorIntersection(const Sector &sector1, const Sector &sector2) {
   float startDepth1 = SectorDepthAtAngle(sector1, startAngle);
   float endDepth1 = SectorDepthAtAngle(sector1, endAngle);
 
-  bool startContained = sector2Trimmed.startDepth <= startDepth1;
-  bool endContained = sector2Trimmed.endDepth <= endDepth1;
+  /* For the purpose of pathfinding we want points on the boundary to be
+   * visible, and an epsilon is needed to ensure that. */
+  const float kEpsilon = 1e-5f;
+  bool startContained = sector2Trimmed.startDepth <= startDepth1 + kEpsilon;
+  bool endContained = sector2Trimmed.endDepth <= endDepth1 + kEpsilon;
 
   if (startContained && endContained)
     return sector2Trimmed;

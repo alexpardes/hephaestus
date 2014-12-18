@@ -22,7 +22,7 @@ GameState *ResourceManager::LoadMap(const std::string& filename) {
   SetupFogOfWar();
   LoadPlayerColors(map);
   LoadUnits(map);
-  LoadMapImage();
+  LoadMapImage(filename.substr(0, filename.length() - 4));
 
   polygons = LoadTerrain(map["polygons"]);
   Poly border;
@@ -48,8 +48,8 @@ const std::vector<const Poly> &ResourceManager::DilatedWalls() const {
   return dilatedPolygons;
 }
 
-void ResourceManager::LoadMapImage() {
-  mapImage.loadFromFile("default.png");
+void ResourceManager::LoadMapImage(const std::string &map) {
+  mapImage.loadFromFile(map + ".png");
 }
 
 void ResourceManager::SetupFogOfWar() {
@@ -58,6 +58,7 @@ void ResourceManager::SetupFogOfWar() {
 }
 
 void ResourceManager::LoadUnits(const Json::Value& map) {
+  unitTable.clear();
   Json::Value types = map["types"];
   for (auto type : types) {
       LoadUnitAttributes(type);

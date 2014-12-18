@@ -42,6 +42,21 @@ bool Poly::Contains(const Vector2f &point) const {
   return (nIntersections % 2 == 1) ^ isReversed;
 }
 
+Vector2f Poly::NearestPoint(const Vector2f &point) const {
+  auto minDist = FLT_MAX;
+  Vector2f nearestPoint;
+  for (auto vertex : *this) {
+    auto segment = vertex.Segment();
+    auto segmentPoint = segment.NearestPoint(point);
+    auto distance = Util::Distance(point, segmentPoint);
+    if (distance < minDist) {
+      minDist = distance;
+      nearestPoint = segmentPoint;
+    }
+  }
+  return nearestPoint;
+}
+
 Vertex::Vertex() {
   this->polygon = nullptr;
 }

@@ -7,12 +7,15 @@ void Graphics::DrawGame(const GameScene &scene,
 	window.clear();
   window.setView(gameInterface.MainView());
 	DrawTerrain();
-	DrawUnits(scene.units());
-	DrawProjectiles(scene.projectiles());
+	DrawUnits(scene.Units());
+	DrawProjectiles(scene.Projectiles());
 
 
   DrawFogOfWar(scene);
+
+#if _DEBUG
   DrawDilation(scene);
+#endif
 
   DrawGameInterface(scene);
 
@@ -54,7 +57,7 @@ void Graphics::DrawFogOfWar(const GameScene& scene) {
 
   sf::VertexArray visibleArea(sf::Triangles);
 
-  for (UnitModel* unit : scene.units()) {
+  for (UnitModel* unit : scene.Units()) {
     if (unit->Owner() == gameInterface.Player()) {
       for (size_t i = 0; i < unit->Visibility().VisiblePoints().size(); i += 2) {
         sf::Vertex p1(unit->Visibility().Origin());
@@ -108,26 +111,29 @@ void Graphics::DrawTerrain() const {
 
 void Graphics::DrawUnits(const std::list<UnitModel *> &units) const {
   for (UnitModel* unit : units) {
-    if (unit->IsVisible()) {
-		  const sf::Texture &unit_image = resourceManager.GetImage(unit->Type(),
+    if (gameInterface.Player() == unit->Owner() || unit->IsVisible()) {
+		  const sf::Texture &unitImage = resourceManager.GetImage(unit->Type(),
 				  unit->Owner());
-		  sf::Sprite unit_sprite(unit_image);
-		  Vector2f image_center(unit_image.getSize().x * 0.5f,
-          unit_image.getSize().y * 0.5f);
-		  unit_sprite.setOrigin(image_center);
-		  unit_sprite.setPosition(unit->Position());
-		  unit_sprite.setRotation(Util::Degrees(unit->Rotation()));
+		  sf::Sprite unitSprite(unitImage);
+		  Vector2f imageCenter(unitImage.getSize().x * 0.5f,
+          unitImage.getSize().y * 0.5f);
+		  unitSprite.setOrigin(imageCenter);
+		  unitSprite.setPosition(unit->Position());
+		  unitSprite.setRotation(Util::Degrees(unit->Rotation()));
       if (unit->Facing() == kLeft)
-        unit_sprite.setScale(1, -1);
+        unitSprite.setScale(1, -1);
 
-		  window.draw(unit_sprite);
+		  window.draw(unitSprite);
     }
 	}
 }
 
-void Graphics::DrawProjectiles(const std::list<ProjectileModel *> &projectiles)
+void Graphics::DrawProjectiles(const std::list<ProjectileModel*> &projectiles)
 		const {
-  for (ProjectileModel* projectile : projectiles) {
+  for (auto projectile : projectiles) {
+    if (projectile->Owner() != gameInterface.Player() && !projectile->IsVisible())
+      continue;
+
     const sf::Texture &image =
         resourceManager.GetImage(projectile->Type());
 		sf::Sprite projectile_sprite(image);
@@ -154,7 +160,7 @@ void Graphics::DrawGameInterface(const GameScene &scene) const {
 		window.draw(selectionCircle);
 	}
 
-  for (UnitModel* unit : scene.units()) {
+  for (UnitModel* unit : scene.Units()) {
     if (unit->IsVisible()) {
       float healthBarWidth = 65.f;
       float healthBarHeight = 5.f;
@@ -188,7 +194,7 @@ void Graphics::DrawGameInterface(const GameScene &scene) const {
 
 void Graphics::DrawMiniMap(const GameScene &scene) const {
 	Vector2f minimap_size(200.f, 200.f);
-  for (UnitModel* unit : scene.units()) {
+  for (UnitModel* unit : scene.Units()) {
 		Vector2f position;
 		position.x = unit->Position().x * minimap_size.x /
 				resourceManager.MapSize().x;

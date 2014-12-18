@@ -115,9 +115,9 @@ class GameScene {
 		GameScene(const GameScene &scene1, const GameScene &scene2,
 				float weight);
 		~GameScene();
-		const std::list<UnitModel *> &units() const {return units_;}
-		const std::list<ProjectileModel *> &projectiles() const {
-			return projectiles_;
+		const std::list<UnitModel *> &Units() const {return units;}
+		const std::list<ProjectileModel *> &Projectiles() const {
+			return projectiles;
 		}
 
     std::vector<const UnitModel *> GetUnitsInRectangle(
@@ -132,19 +132,19 @@ class GameScene {
 	private:
     void ComputeUnitVisibility(PlayerNumber player,
         std::vector<const SectorMap*> sightMaps);
-		void CreateUnit(const GameUnit& unit);
+		void CreateUnit(const GameUnit& unit, bool isVisible);
 		void CreateUnit(const UnitModel& unit1, const UnitModel& unit2,
 				float weight);
 		void CreateUnit(const UnitModel &unit);
 		void AddUnit(UnitModel *unit);
 		void AddToUnitGrid(const UnitModel &unit);
 
-		std::list<UnitModel *> units_;
-		std::list<ProjectileModel *> projectiles_;
-		std::list<const UnitModel *> **unit_grid_;
-		int unit_grid_width_, unit_grid_height_;
-		float max_unit_radius_;
-		std::unordered_map<UnitId, UnitModel *> unit_table_;
+		std::list<UnitModel *> units;
+		std::list<ProjectileModel *> projectiles;
+		std::list<const UnitModel *> **unitGrid;
+		int unitGridWidth, unitGridHeight;
+		float maxUnitRadius;
+		std::unordered_map<UnitId, UnitModel *> unitTable;
     std::vector<const SectorMap*> unitViews;
     Vector2i mapSize;
 };

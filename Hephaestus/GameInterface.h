@@ -72,10 +72,6 @@ class GameInterface {
 			return window.mapPixelToCoords(screen_location, mainView);
 		}
 
-		//Vector2i GetGameLocation(const Vector2i &screen_location) const {
-		//	return window.mapPixelToCoords(screen_location);
-		//}
-
     sf::RenderWindow &window;
     sf::View mainView, minimapView;
 		int mouseHScroll, mouseVScroll, keyboardHScroll, keyboardVScroll;

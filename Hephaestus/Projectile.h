@@ -20,6 +20,7 @@ class Projectile : public GameObject {
     bool IsAlive() const { return isAlive; }
     float CalculateDamage(const GameUnit &unitHit) const;
     Vector2f Origin() const;
+    const std::shared_ptr<GameUnit> Owner() const {return owner;}
 
 	private:
 		std::shared_ptr<GameUnit> owner;
@@ -33,16 +34,20 @@ class Projectile : public GameObject {
 
 class ProjectileModel {
 	public:
-		explicit ProjectileModel(const Projectile &projectile);
+		explicit ProjectileModel(const Projectile &projectile, bool isVisible);
 		ProjectileModel(const ProjectileModel &projectile1,
 				const ProjectileModel &projectile2, float weight);
 		Vector2f Position() const {return position;}
     float Rotation() const { return rotation; }
 		int Id() const {return id;}
     int Type() const {return type;}
+    bool IsVisible() const {return isVisible;}
+    PlayerNumber Owner() const {return owner;}
 
 	private:
 		Vector2f position;
 		int id, type;
     float rotation;
+    bool isVisible;
+    PlayerNumber owner;
 };

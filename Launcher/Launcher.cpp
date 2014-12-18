@@ -10,7 +10,6 @@
 #include <fstream>
 
 int main() {
-
   try {
     Launcher::Instance()->Launch();
   } catch (std::exception &e) {
