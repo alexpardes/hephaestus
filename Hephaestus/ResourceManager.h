@@ -26,7 +26,6 @@ class ResourceManager {
     }
 
     sf::RenderTexture &FogTexture() { return fogImage; }
-
     const std::vector<const Poly> &Walls() const;
     const std::vector<const Poly> &DilatedWalls() const;
 

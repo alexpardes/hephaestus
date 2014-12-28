@@ -15,7 +15,12 @@ public:
     float dispersion,
     float projectileSpeed,
     float maxHealth,
-    float healthRegen) :    
+    float healthRegen,
+    float regenDelay,
+    float moveInstability,
+    float rotateInstability,
+    float stabilityRecovery,
+    float aimWidth) :    
     type(type), speed(speed),    
     collisionRadius(collisionRadius),
     selectionRadius(selectionRadius),
@@ -25,7 +30,12 @@ public:
     maxHealth(maxHealth),
     dispersion(dispersion),
     projectileSpeed(projectileSpeed),
-    healthRegen(healthRegen) { }
+    healthRegen(healthRegen),
+    regenDelay(regenDelay),
+    moveInstability(moveInstability),
+    rotateInstability(rotateInstability),
+    stabilityRecovery(stabilityRecovery),
+    aimWidth(aimWidth) { }
 
   UnitAttributes() { }
 
@@ -40,7 +50,12 @@ public:
   float Dispersion() const {return dispersion;}
   float MaxHealth() const {return maxHealth;}
   float HealthRegen() const {return healthRegen;}
+  float RegenDelay() const {return regenDelay;}
   float ProjectileSpeed() const {return projectileSpeed;}
+  float MoveInstability() const {return moveInstability;}
+  float RotateInstability() const {return rotateInstability;}
+  float StabilityRecovery() const {return stabilityRecovery;}
+  float AimWidth() const {return aimWidth;}
 
   void SetSpeed(float speed) {this->speed = speed;}
   void SetCollisionRadius(float collision_radius) {collisionRadius = collision_radius;}
@@ -55,6 +70,8 @@ public:
 
 private:
   int type;
-  float speed, collisionRadius, selectionRadius, attackDamage,
-    attackSpeed, attackRange, maxHealth, dispersion, projectileSpeed, healthRegen;
+  float speed, collisionRadius, selectionRadius, attackDamage, attackSpeed,
+    attackRange, maxHealth, dispersion, projectileSpeed, healthRegen,
+    regenDelay, moveInstability, rotateInstability, stabilityRecovery,
+    aimWidth;
 };

@@ -362,7 +362,7 @@ Sector SectorIntersection(const Sector &sector1, const Sector &sector2) {
 
   /* For the purpose of pathfinding we want points on the boundary to be
    * visible, and an epsilon is needed to ensure that. */
-  const float kEpsilon = 1e-5f;
+  const float kEpsilon = 0.1f;
   bool startContained = sector2Trimmed.startDepth <= startDepth1 + kEpsilon;
   bool endContained = sector2Trimmed.endDepth <= endDepth1 + kEpsilon;
 

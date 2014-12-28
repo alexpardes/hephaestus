@@ -25,10 +25,12 @@ class GameUnit : public GameObject {
 
     virtual size_t HashCode() const;
     Vector2f PreviousPosition() const;
+    float Stability() const;
+    int TurnsSinceHit() const;
     LineSegment SegmentFromUnit(const Vector2f &viewPoint) const;
 
 		static std::vector<Vector2i> pathing_offsets(int x, int y) {
-			return pathing_offsets_[3*x + y + 4];
+			return pathingOffsets[3*x + y + 4];
 		}
 
     SectorMap &SightMap() { return sightMap; }
@@ -62,9 +64,10 @@ class GameUnit : public GameObject {
 		bool isAlive;
     SectorMap sightMap;
     Vector2f previousPosition;
+    float currentHealth, previousRotation, stability;
+    int turnsSinceHit;
     std::vector<Vector2f> visiblePoints;
-		static std::vector<Vector2i>* pathing_offsets_;
-		float currentHealth;
+		static std::vector<Vector2i>* pathingOffsets;
     Direction facing;
 		UnitId id;
 		UnitAttributes attributes;
@@ -85,9 +88,8 @@ class UnitModel {
     float MaxHealth() const { return maxHealth; }
 		float Radius() const { return radius; }
 		Vector2f Position() const {return position;}
-		void set_position(const Vector2f &position) {this->position = position;}
-		void set_rotation(float rotation) {this->rotation = rotation;}
 		float Rotation() const {return rotation;}
+    float Stability() const {return stability;}
 		PlayerNumber Owner() const {return owner;}
 		int Type() const {return type;}
 		int Id() const {return id;}
@@ -98,13 +100,9 @@ class UnitModel {
 
 	private:
 		Vector2f position;
-		float rotation;
-		float currentHealth;
-    float maxHealth;
-		float radius;
-		int id;
+		float rotation, currentHealth, maxHealth, radius, stability;
+		int id, type;
 		PlayerNumber owner;
-		int type;
     VisibilityPolygon visibility;
     bool isVisible;
     Direction facing;

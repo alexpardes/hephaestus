@@ -59,35 +59,42 @@ void Hephaestus::PlayReplay(const std::string &replay) {
 }
 
 void Hephaestus::HostGame(const std::string &map, int port) {
-  /* Calling LoadMap in the callback causes problems. Need to mark some fields
-   * volatile? */
-  LoadMap(map);
   networkManager->AcceptClient(port,
-     [this, map](NetworkConnection* connection) {
+     [this, map](NetworkConnection *connection) {
        Log::Write("Client connected");
-       StartHostedGame(connection, map);
+       StartHostedGame(connection, map + ".map");
       });
 }
 
-void Hephaestus::StartHostedGame(NetworkConnection* connection,
-                                 const std::string& map) {
+void Hephaestus::StartHostedGame(NetworkConnection *connection,
+                                 const std::string &map) {
   assert(connection);
   opponentConnection = connection;
-  gameManager->SetCommandSource(0, commandBuffer, true);
-  gameManager->SetCommandSource(1, opponentConnection);
+  std::srand((int) std::time(nullptr));
+  auto seed = std::rand();
+  auto latency = 1.3f * connection->Ping() / 2;
+  auto turnDelay = (int) (latency / kTimestep);
+  connection->Send(seed);
+  connection->Send(map);
+  connection->Send(turnDelay);
+  std::srand(seed);
+  auto homePlayerSlot = std::rand() % 2;
+  auto opponentSlot = 1 - homePlayerSlot;
+  LoadMap(map);
+  gameManager->SetCommandSource(homePlayerSlot, commandBuffer, true);
+  gameManager->SetCommandSource(opponentSlot, opponentConnection);
   commandBuffer->RegisterCommandSink(opponentConnection);
-  commandBuffer->CreateTurnDelay(3);
+  commandBuffer->CreateTurnDelay(turnDelay);
 
-  gameInterface->SetPlayer(kPlayer1);
+  gameInterface->SetPlayer(PlayerNumber(homePlayerSlot));
   gameManager->SetSaveReplay(true);
   StartGame();
 }
 
-void Hephaestus::JoinGame(const std::string& hostname,
-                          const std::string& port) {
-  LoadMap("default.map"); // TODO: get map choice from host.
+void Hephaestus::JoinGame(const std::string &hostname,
+                          const std::string &port) {
   networkManager->Connect(hostname, port,
-      [this](NetworkConnection* connection) {
+      [this](NetworkConnection *connection) {
         Log::Write("Connected to host");
         StartJoinedGame(connection);
       });
@@ -97,14 +104,23 @@ void Hephaestus::CancelHosting() {
   networkManager->Cancel();
 }
 
-void Hephaestus::StartJoinedGame(NetworkConnection* connection) {
+void Hephaestus::StartJoinedGame(NetworkConnection *connection) {
   if (connection) {
     opponentConnection = connection;
-    gameInterface->SetPlayer(kPlayer2);
-    gameManager->SetCommandSource(0, opponentConnection);
-    gameManager->SetCommandSource(1, commandBuffer, true);
+    connection->AwaitPing();
+    auto seed = connection->ReadInt();
+    auto map = connection->Read();
+    auto turnDelay = connection->ReadInt();
+
+    std::srand(seed);
+    auto opponentSlot = std::rand() % 2;
+    auto homeSlot = 1 - opponentSlot;
+    LoadMap(map);
+    gameInterface->SetPlayer(PlayerNumber(homeSlot));
+    gameManager->SetCommandSource(homeSlot, commandBuffer, true);
+    gameManager->SetCommandSource(opponentSlot, opponentConnection);
     commandBuffer->RegisterCommandSink(opponentConnection);
-    commandBuffer->CreateTurnDelay(3);
+    commandBuffer->CreateTurnDelay(turnDelay);
     gameManager->SetSaveReplay(true);
     StartGame();
   } else {
@@ -113,7 +129,7 @@ void Hephaestus::StartJoinedGame(NetworkConnection* connection) {
 }
 
 void Hephaestus::LoadMap(const std::string &map) {
-  Log::Write("Loading map");
+  Log::Write("Loading map: " + map);
 	gameManager->SetGameState(resourceManager->LoadMap(map));
   Log::Write("Map loaded");
   Vector2i map_size = resourceManager->MapSize(); 

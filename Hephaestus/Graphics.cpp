@@ -9,8 +9,6 @@ void Graphics::DrawGame(const GameScene &scene,
 	DrawTerrain();
 	DrawUnits(scene.Units());
 	DrawProjectiles(scene.Projectiles());
-
-
   DrawFogOfWar(scene);
 
 #if _DEBUG
@@ -25,7 +23,6 @@ void Graphics::DrawGame(const GameScene &scene,
   //DrawProjectiles(scene.projectiles());
 
   DrawFramerate(framerate, cycleRate);
-
 
   window.setView(gameInterface.MainView());
 	window.display();
@@ -52,12 +49,13 @@ void Graphics::DrawDilation(const GameScene &scene) const {
 }
 
 void Graphics::DrawFogOfWar(const GameScene& scene) {
-  sf::RenderTexture &fogTexture = resourceManager.FogTexture();
+  auto &fogTexture = resourceManager.FogTexture();
+  fogTexture.setActive();
   fogTexture.clear(sf::Color(0, 0, 0, 150));
 
   sf::VertexArray visibleArea(sf::Triangles);
 
-  for (UnitModel* unit : scene.Units()) {
+  for (auto unit : scene.Units()) {
     if (unit->Owner() == gameInterface.Player()) {
       for (size_t i = 0; i < unit->Visibility().VisiblePoints().size(); i += 2) {
         sf::Vertex p1(unit->Visibility().Origin());
@@ -145,10 +143,32 @@ void Graphics::DrawProjectiles(const std::list<ProjectileModel*> &projectiles)
 	}
 }
 
+const float statBarWidth = 65.f;
+const float statBarHeight = 5.f;
+sf::RectangleShape StatBarOutline(const Vector2f &position) {
+  auto statBarOutline = sf::RectangleShape(sf::Vector2f(statBarWidth, statBarHeight));
+  statBarOutline.setOutlineColor(sf::Color::Black);
+  statBarOutline.setOutlineThickness(1);
+  statBarOutline.setFillColor(sf::Color::Transparent);
+  statBarOutline.setOrigin(statBarWidth / 2, 0);
+  statBarOutline.setPosition(position);
+  return statBarOutline;
+}
+
+sf::RectangleShape StatBar(const Vector2f &position, float fraction, const sf::Color &color) {
+  sf::RectangleShape statBar(sf::Vector2f(fraction * statBarWidth, statBarHeight));
+  statBar.setOutlineColor(sf::Color::Transparent);
+  statBar.setFillColor(color);
+  statBar.setOrigin(statBarWidth / 2, 0);
+  statBar.setPosition(position);
+  return statBar;
+}
+
 void Graphics::DrawGameInterface(const GameScene &scene) const {
 	sf::CircleShape selectionCircle;
 	const std::list<UnitModel *> selectedUnits =
 			gameInterface.GetSelectedUnits();
+
   for (UnitModel* unit : selectedUnits) {
 		selectionCircle = sf::CircleShape(unit->Radius() + 1.f);
 		selectionCircle.setPosition(unit->Position());
@@ -161,24 +181,13 @@ void Graphics::DrawGameInterface(const GameScene &scene) const {
 	}
 
   for (UnitModel* unit : scene.Units()) {
-    if (unit->IsVisible()) {
-      float healthBarWidth = 65.f;
-      float healthBarHeight = 5.f;
-      sf::RectangleShape healthBarOutline(sf::Vector2f(healthBarWidth, healthBarHeight));
-      healthBarOutline.setOrigin(healthBarWidth / 2, -unit->Radius());
-      healthBarOutline.setPosition(unit->Position());
-      healthBarOutline.setOutlineColor(sf::Color::Black);
-      healthBarOutline.setOutlineThickness(1);
-      healthBarOutline.setFillColor(sf::Color::Transparent);
-
+    if (unit->Owner() == gameInterface.Player() || unit->IsVisible()) {
       float healthFraction = unit->CurrentHealth() / unit->MaxHealth();
-      sf::RectangleShape healthBar(sf::Vector2f(healthFraction * healthBarWidth, healthBarHeight));
-      healthBar.setOutlineColor(sf::Color::Transparent);
-      healthBar.setFillColor(sf::Color::Green);
-      healthBar.setOrigin(healthBarOutline.getOrigin());
-      healthBar.setPosition(healthBarOutline.getPosition());
-      window.draw(healthBar);
-      window.draw(healthBarOutline);
+      window.draw(StatBar(unit->Position() + Vector2f(0, unit->Radius()), healthFraction, sf::Color::Green));
+      window.draw(StatBarOutline(unit->Position() + Vector2f(0, unit->Radius())));
+
+      window.draw(StatBar(unit->Position() + Vector2f(0, unit->Radius() + statBarHeight + 1.f), unit->Stability(), sf::Color::Yellow));
+      window.draw(StatBarOutline(unit->Position() + Vector2f(0, unit->Radius())));
     }
   }
 

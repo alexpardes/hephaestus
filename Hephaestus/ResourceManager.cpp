@@ -55,9 +55,12 @@ void ResourceManager::LoadMapImage(const std::string &map) {
 void ResourceManager::SetupFogOfWar() {
   fogImage.create(mapSize.x, mapSize.y);
   fogImage.setSmooth(true);
+
+  // A RenderContext must be deactivated before using in another thread.
+  fogImage.setActive(false);
 }
 
-void ResourceManager::LoadUnits(const Json::Value& map) {
+void ResourceManager::LoadUnits(const Json::Value &map) {
   unitTable.clear();
   Json::Value types = map["types"];
   for (auto type : types) {
@@ -71,7 +74,7 @@ void ResourceManager::LoadFonts() {
 }
 
 // Assumes hexadecimal string formatted as 0xRRGGBBAA.
-sf::Color ResourceManager::CreateColor(std::string& rgb) {
+sf::Color ResourceManager::CreateColor(std::string &rgb) {
   int red, green, blue, alpha;
   std::stringstream stringStream;
   stringStream << std::hex << rgb.substr(2, 2);
@@ -88,7 +91,7 @@ sf::Color ResourceManager::CreateColor(std::string& rgb) {
   return sf::Color(red, green, blue, alpha);
 }
 
-void ResourceManager::LoadPlayerColors(const Json::Value& map) {
+void ResourceManager::LoadPlayerColors(const Json::Value &map) {
   Json::Value players = map["players"];
   for (Json::Value playerColor : players) {
     sf::Color color = CreateColor(playerColor.asString());
@@ -96,7 +99,7 @@ void ResourceManager::LoadPlayerColors(const Json::Value& map) {
   }
 }
 
-std::vector<const Poly> ResourceManager::LoadTerrain(const Json::Value& jsonPolygons) {
+std::vector<const Poly> ResourceManager::LoadTerrain(const Json::Value &jsonPolygons) {
   std::vector<const Poly> polygons;
   for(auto jsonPolygon : jsonPolygons) {
     Poly polygon;
@@ -108,7 +111,7 @@ std::vector<const Poly> ResourceManager::LoadTerrain(const Json::Value& jsonPoly
   return polygons;
 }
 
-void ResourceManager::LoadUnitAttributes(const Json::Value& unit) {
+void ResourceManager::LoadUnitAttributes(const Json::Value &unit) {
 	std::string name = unit["Name"].asString();
   int type = unit["Index"].asInt();
 	float collisionRadius = float(unit["Collision Radius"].asDouble());
@@ -121,12 +124,20 @@ void ResourceManager::LoadUnitAttributes(const Json::Value& unit) {
   float range = 1e6f;
 	float health = float(unit["Health"].asDouble());
   float healthRegen = (float) unit["Health Regen"].asDouble();
+  float regenDelay = (float) unit["Regen Delay"].asDouble();
+  float moveInstability = (float) unit["Movement Penalty"].asDouble();
+  float rotateInstability = (float) unit["Rotation Penalty"].asDouble();
+  float stabilityRecovery = (float) unit["Accuracy Recovery"].asDouble();
+  float aimWidth = (float) unit["Aim Point"].asDouble();
 	UnitAttributes attributes(type, collisionRadius, selectionRadius, speed,
-			damage, attackSpeed, range, dispersion, projectileSpeed, health, healthRegen);
+			damage, attackSpeed, range, dispersion, projectileSpeed, health,
+      healthRegen, regenDelay, moveInstability, rotateInstability,
+      stabilityRecovery, aimWidth);
+
 	unitTable.push_back(attributes);
 }
 
-const sf::Texture& ResourceManager::GetImage(int unitType,
+const sf::Texture &ResourceManager::GetImage(int unitType,
 										   PlayerNumber owner) const {
 	switch (owner) {
 		case kPlayer2:
@@ -136,7 +147,7 @@ const sf::Texture& ResourceManager::GetImage(int unitType,
 	}
 }
 
-const sf::Texture& ResourceManager::GetImage(int projectileType) const {
+const sf::Texture &ResourceManager::GetImage(int projectileType) const {
   return projectileImages[projectileType];
 }
 
@@ -167,8 +178,8 @@ bool ResourceManager::LoadUnitImages(const Json::Value& unit) {
 	return true;
 }
 
-void ResourceManager::SetupGameState(const Json::Value& map,
-                                     GameState* state) {
+void ResourceManager::SetupGameState(const Json::Value &map,
+                                     GameState *state) {
 
   Json::Value units = map["units"];
   for (auto unit : units) {

@@ -17,7 +17,7 @@ AttackAbility::AttackAbility(std::shared_ptr<GameUnit> owner,
 
   moveAbility = static_cast<MoveAbility*>(owner->GetAbility("Move"));
   movementEnabled = moveAbility != nullptr;
-  rightAttackOffset = Vector2f(0, 0.6f * owner->Attributes().CollisionRadius());
+  rightAttackOffset = Vector2f(0, owner->Attributes().AimWidth() * owner->Attributes().CollisionRadius());
   leftAttackOffset = -rightAttackOffset;
 }
 
@@ -98,9 +98,10 @@ void AttackAbility::Attack(const GameUnit &unit) {
     float targetAngle = Util::FindAngle(targetPoint - AttackPoint());
     owner->SetRotation(Util::FindAngle(targetPoint - owner->Position()));
 
+    auto instabilityDispersion = (1 - owner->Stability()) * Util::Radians(45);
     if (loadTime <= 0.f) {
       gameState->AddProjectile(owner, AttackPoint(),
-        targetAngle, damage, dispersion, projectileSpeed);
+        targetAngle, damage, dispersion + instabilityDispersion, projectileSpeed);
       loadTime += 10.f;
     }
   }

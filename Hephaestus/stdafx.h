@@ -7,6 +7,7 @@
 #include <forward_list>
 #include <fstream>
 #include <iostream>
+#include <iterator>
 #include <list>
 #include <memory>
 #include <mutex>

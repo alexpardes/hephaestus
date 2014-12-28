@@ -17,9 +17,12 @@ GameUnit::GameUnit(UnitId id,
 	this->attributes = attributes;
 	this->position = position;
   previousPosition = position;
+  stability = 1.f;
+  turnsSinceHit = 0;
 	currentHealth = attributes.MaxHealth();
 	this->owner = owner;
 	this->rotation = rotation;
+  previousRotation = rotation;
   action = nullptr;
   facing = kRight;
 }
@@ -60,13 +63,28 @@ void GameUnit::AddPassiveAbility(UnitAbility *ability) {
   passiveAbilities.push_back(ability);
 }
 
+float GameUnit::Stability() const {
+  return stability;
+}
+
 void GameUnit::PerformAction() {
+  auto movementInstability = attributes.MoveInstability() * Util::Distance(position, previousPosition) / attributes.Speed();
+  auto rotationInstability = std::min(1.f, attributes.RotateInstability() * Util::AngleBetween(rotation, previousRotation));
+  auto newStability = (1.f - movementInstability) * (1.f - rotationInstability);
+  if (newStability < stability)
+    stability = newStability;
+  else
+    stability = attributes.StabilityRecovery() * newStability + (1 - attributes.StabilityRecovery()) * stability;
+
   previousPosition = position;
+  previousRotation = rotation;
   if (currentHealth <= 0) {
     isAlive = false;
     return;
   }
   
+  ++turnsSinceHit;
+
   if (action) {
     if (action->IsFinished()) {
       action = nullptr;
@@ -84,10 +102,17 @@ void GameUnit::PerformAction() {
   }
 }
 
+int GameUnit::TurnsSinceHit() const {
+  return turnsSinceHit;
+}
+
 void GameUnit::OnAttacked(const Projectile &projectile) {
-  ModifyHealth(-projectile.CalculateDamage(*this));
-  if (!action)
+  auto damage = projectile.CalculateDamage(*this);
+  if (damage / currentHealth > 0.1 && !action)
     SetAction(new TargetGroundAction(projectile.Origin()));
+
+  ModifyHealth(-damage);
+  turnsSinceHit = 0;
 }
 
 void GameUnit::ModifyHealth(float health) {
@@ -114,7 +139,7 @@ UnitModel::UnitModel(const GameUnit &unit) {
 	type = unit.Attributes().Type();
 	owner = unit.Owner();
 	radius = unit.Attributes().SelectionRadius();
-  
+  stability = unit.Stability();  
   visibility = unit.SightMap().ToPolygon();
   facing = unit.Facing();
   isVisible = true;
@@ -126,11 +151,11 @@ UnitModel::UnitModel(const UnitModel &unit1,
 	float b = weight;
 	float a = 1 - weight;
 	currentHealth = a*unit1.CurrentHealth() + b*unit2.CurrentHealth();
-  maxHealth = unit2.MaxHealth();
+  stability = a * unit1.Stability() + b * unit2.Stability();
 	position = a*unit1.Position() + b*unit2.Position();
-  rotation = Util::InterpolateAngles(unit1.Rotation(),
-      unit2.Rotation(), weight);
+  rotation = Util::InterpolateAngles(unit1.Rotation(), unit2.Rotation(), weight);
 
+  maxHealth = unit2.MaxHealth();
 	id = unit1.Id();
 	type = unit1.Type();
 	owner = unit1.Owner();
