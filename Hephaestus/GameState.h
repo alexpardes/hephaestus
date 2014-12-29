@@ -17,14 +17,18 @@ struct CollisionTestResult {
   // The unit collided with, if any.
   std::shared_ptr<GameUnit> unitHit;
 
-  CollisionTestResult(const Vector2f& point, std::shared_ptr<GameUnit> unitHit) :
+  CollisionTestResult(const Vector2f &point, std::shared_ptr<GameUnit> unitHit) :
       point(point), unitHit(unitHit) { }
 };
 
 class GameState {
 	public:
-		GameState(const std::vector<const UnitAttributes> &unitDefinitions,
-				const Vector2i &mapSize, SpatialGraph *pathingGraph);
+		GameState(
+      const std::vector<const UnitAttributes> &unitDefinitions,
+			const Vector2i &mapSize,
+      SpatialGraph *pathingGraph,
+      const std::vector<const Poly> &walls,
+      const std::vector<const Poly> &dilatedWalls);
 
     size_t HashCode() const;
 		void AddUnit(int type, PlayerNumber owner,
@@ -37,7 +41,7 @@ class GameState {
 		const std::list<Projectile *> &Projectiles() const {
 			return projectiles;
 		}
-		GameState &operator=(const GameState &game_state);
+		GameState &operator=(const GameState &gameState);
 		~GameState();
 		void AddToPathingGrid(const std::shared_ptr<GameUnit> unit);
 		void RemoveFromPathingGrid(const std::shared_ptr<GameUnit> unit);
@@ -64,7 +68,8 @@ class GameState {
     void MoveUnit(UnitId id, Vector2f location);
     Vector2f GetUnitPosition(UnitId id) const;
     std::vector<Rect> GetWallsInRectangle(const Rect &rectangle) const;
-    const std::vector<const Poly> &GetWalls() const;
+    const std::vector<const Poly> &Walls() const;
+    const std::vector<const Poly> &DilatedWalls() const;
     const SpatialGraph &PathingGraph() const { return *pathingGraph; }
 
     //CollisionTestResult TestCollision(const GameUnit& unit,
@@ -103,7 +108,8 @@ class GameState {
 		std::unordered_map<UnitId, std::shared_ptr<GameUnit>> unitTable;
 		Vector2i mapSize;
     int lastUnitId;
-    std::vector<const LineSegment> walls;
+    std::vector<const Poly> walls;
+    std::vector<const Poly> dilatedWalls;
     SpatialGraph *pathingGraph;
 };
 
@@ -126,8 +132,6 @@ class GameScene {
 				const Vector2f &corner1, const Vector2f &corner2) const;
 		UnitModel *GetUnit(UnitId id) const;
     std::vector<const SectorMap*> UnitViews() const { return unitViews; }
-
-    const std::vector<const Poly> &walls;
 
 	private:
     void ComputeUnitVisibility(PlayerNumber player,

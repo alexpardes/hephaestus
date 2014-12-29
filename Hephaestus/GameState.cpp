@@ -16,8 +16,12 @@ const float GameState::kUnitGridResolution = 8.f;
 
 GameState::GameState(const std::vector<const UnitAttributes> &unitDefinitions, 
                      const Vector2i &mapSize,
-                     SpatialGraph *pathingGraph) : 
-    unitDefinitions(unitDefinitions) {
+                     SpatialGraph *pathingGraph,
+                     const std::vector<const Poly> &walls,
+                     const std::vector<const Poly> &dilatedWalls) :
+    unitDefinitions(unitDefinitions),
+    walls(walls),
+    dilatedWalls(dilatedWalls) {
 
   this->pathingGraph = pathingGraph;
 	maxUnitRadius = 0.f;
@@ -96,7 +100,7 @@ void GameState::ExecuteTurn() {
 
 void GameState::UpdateSightMap(GameUnit& unit) {
   // TODO: Vision should not depend on attack ability.
-  unit.SightMap().Create(static_cast<AttackAbility *>(unit.GetAbility("Attack"))->AttackPoint(), GetWalls());
+  unit.SightMap().Create(static_cast<AttackAbility *>(unit.GetAbility("Attack"))->AttackPoint(), Walls());
 }
 
 
@@ -264,17 +268,21 @@ std::vector<std::shared_ptr<GameUnit>> GameState::GetUnitsInCircle(const Vector2
 	return units;
 }
 
-const std::vector<const Poly> &GameState::GetWalls() const {
-  return pathingGraph->Walls();
+const std::vector<const Poly> &GameState::Walls() const {
+  return walls;
+}
+
+const std::vector<const Poly> &GameState::DilatedWalls() const {
+  return dilatedWalls;
 }
 
 std::vector<std::shared_ptr<GameUnit>> GameState::GetUnitsInRectangle(
-  const Rect& rectangle) const {
+  const Rect &rectangle) const {
     return GetUnitsInRectangle(rectangle.topLeft, rectangle.bottomRight);
 }
 
-CollisionTestResult GameState::TestUnitCollision(const Vector2f& start,
-    const Vector2f& end, float radius,
+CollisionTestResult GameState::TestUnitCollision(const Vector2f &start,
+    const Vector2f &end, float radius,
     std::shared_ptr<const GameUnit> unitToIgnore) const {
   DirectedSegment movement(start, end);
   float movementDist = Util::Length(start - end);
@@ -433,7 +441,7 @@ bool IsVisible(const Projectile &projectile,
   return false;
 }
 
-GameScene::GameScene(const GameState &gameState) : walls(gameState.PathingGraph().DilatedWalls()) {
+GameScene::GameScene(const GameState &gameState) {
   mapSize = gameState.map_size();
 	unitGridWidth = int(gameState.map_size().x / kUnitGridResolution);
 	unitGridHeight = int(gameState.map_size().y / kUnitGridResolution);
@@ -457,7 +465,7 @@ GameScene::GameScene(const GameState &gameState) : walls(gameState.PathingGraph(
 // TODO: remove duplication.
 GameScene::GameScene(const GameScene &scene1,
                      const GameScene &scene2,
-                     float weight) : walls(scene1.walls) {
+                     float weight) {
   assert(weight >= 0.f);
   assert(weight <= 1.f);
 

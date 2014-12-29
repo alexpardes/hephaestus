@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "Coloring.h"
 #include "ResourceManager.h"
+#include "MinkowskiSum.h"
 #include <PathFinding/SpatialGraph.h>
 
 GameState *ResourceManager::LoadMap(const std::string& filename) {
@@ -32,11 +33,13 @@ GameState *ResourceManager::LoadMap(const std::string& filename) {
   border.Add(Vector2f((float) mapSize.x, 0));
   border.SetReversed(true);
   polygons.push_back(border);
-  auto spatialGraph = new SpatialGraph(polygons);
-  dilatedPolygons = spatialGraph->DilatedWalls();
-	auto state = new GameState(unitTable, mapSize, spatialGraph);
+  MinkowskiSum::CombineIntersections(polygons);
 
-  SetupGameState(map, state);
+  dilatedPolygons = MinkowskiSum::Dilate(polygons, 25);
+  auto spatialGraph = new SpatialGraph(dilatedPolygons);
+	auto state = new GameState(unitTable, mapSize, spatialGraph, polygons, dilatedPolygons);
+
+  AddUnitsToGameState(map, state);
 	return state;
 }
 
@@ -178,8 +181,8 @@ bool ResourceManager::LoadUnitImages(const Json::Value& unit) {
 	return true;
 }
 
-void ResourceManager::SetupGameState(const Json::Value &map,
-                                     GameState *state) {
+void ResourceManager::AddUnitsToGameState(const Json::Value &map,
+                                          GameState *state) {
 
   Json::Value units = map["units"];
   for (auto unit : units) {

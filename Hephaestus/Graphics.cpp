@@ -12,7 +12,7 @@ void Graphics::DrawGame(const GameScene &scene,
   DrawFogOfWar(scene);
 
 #if _DEBUG
-  DrawDilation(scene);
+  DrawDilation();
 #endif
 
   DrawGameInterface(scene);
@@ -28,7 +28,7 @@ void Graphics::DrawGame(const GameScene &scene,
 	window.display();
 }
 
-void Graphics::DrawDilation(const GameScene &scene) const {
+void Graphics::DrawDilation() const {
   for (auto polygon : resourceManager.Walls()) {
     sf::VertexArray verts(sf::LinesStrip);
     for (auto v : polygon) {
@@ -187,7 +187,7 @@ void Graphics::DrawGameInterface(const GameScene &scene) const {
       window.draw(StatBarOutline(unit->Position() + Vector2f(0, unit->Radius())));
 
       window.draw(StatBar(unit->Position() + Vector2f(0, unit->Radius() + statBarHeight + 1.f), unit->Stability(), sf::Color::Yellow));
-      window.draw(StatBarOutline(unit->Position() + Vector2f(0, unit->Radius())));
+      window.draw(StatBarOutline(unit->Position() + Vector2f(0, unit->Radius() + statBarHeight + 1.f)));
     }
   }
 

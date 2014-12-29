@@ -29,5 +29,5 @@ class Graphics {
     void DrawSelectionGraphics(const GameScene& scene) const;
     void DrawVisibilityGraphics(const GameScene& scene) const;
 		void DrawMiniMap(const GameScene &scene) const;
-    void DrawDilation(const GameScene &scene) const;
+    void DrawDilation() const;
 };

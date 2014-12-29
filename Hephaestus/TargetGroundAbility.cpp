@@ -25,9 +25,9 @@ void TargetGroundAbility::Execute() {
 void TargetGroundAbility::SetDestination(const Vector2f &point) {
   target = point;
   SectorMap sectorMap;
-  sectorMap.Create(point, gameState.GetWalls());
+  sectorMap.Create(point, gameState.Walls());
   auto startVertex = gameState.PathingGraph().MakeVertex(owner.Position());
-  auto path = PathFinder::Path(startVertex.get(), gameState.PathingGraph().DilatedWalls(), sectorMap.PolygonBorder());
+  auto path = PathFinder::Path(startVertex.get(), gameState.DilatedWalls(), sectorMap.PolygonBorder());
   static_cast<MoveAbility*>(owner.GetAbility("Move"))->SetPath(path);
 }
 

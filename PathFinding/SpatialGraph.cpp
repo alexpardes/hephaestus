@@ -1,25 +1,22 @@
 #include <Hephaestus/Poly.h>
 #include <Hephaestus/SectorMap.h>
-#include <Hephaestus/MinkowskiSum.h>
 #include "SpatialGraph.h"
 #include "SpatialVertex.h"
 
 SpatialGraph::SpatialGraph(const std::vector<const Poly> &polygons) {
   this->polygons = polygons;
-  MinkowskiSum::CombineIntersections(this->polygons);
-  dilatedPolygons = MinkowskiSum::Dilate(polygons, 25);
-  for (auto polygon : dilatedPolygons) {
+  for (auto polygon : polygons) {
     for (auto vertex : polygon) {
       if (vertex.IsConvex())
         vertices.push_back(std::unique_ptr<SpatialVertex>(new SpatialVertex(vertex.Point())));
     }
   }
 
-  auto polygonIt = dilatedPolygons.begin();
+  auto polygonIt = polygons.begin();
   int vertexIndex = 0;
   for (size_t i = 0; i < vertices.size(); ++i) {
     SectorMap map;
-    map.Create(vertices[i]->Point(), dilatedPolygons);
+    map.Create(vertices[i]->Point(), polygons);
     bool isFirstVertex = vertexIndex == 0;
     auto lastVertexIndex = polygonIt->Size() - 1;
     bool isLastVertex = vertexIndex == lastVertexIndex;
@@ -41,7 +38,7 @@ SpatialGraph::SpatialGraph(const std::vector<const Poly> &polygons) {
 
 std::unique_ptr<const SpatialVertex> SpatialGraph::MakeVertex(const Vector2f &point) const {
   SectorMap sectorMap;
-  sectorMap.Create(point, dilatedPolygons);
+  sectorMap.Create(point, polygons);
   auto resultVertex = new SpatialVertex(point);
   for (auto vertex = vertices.begin(); vertex != vertices.end(); ++vertex) {
     auto vertexPoint = (*vertex)->Point();
@@ -49,12 +46,4 @@ std::unique_ptr<const SpatialVertex> SpatialGraph::MakeVertex(const Vector2f &po
       resultVertex->AddAdjacency(vertex->get());
   }
   return std::unique_ptr<const SpatialVertex>(resultVertex);
-}
-
-const std::vector<const Poly> &SpatialGraph::Walls() const {
-  return polygons;
-}
-
-const std::vector<const Poly> &SpatialGraph::DilatedWalls() const {
-  return dilatedPolygons;
 }
