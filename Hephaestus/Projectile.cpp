@@ -3,8 +3,6 @@
 #include "Util.h"
 #include "GameState.h"
 
-int Projectile::serial_number_ = 0;
-
 Projectile::Projectile(GameState &gameState,
                        std::shared_ptr<GameUnit> owner,
                        const Vector2f &position,
@@ -20,7 +18,9 @@ Projectile::Projectile(GameState &gameState,
   this->speed = speed;
   this->position = position;
   startPosition = position;
-	id = serial_number_++;
+
+  // TODO: Should projectiles have IDs?
+	id = 0;
   isAlive = true;
   rotation = direction;
 }

@@ -14,7 +14,6 @@ class Projectile : public GameObject {
 
     virtual size_t HashCode() const;
 		int Id() const {return id;}
-		static int serial_number_;
     virtual void PerformAction();
     int Type() const {return type;}
     bool IsAlive() const { return isAlive; }
