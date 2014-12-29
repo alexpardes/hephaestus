@@ -72,8 +72,13 @@ void Hephaestus::StartHostedGame(NetworkConnection *connection,
   opponentConnection = connection;
   std::srand((int) std::time(nullptr));
   auto seed = std::rand();
-  auto latency = 1.3f * connection->Ping() / 2;
-  auto turnDelay = (int) (latency / kTimestep);
+  auto maxLatency = 0.f;
+  for (int i = 0; i < 10; ++i) {
+    auto latency = connection->Ping();
+    maxLatency = std::max(latency, maxLatency);
+  }
+  // Turn delay is based on one way latency, and we add a margin of 10% to get the 0.55 factor.
+  auto turnDelay = (int) (0.55f * maxLatency / kTimestep);
   connection->Send(seed);
   connection->Send(map);
   connection->Send(turnDelay);
@@ -107,7 +112,9 @@ void Hephaestus::CancelHosting() {
 void Hephaestus::StartJoinedGame(NetworkConnection *connection) {
   if (connection) {
     opponentConnection = connection;
-    connection->AwaitPing();
+    for (int i = 0; i < 10; ++i) {
+      connection->AwaitPing();
+    }
     auto seed = connection->ReadInt();
     auto map = connection->Read();
     auto turnDelay = connection->ReadInt();
