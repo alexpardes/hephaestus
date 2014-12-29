@@ -52,8 +52,7 @@ Launcher::Launcher() {
   window = MakeWindow(isFullscreen);
   window->setFramerateLimit(60);
   menu = new MainMenu(gameFolder);
-  hephaestus = new Hephaestus(window);  
-  hephaestus->SetObserver(this);
+  hephaestus = nullptr;
 }
 
 void Launcher::OnConnectionFailed() {
@@ -83,11 +82,11 @@ void Launcher::Launch() {
         break;
       case sf::Event::KeyPressed:
         if (event.key.code == sf::Keyboard::Key::Escape) {
-          if (!hephaestus->IsRunning())
+          if (!hephaestus || !hephaestus->IsRunning())
             window->close();
         } else if (event.key.code == sf::Keyboard::Key::F4 &&
             sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LAlt)) {
-          if (hephaestus->IsRunning())
+          if (hephaestus && hephaestus->IsRunning())
             hephaestus->Stop();
 
           window->close();
@@ -117,30 +116,32 @@ void Launcher::Launch() {
   }
 }
 
+void Launcher::CreateHephaestus() {
+  hephaestus = std::unique_ptr<Hephaestus>(new Hephaestus(window));
+  hephaestus->SetObserver(this);
+}
+
 void Launcher::StartSinglePlayerGame(const std::string &map) {
-  if (!hephaestus->IsRunning()) {
-    hephaestus->StartSinglePlayerGame(map);
-  }
+  CreateHephaestus();
+  hephaestus->StartSinglePlayerGame(map);
 }
 
 void Launcher::HostGame(const std::string &map, int port) {
-  if (!hephaestus->IsRunning()) {
-    hephaestus->HostGame(map, port);
-  }
+  CreateHephaestus();
+  hephaestus->HostGame(map, port);
 }
 
-void Launcher::JoinGame(const std::string& hostname,
-                        const std::string& port) {
+void Launcher::JoinGame(const std::string &hostname,
+                        const std::string &port) {
   auto defaultFilename = gameFolder + "defaults.txt";
   std::ofstream file(defaultFilename);
   file << hostname;
 
-  if (!hephaestus->IsRunning()) {
-    hephaestus->JoinGame(hostname, port);
-  }
+  CreateHephaestus();
+  hephaestus->JoinGame(hostname, port);
 }
 
-void Launcher::PlayReplay(const std::string& replay) {
-  if (!hephaestus->IsRunning())
-    hephaestus->PlayReplay(gameFolder + replay);
+void Launcher::PlayReplay(const std::string &replay) {
+  CreateHephaestus();
+  hephaestus->PlayReplay(gameFolder + replay);
 }
