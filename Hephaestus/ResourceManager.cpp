@@ -4,6 +4,14 @@
 #include "MinkowskiSum.h"
 #include <PathFinding/SpatialGraph.h>
 
+float FindMaxUnitSize(const std::vector<const UnitAttributes> &unitTable) {
+  float maxSize = 0.f;
+  for (auto unit : unitTable) {
+    maxSize = std::max(unit.CollisionRadius(), maxSize);
+  }
+  return maxSize;
+}
+
 GameState *ResourceManager::LoadMap(const std::string& filename) {
   LoadFonts();
 
@@ -33,9 +41,11 @@ GameState *ResourceManager::LoadMap(const std::string& filename) {
   border.Add(Vector2f((float) mapSize.x, 0));
   border.SetReversed(true);
   polygons.push_back(border);
-  MinkowskiSum::CombineIntersections(polygons);
 
-  dilatedPolygons = MinkowskiSum::Dilate(polygons, 25);
+  dilatedPolygons = MinkowskiSum::Dilate(polygons, FindMaxUnitSize(unitTable));
+
+  // TODO: Combining intersections before dilation currently causes bad results for some reason.
+  MinkowskiSum::CombineIntersections(polygons);
   auto spatialGraph = new SpatialGraph(dilatedPolygons);
 	auto state = new GameState(unitTable, mapSize, spatialGraph, polygons, dilatedPolygons);
 
