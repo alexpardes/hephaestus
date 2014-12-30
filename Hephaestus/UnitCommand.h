@@ -1,15 +1,8 @@
-#ifndef UNIT_COMMAND_
-#define UNIT_COMMAND_
-
-#include "Player.h"
+#pragma once
 #include "Command.h"
-#include "UnitAction.h"
-#include "GameState.h"
 
 class UnitCommand : public Command {
-	public:   
-		virtual void Execute(Player &player) const;
-    virtual UnitAction *MakeUnitAction(GameState &gameState) const = 0;
+  public:
+    virtual void Execute(Player &player) const;
+    virtual void Execute(GameState &gameState, GameUnit &unit) const = 0;
 };
-
-#endif

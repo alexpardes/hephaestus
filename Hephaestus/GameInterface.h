@@ -81,7 +81,7 @@ class GameInterface {
 		bool isSelecting;
 		std::list<UnitId> selectedUnitIds;
 		static const float kScrollSpeed;
-		enum CursorAction {kSelect, kAttack, kTarget};
+		enum CursorAction {kSelect, kAttack, kTarget, kStrafe};
 		CursorAction cursorAction;
 		Vector2f mapSize;
 		sf::RectangleShape interfaceGraphic;

@@ -204,6 +204,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="StopCommand.cpp" />
+    <ClCompile Include="StrafePointCommand.cpp" />
     <ClCompile Include="TargetGroundAbility.cpp" />
     <ClCompile Include="TargetGroundAction.cpp" />
     <ClCompile Include="TargetGroundCommand.cpp" />
@@ -211,6 +212,7 @@
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="UnitBehavior.cpp" />
     <ClCompile Include="GameInterface.cpp" />
+    <ClCompile Include="ActionCommand.cpp" />
     <ClCompile Include="UnitCommand.cpp" />
     <ClCompile Include="Util.cpp" />
   </ItemGroup>
@@ -262,6 +264,7 @@
     <ClInclude Include="Serialization.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="StopCommand.h" />
+    <ClInclude Include="StrafePointCommand.h" />
     <ClInclude Include="TargetGroundAbility.h" />
     <ClInclude Include="TargetGroundAction.h" />
     <ClInclude Include="TargetGroundCommand.h" />
@@ -272,6 +275,7 @@
     <ClInclude Include="UnitAttributes.h" />
     <ClInclude Include="UnitBehavior.h" />
     <ClInclude Include="GameInterface.h" />
+    <ClInclude Include="ActionCommand.h" />
     <ClInclude Include="UnitCommand.h" />
     <ClInclude Include="Util.h" />
     <ClInclude Include="Vector2.h" />

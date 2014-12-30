@@ -6,7 +6,7 @@ class TargetGroundAbility;
 
 class TargetGroundAction : public UnitAction {
   public:
-    TargetGroundAction(const Vector2f &location);
+    TargetGroundAction(const Vector2f &location, bool fullCover);
     virtual void Start(GameUnit &unit);
     virtual void Execute(GameUnit &unit);
     virtual bool IsFinished() const;
@@ -15,4 +15,5 @@ class TargetGroundAction : public UnitAction {
 private:
   Vector2f location;
   TargetGroundAbility *ability;
+  bool fullCover;
 };

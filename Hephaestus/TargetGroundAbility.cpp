@@ -4,6 +4,7 @@
 #include <PathFinding/SpatialVertex.h>
 #include "GameState.h"
 #include "MoveAbility.h"
+#include "MinkowskiSum.h"
 #include "TargetGroundAbility.h"
 
 TargetGroundAbility::TargetGroundAbility(GameUnit &owner, GameState &gameState) :
@@ -22,12 +23,16 @@ void TargetGroundAbility::Execute() {
   }
 }
 
-void TargetGroundAbility::SetDestination(const Vector2f &point) {
+void TargetGroundAbility::SetDestination(const Vector2f &point, bool fullCover) {
   target = point;
   SectorMap sectorMap;
   sectorMap.Create(point, gameState.Walls());
   auto startVertex = gameState.PathingGraph().MakeVertex(owner.Position());
-  auto path = PathFinder::Path(startVertex.get(), gameState.DilatedWalls(), sectorMap.PolygonBorder());
+  auto polygonBorder = sectorMap.PolygonBorder();
+  if (fullCover)
+    polygonBorder = MinkowskiSum::Dilate(polygonBorder, owner.Attributes().CollisionRadius());
+
+  auto path = PathFinder::Path(startVertex.get(), gameState.DilatedWalls(), polygonBorder);
   static_cast<MoveAbility*>(owner.GetAbility("Move"))->SetPath(path);
 }
 

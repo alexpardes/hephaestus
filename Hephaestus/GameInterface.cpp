@@ -13,6 +13,7 @@ void GameInterface::RegisterCommands() {
     AttackMoveCommand::Register();
     StopCommand::Register();
     TargetGroundCommand::Register();
+    StrafePointCommand::Register();
     hasRegisteredCommands = true;
   }
 }
@@ -70,6 +71,9 @@ std::shared_ptr<Command> GameInterface::ProcessEvent(const sf::Event &event,
               command = std::make_shared<TargetGroundCommand>(location);
               cursorAction = kSelect;
               break;
+            case kStrafe:
+              command = std::make_shared<StrafePointCommand>(location);
+              cursorAction = kSelect;
 					}
 					break;
 				case sf::Mouse::Right:
@@ -130,6 +134,9 @@ std::shared_ptr<Command> GameInterface::ProcessEvent(const sf::Event &event,
           break;
         case sf::Keyboard::Key::D:
           cursorAction = kTarget;
+          break;
+        case sf::Keyboard::Key::F:
+          cursorAction = kStrafe;
           break;
 				case sf::Keyboard::Key::Left:
 					keyboardHScroll = -1;

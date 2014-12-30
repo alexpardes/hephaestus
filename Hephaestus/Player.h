@@ -17,8 +17,8 @@ class Player {
     void ExecuteTurn();
     void ClearSelection();
     void AddToSelection(UnitId id);
-    void GiveOrder(const UnitCommand *command);
-    void SetCommandSource(CommandSource* source);
+    void GiveOrder(const UnitCommand &command);
+    void SetCommandSource(CommandSource *source);
     const CommandTurn &NextTurn() const;
 
 	private:

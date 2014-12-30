@@ -6,7 +6,7 @@
 CommandType TargetGroundCommand::type = 0;
 
 UnitAction *TargetGroundCommand::MakeUnitAction(GameState &gameState) const {
-  return new TargetGroundAction(location);
+  return new TargetGroundAction(location, false);
 }
 
 void TargetGroundCommand::SerializeInternal(char *&bytes) const {

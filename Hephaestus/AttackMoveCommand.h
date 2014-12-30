@@ -1,10 +1,10 @@
 #pragma once
 
-#include "UnitCommand.h"
+#include "ActionCommand.h"
 
 class GameState;
 
-class AttackMoveCommand : public UnitCommand {
+class AttackMoveCommand : public ActionCommand {
 	public:
 		AttackMoveCommand() { }
 		AttackMoveCommand(const Vector2f &location): location(location) { }

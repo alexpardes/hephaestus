@@ -10,7 +10,7 @@ class TargetGroundAbility : public UnitAbility {
     TargetGroundAbility(GameUnit &owner, GameState &gameState);
     virtual void Execute();
     virtual std::string Name() const;
-    void SetDestination(const Vector2f &point);
+    void SetDestination(const Vector2f &point, bool fullCover);
     bool DestinationReached() const;
 
   private:

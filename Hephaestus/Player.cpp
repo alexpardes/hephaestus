@@ -2,7 +2,6 @@
 #include "Player.h"
 #include "CommandTurn.h"
 #include "UnitCommand.h"
-#include "UnitAction.h"
 
 Player::Player(GameState& gameState, CommandSource* commandSource) :
     gameState(gameState), commandSource(commandSource) { }
@@ -33,13 +32,11 @@ void Player::ExecuteTurn() {
   }
 }
 
-void Player::GiveOrder(const UnitCommand *command) {
-  for (std::list<UnitId>::const_iterator it = selectedUnits.begin();
-      it != selectedUnits.end(); ++it) {
-    std::shared_ptr<GameUnit> unit = gameState.GetUnit(*it);
-    if (unit) {
-      unit->SetAction(command->MakeUnitAction(gameState));
-    }
+void Player::GiveOrder(const UnitCommand &command) {
+  for (auto unitId : selectedUnits) {
+    auto unit = gameState.GetUnit(unitId);
+    if (unit)
+      command.Execute(gameState, *unit);
   }
 }
 

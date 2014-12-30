@@ -93,15 +93,15 @@ std::shared_ptr<CommandTurn> NetworkConnection::TakeCommandTurn() {
       });
 
 #if _DEBUG
-  while (isWaiting && (clock() - startTime) / CLOCKS_PER_SEC <= 3600);
+  while (isWaiting);
 #else
-  while (isWaiting && (clock() - startTime) / CLOCKS_PER_SEC <= 1);
+  while (isWaiting && (clock() - startTime) / CLOCKS_PER_SEC <= 0.5);
 #endif
 
   if (isWaiting) { // The read has timed out.
     socket->close();
   } else {
-    char* bytes = &message[0];
+    char *bytes = &message[0];
     return CommandTurn::Deserialize(bytes);
   }
 

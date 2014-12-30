@@ -513,7 +513,7 @@ std::vector<const LineSegment> SectorMap::PolygonBorder() const {
   for (size_t i = 0; i < sectors.size() - 1; ++i) {
     if (sectors[i].endDepth != sectors[i + 1].startDepth) {
       float angle = sectors[i].endAngle;
-      border.push_back(LineSegment(GetPoint(angle, sectors[i].endDepth), GetPoint(angle, sectors[i + 1].startDepth)));
+      border.push_back(LineSegment(GetPoint(angle, sectors[i + 1].startDepth), GetPoint(angle, sectors[i].endDepth)));
     }
   }
   return border;

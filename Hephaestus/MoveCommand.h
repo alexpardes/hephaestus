@@ -1,8 +1,8 @@
 #pragma once
 
-#include "UnitCommand.h"
+#include "ActionCommand.h"
 
-class MoveCommand : public UnitCommand {
+class MoveCommand : public ActionCommand {
 	public:
 		MoveCommand() { }
 		MoveCommand(const Vector2f &location) : location(location) { }

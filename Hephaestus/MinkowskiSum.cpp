@@ -95,6 +95,19 @@ namespace MinkowskiSum {
     }
   }
 
+  LineSegment Dilate(const LineSegment &segment, float radius) {
+    auto offset = radius * Util::Normalized(Util::Perpendicular(segment.p2 - segment.p1));
+    return LineSegment(segment.p1 + offset, segment.p2 + offset);
+  }
+
+  std::vector<const LineSegment> Dilate(const std::vector<const LineSegment> &segments, float radius) {
+    std::vector<const LineSegment> result;
+    for (auto segment : segments) {
+      result.push_back(Dilate(segment, radius));
+    }
+    return result;
+  }
+
   std::vector<Vector2f> Dilate(const Poly::Vertex &vertex, float radius) {
     std::vector<Vector2f> result;
     auto angle = vertex.InteriorAngle() / 2;

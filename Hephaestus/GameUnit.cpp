@@ -108,11 +108,15 @@ int GameUnit::TurnsSinceHit() const {
 
 void GameUnit::OnAttacked(const Projectile &projectile) {
   auto damage = projectile.CalculateDamage(*this);
-  if (damage / currentHealth > 0.1 && !action)
-    SetAction(new TargetGroundAction(projectile.Origin()));
-
   ModifyHealth(-damage);
   turnsSinceHit = 0;
+
+  auto damageFraction = damage / currentHealth;
+  if (damageFraction > 0.1f) {
+    SetAction(new TargetGroundAction(projectile.Origin(), true));
+  } else if (damageFraction > 0.05 && !action) {
+    SetAction(new TargetGroundAction(projectile.Origin(), false));
+  }
 }
 
 void GameUnit::ModifyHealth(float health) {

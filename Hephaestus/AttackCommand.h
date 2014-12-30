@@ -1,10 +1,10 @@
 #pragma once
 
-#include "UnitCommand.h"
+#include "ActionCommand.h"
 
 class GameState;
 
-class AttackCommand : public UnitCommand {
+class AttackCommand : public ActionCommand {
 	public:
 		AttackCommand(UnitId target): target(target) { }
     virtual UnitAction *MakeUnitAction(GameState &gameState) const;

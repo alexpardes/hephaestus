@@ -1,7 +1,7 @@
 #pragma once
-#include "UnitCommand.h"
+#include "ActionCommand.h"
 
-class TargetGroundCommand : public UnitCommand {
+class TargetGroundCommand : public ActionCommand {
 public:
   TargetGroundCommand(const Vector2f &location) : location(location) { }
   virtual UnitAction *MakeUnitAction(GameState &gameState) const;
