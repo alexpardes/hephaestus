@@ -20,7 +20,7 @@ size_t Util::HashStart() {
 
 void Util::Limit(Vector2f &v, float length) {
   if (Length(v) > length) {
-    Resize(v, length);
+    Scale(v, length);
   }
 }
 
@@ -71,14 +71,19 @@ float Util::FindAngle(const Vector2f &vector) {
   return FindAngle(Vector2f(1, 0), vector);
 }
 
-
-// Returns the angle in radians from vector1 counterclockwise to vector2.
 float Util::FindAngle(const Vector2f &vector1, const Vector2f &vector2) {
-	float angle = std::acosf(Dot(vector1, vector2) / Length(vector1) / Length(vector2));
+	float angle = FindShortestAngle(vector1, vector2);
 	if (Cross(vector1, vector2) < 0) angle = 2*M_PI - angle;
   angle = Angle(angle);
   assert(angle == angle);
 	return angle;
+}
+
+float Util::FindShortestAngle(const Vector2f& vector1, const Vector2f &vector2) {
+  float angle = std::acosf(Dot(vector1, vector2) / Length(vector1) / Length(vector2));
+  angle = Angle(angle);
+  assert(angle == angle);
+  return angle;
 }
 
 float Util::FindAngleDegrees(const Vector2f &vector1, const Vector2f &vector2) {
@@ -153,9 +158,15 @@ Vector2f Util::Normalized(const Vector2f &vector) {
   return copy;
 }
 
-void Util::Resize(Vector2f &vector, float length) {
+void Util::Scale(Vector2f &vector, float length) {
 	Normalize(vector);
 	vector *= length;
+}
+
+Vector2f Util::Scaled(const Vector2f &vector, float length) {
+  auto v = vector;
+  Scale(v, length);
+  return v;
 }
 
 template <typename T> int Util::Sign(T val) {

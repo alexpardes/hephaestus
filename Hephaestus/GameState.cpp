@@ -112,8 +112,7 @@ void GameState::AddUnit(int type,
 	auto unit = std::make_shared<GameUnit>(++lastUnitId, attributes, owner, location, rotation);
 
   // TODO: remove the order dependency.
-  UnitAbility *move = new MoveAbility(unit, *this);
-  unit->AddAbility(move);
+  unit->AddAbility(new MoveAbility(unit, *this));
 
   UnitAbility *attack = new AttackAbility(
     unit,
@@ -129,13 +128,9 @@ void GameState::AddUnit(int type,
   UnitAbility *autoAttack = new AutoAttackAbility(*unit, *this);
   unit->AddAbility(autoAttack);
   unit->SetIdleAbility(autoAttack);
-
-  UnitAbility *attackMove = new AttackMoveAbility(*unit, *this);
-  unit->AddAbility(attackMove);
-
+  unit->AddAbility(new AttackMoveAbility(*unit, *this));
   unit->AddAbility(new TargetGroundAbility(*unit, *this));
-
-  unit->AddPassiveAbility(new HealthRegenAbility(*unit, attributes.HealthRegen()));
+  unit->AddAbility(new HealthRegenAbility(*unit, attributes.HealthRegen()));
 
 	units.push_back(unit);
 	AddToUnitGrid(unit);

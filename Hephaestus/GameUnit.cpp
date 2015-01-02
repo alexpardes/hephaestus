@@ -59,10 +59,6 @@ UnitAbility *GameUnit::GetAbility(const std::string &name) {
   return result;
 }
 
-void GameUnit::AddPassiveAbility(UnitAbility *ability) {
-  passiveAbilities.push_back(ability);
-}
-
 float GameUnit::Stability() const {
   return stability;
 }
@@ -83,8 +79,6 @@ void GameUnit::PerformAction() {
     return;
   }
   
-  ++turnsSinceHit;
-
   if (action) {
     if (action->IsFinished()) {
       action = nullptr;
@@ -97,9 +91,11 @@ void GameUnit::PerformAction() {
     idleAbility->Execute();
   }
 
-  for (auto ability : passiveAbilities) {
-    ability->Execute();
+  for (auto ability : abilities) {
+    ability.second->ExecutePassive();
   }
+
+  ++turnsSinceHit;
 }
 
 int GameUnit::TurnsSinceHit() const {
@@ -112,7 +108,7 @@ void GameUnit::OnAttacked(const Projectile &projectile) {
   turnsSinceHit = 0;
 
   auto damageFraction = damage / currentHealth;
-  if (damageFraction > 0.1f) {
+  if (damageFraction > 0.1f && !action) {
     SetAction(new TargetGroundAction(projectile.Origin(), true));
   } else if (damageFraction > 0.05 && !action) {
     SetAction(new TargetGroundAction(projectile.Origin(), false));

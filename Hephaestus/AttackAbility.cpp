@@ -64,10 +64,11 @@ Vector2f AttackAbility::RightAttackPoint() const {
 
 void AttackAbility::Execute() {
   auto unit = gameState->GetUnit(target);
-  if (unit) {
-    if (CanAttack(target))
-      Attack(*unit);
-  }
+  if (unit && CanAttack(target))
+    Attack(*unit);
+}
+
+void AttackAbility::ExecutePassive() {
   loadTime -= speed;
   loadTime = std::max(loadTime, 0.f);
 }
@@ -77,12 +78,10 @@ bool AttackAbility::CanAttack(UnitId target) const {
   if (!unit || !IsInRange(*unit))
     return false;
 
-  return owner->SightMap().IsAnyVisible(unit->SegmentFromUnit(AttackPoint()));
+  return owner->SightMap().VisibleSize(unit->SegmentFromUnit(AttackPoint())) > 0.05f * dispersion;
 }
 
 void AttackAbility::Attack(const GameUnit &unit) {
-  ChooseAttackPoint();
-
   // TODO: Make unit rotation precise.
   auto velocity = unit.Position() - unit.PreviousPosition();
   auto distance = Util::Distance(unit.Position(), owner->Position());
@@ -90,6 +89,7 @@ void AttackAbility::Attack(const GameUnit &unit) {
   auto predictedLocation = unit.Position() + predictedTime * velocity;
   Circle circle(predictedLocation, unit.Attributes().CollisionRadius());
   owner->SetRotation(Util::FindAngle(predictedLocation - owner->Position()));
+  ChooseAttackPoint();
   auto widestPoints = circle.WidestPoints(AttackPoint());
   auto segment = LineSegment(widestPoints.first, widestPoints.second);
   auto targetSegment = owner->SightMap().LargestVisibleSubsegment(segment);

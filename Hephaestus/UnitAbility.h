@@ -1,11 +1,10 @@
 #pragma once
 #include <string>
 
-class UnitAction;
-
 class UnitAbility {
   public:
-    virtual void Execute() = 0;
+    virtual void Execute() { };
+    virtual void ExecutePassive() { }
     virtual std::string Name() const = 0;
     virtual ~UnitAbility() { }
 };

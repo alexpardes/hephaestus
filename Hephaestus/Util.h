@@ -57,12 +57,18 @@ class Util {
 
     // Returns the angle in radians between the given vector and (1, 0).
     static float FindAngle(const Vector2f &vector);
+
+    // Returns the angle in radians from vector1 counterclockwise to vector2.
 		static float FindAngle(const Vector2f &vector1, const Vector2f &vector2);
     static float FindAngleDegrees(const Vector2f &vector1, const Vector2f &vector2);
+
+    // Returns the shortest angle between vector1 and vector2.
+    static float FindShortestAngle(const Vector2f &vector1, const Vector2f &vector2);
 		static Vector2f Perpendicular(const Vector2f &vector);
 		static void Normalize(Vector2f &vector);
     static Vector2f Normalized(const Vector2f &vector);
-		static void Resize(Vector2f &vector, float length);
+		static void Scale(Vector2f &vector, float length);
+    static Vector2f Scaled(const Vector2f &vector, float length);
 		static float Square(float x);
 		template <typename T> static int Sign(T val);
 		static int Laterality(const Vector2f &vector1,

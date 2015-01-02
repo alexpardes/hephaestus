@@ -54,8 +54,6 @@ class GameUnit : public GameObject {
 
     void AddAbility(UnitAbility *ability);
     UnitAbility *GetAbility(const std::string &name);
-    void AddPassiveAbility(UnitAbility *ability);
-
     void SetIdleAbility(UnitAbility* ability) { idleAbility = ability; }
     Direction Facing() const { return facing; }
     void SetFacing(Direction facing) { this->facing = facing; }
@@ -74,7 +72,6 @@ class GameUnit : public GameObject {
 		PlayerNumber owner;
     UnitAction *action;
     std::unordered_map<std::string, UnitAbility*> abilities;
-    std::vector<UnitAbility*> passiveAbilities;
     UnitAbility* idleAbility;
 };
 typedef std::list<std::shared_ptr<GameUnit>> UnitList;
