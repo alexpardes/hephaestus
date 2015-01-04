@@ -10,10 +10,6 @@ Vector2f Util::MakeUnitVector(float angle) {
   return Vector2f(std::cosf(angle), std::sinf(angle));
 }
 
-int Util::Sign(int x) {
-  return (x > 0) - (x < 0);
-}
-
 size_t Util::HashStart() {
   return 2166136261;
 }
@@ -22,6 +18,13 @@ void Util::Limit(Vector2f &v, float length) {
   if (Length(v) > length) {
     Scale(v, length);
   }
+}
+
+float Util::Limit(float v, float length) {
+  if (std::abs(v) > length)
+    return Util::Sign(v) * length;
+
+  return v;
 }
 
 float Util::Angle(float angle, float origin) {
@@ -80,6 +83,7 @@ float Util::FindAngle(const Vector2f &vector1, const Vector2f &vector2) {
 }
 
 float Util::FindShortestAngle(const Vector2f& vector1, const Vector2f &vector2) {
+  assert(Length(vector1) > 0 && Length(vector2) > 0);
   float angle = std::acosf(Dot(vector1, vector2) / Length(vector1) / Length(vector2));
   angle = Angle(angle);
   assert(angle == angle);
@@ -92,6 +96,9 @@ float Util::FindAngleDegrees(const Vector2f &vector1, const Vector2f &vector2) {
 
 // Returns if testAngle is in the angular interval [angle1, angle2).
 bool Util::IsBetweenAngles(float testAngle, float angle1, float angle2, bool flipRotation) {
+  testAngle = Angle(testAngle);
+  angle1 = Angle(angle1);
+  angle2 = Angle(angle2);
   bool result = false;
 
   if (flipRotation) {
@@ -169,13 +176,9 @@ Vector2f Util::Scaled(const Vector2f &vector, float length) {
   return v;
 }
 
-template <typename T> int Util::Sign(T val) {
-    return (T(0) < val) - (val < T(0));
-}
-
 int Util::Laterality(const Vector2f &vector1,
 					 const Vector2f &vector2) {
-	return Sign(Cross(vector1, vector2));
+	return (int) Sign(Cross(vector1, vector2));
 }
 
 //	Rotates the vector counter clockwise by angle in radians.

@@ -10,11 +10,13 @@ typedef unsigned char TerrainId;
 
 class SpatialGraph;
 
+enum UnitImageType { kUpper, kLower };
+
 class ResourceManager {
 	public:
 		GameState *LoadMap(const std::string &filename);
     const sf::Texture &GetMapImage() const { return mapImage; }
-		const sf::Texture &GetImage(int unitType, PlayerNumber owner) const;    
+		sf::Sprite UnitSprite(int unitType, PlayerNumber owner, UnitImageType type) const;
     const sf::Texture &GetImage(int projectileType) const;
 
 		Vector2i MapSize() const {
@@ -30,6 +32,16 @@ class ResourceManager {
     const std::vector<const Poly> &DilatedWalls() const;
 
 	private:
+    struct UnitImagePair {
+      sf::Texture upper, lower;      
+    };
+
+    struct UnitImageSet {
+      // This maps from player number to the image pair for that player.
+      std::vector<const UnitImagePair> images;
+      Vector2f upperCenter, lowerCenter;
+    };
+
     void SetupFogOfWar();
     void AddUnitsToGameState(const Json::Value &map, GameState *state);
     void LoadMapImage(const std::string &map);
@@ -42,7 +54,9 @@ class ResourceManager {
     std::vector<const Poly> LoadTerrain(const Json::Value &pathingInfo);
 
 		std::vector<const UnitAttributes> unitTable;
-		std::vector<std::vector<const sf::Texture>> unitImageTable;
+
+    // This maps from the unit's type ID.
+		std::vector<const UnitImageSet> unitImageTable;
     std::vector<const sf::Texture> projectileImages;
     std::vector<sf::Color> playerColors;
     sf::Font defaultFont;

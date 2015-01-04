@@ -4,6 +4,7 @@
 #include "GameState.h"
 
 Projectile::Projectile(GameState &gameState,
+                       int id,
                        std::shared_ptr<GameUnit> owner,
                        const Vector2f &position,
                        float direction,
@@ -18,9 +19,7 @@ Projectile::Projectile(GameState &gameState,
   this->speed = speed;
   this->position = position;
   startPosition = position;
-
-  // TODO: Should projectiles have IDs?
-	id = 0;
+	this->id = id;
   isAlive = true;
   rotation = direction;
 }

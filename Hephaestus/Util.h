@@ -1,9 +1,11 @@
 #pragma once
 
 #include <functional>
+#include <float.h>
 #include "Vector2.h"
 #include "Rectangle.h"
 #include "DirectedSegment.h"
+#include "Log.h"
 
 #define M_PI 3.14159265358979323846f
 
@@ -11,7 +13,10 @@ class Util {
 	public:   
     static Vector2f MakeUnitVector(float angle);
 
-    static int Sign(int x);
+    template<typename T> static T Sign(T x) {
+      return (T) (x > 0) - (x < 0);
+    }
+
     static size_t HashStart();
 
     template<typename T> static void Hash(size_t &hash, const T &t) {
@@ -70,7 +75,6 @@ class Util {
 		static void Scale(Vector2f &vector, float length);
     static Vector2f Scaled(const Vector2f &vector, float length);
 		static float Square(float x);
-		template <typename T> static int Sign(T val);
 		static int Laterality(const Vector2f &vector1,
 							  const Vector2f &vector2);
 		static void Rotate(Vector2f &vector, float angle);
@@ -85,6 +89,7 @@ class Util {
 			return Vector2f((float) vector.x, (float) vector.y);
 		}
     static void Limit(Vector2f &v, float length);
+    static float Limit(float v, float length);
 
     template<class T> static T Constrain(T x, T min, T max) {
       if (x < min) return min;
@@ -108,4 +113,14 @@ class Util {
 
     // Interpolates through counterclockwise angle
     static float InterpolateAnglesCcw(float angle1, float angle2, float weight);
+
+    static void AssertValid(float v) {
+      //if (!_finite(std::min(v, 1e10f)))
+      //  throw;
+    }
+
+    static void AssertValid(const Vector2f &v) {
+      AssertValid(v.x);
+      AssertValid(v.y);
+    }
 };

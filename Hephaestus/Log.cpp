@@ -18,4 +18,5 @@ void Log::Init() {
 void Log::Write(const std::string &message) {
   Init();
   logFile << message << std::endl;
+  logFile.flush();
 }

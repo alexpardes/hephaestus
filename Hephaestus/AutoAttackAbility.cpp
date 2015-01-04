@@ -8,12 +8,6 @@ AutoAttackAbility::AutoAttackAbility(GameUnit &owner, GameState &gameState) :
     owner(owner), gameState(gameState) {
   
   attackAbility = static_cast<AttackAbility*>(owner.GetAbility("Attack"));
-  useTargetPoint = false;
-}
-
-void AutoAttackAbility::SetTargetPoint(const Vector2f &point) {
-  targetPoint = point;
-  useTargetPoint = true;
 }
 
 void AutoAttackAbility::Execute() {
@@ -44,10 +38,6 @@ void AutoAttackAbility::Execute() {
     if (target) {
       attackAbility->SetTarget(closestUnit->Id());
       attackAbility->Execute();
-    } else if (useTargetPoint) {
-      auto v = targetPoint - owner.Position();
-      if (Util::Length(v) > 0)
-        owner.SetRotation(Util::FindAngle(v));
     }
   }
 }

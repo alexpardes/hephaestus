@@ -24,6 +24,7 @@ class Graphics {
     void DrawFramerate(float framerate, float cycleRate) const;
 		void DrawTerrain() const;
 		void DrawUnits(const std::list<UnitModel *> &units) const;
+    void DrawUnitSprite(const UnitModel &unit, UnitImageType type) const;
 		void DrawProjectiles(const std::list<ProjectileModel *> &projectiles) const;
 		void DrawGameInterface(const GameScene& scene) const;
     void DrawSelectionGraphics(const GameScene& scene) const;

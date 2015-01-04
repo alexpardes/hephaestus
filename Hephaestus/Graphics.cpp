@@ -107,21 +107,25 @@ void Graphics::DrawTerrain() const {
   window.draw(mapSprite);
 }
 
-void Graphics::DrawUnits(const std::list<UnitModel *> &units) const {
-  for (UnitModel* unit : units) {
-    if (gameInterface.Player() == unit->Owner() || unit->IsVisible()) {
-		  const sf::Texture &unitImage = resourceManager.GetImage(unit->Type(),
-				  unit->Owner());
-		  sf::Sprite unitSprite(unitImage);
-		  Vector2f imageCenter(unitImage.getSize().x * 0.5f,
-          unitImage.getSize().y * 0.5f);
-		  unitSprite.setOrigin(imageCenter);
-		  unitSprite.setPosition(unit->Position());
-		  unitSprite.setRotation(Util::Degrees(unit->Rotation()));
-      if (unit->Facing() == kLeft)
-        unitSprite.setScale(1, -1);
+void Graphics::DrawUnitSprite(const UnitModel &unit, UnitImageType type) const {
+  auto sprite = resourceManager.UnitSprite(unit.Type(), unit.Owner(), type);
 
-		  window.draw(unitSprite);
+  sprite.setPosition(unit.Position());
+
+  auto rotation = type == kLower ? unit.Rotation() : unit.TorsoRotation();
+  sprite.setRotation(Util::Degrees(rotation));
+  if (unit.Facing() == kLeft)
+    sprite.setScale(1, -1);
+
+  window.draw(sprite);
+
+}
+
+void Graphics::DrawUnits(const std::list<UnitModel *> &units) const {
+  for (UnitModel *unit : units) {
+    if (gameInterface.Player() == unit->Owner() || unit->IsVisible()) {
+      DrawUnitSprite(*unit, kLower);
+      DrawUnitSprite(*unit, kUpper);
     }
 	}
 }

@@ -2,7 +2,7 @@
 #include "Player.h"
 #include "StrafePointCommand.h"
 #include "Serialization.h"
-#include  "AutoAttackAbility.h"
+#include "AttackAbility.h"
 
 CommandType StrafePointCommand::type = 0;
 
@@ -11,7 +11,7 @@ StrafePointCommand::StrafePointCommand(const Vector2f &point) {
 }
 
 void StrafePointCommand::Execute(GameState &gameState, GameUnit &unit) const {
-  static_cast<AutoAttackAbility*>(unit.GetAbility("AutoAttack"))->SetTargetPoint(point);
+  static_cast<AttackAbility*>(unit.GetAbility("Attack"))->SetTargetPoint(point);
 }
 
 void StrafePointCommand::SerializeInternal(char *&bytes) const {

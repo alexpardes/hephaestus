@@ -13,7 +13,6 @@ class AutoAttackAbility : public UnitAbility {
     virtual void Execute();
     virtual std::string Name() const { return "AutoAttack"; }
     bool HasTarget() const { return target != nullptr; }
-    void SetTargetPoint(const Vector2f &point);
 
   private:
     // TODO: these fields can probably be moved to base class.
@@ -21,7 +20,5 @@ class AutoAttackAbility : public UnitAbility {
     GameState &gameState;
 
     std::shared_ptr<GameUnit> target;
-    bool useTargetPoint;
-    Vector2f targetPoint;
     AttackAbility *attackAbility;
 };

@@ -25,6 +25,8 @@ class GameUnit : public GameObject {
 
     virtual size_t HashCode() const;
     Vector2f PreviousPosition() const;
+    float TorsoRotation() const;
+    float RelativeTorsoRotation() const;
     float Stability() const;
     int TurnsSinceHit() const;
     LineSegment SegmentFromUnit(const Vector2f &viewPoint) const;
@@ -54,15 +56,18 @@ class GameUnit : public GameObject {
 
     void AddAbility(UnitAbility *ability);
     UnitAbility *GetAbility(const std::string &name);
-    void SetIdleAbility(UnitAbility* ability) { idleAbility = ability; }
+    void SetIdleAbility(UnitAbility *ability) { idleAbility = ability; }
     Direction Facing() const { return facing; }
     void SetFacing(Direction facing) { this->facing = facing; }
+
+    void SetTorsoRotation(float rotation);
+    void SetRelativeTorsoRotation(float rotation);
 
 	private:
 		bool isAlive;
     SectorMap sightMap;
     Vector2f previousPosition;
-    float currentHealth, previousRotation, stability;
+    float currentHealth, previousRotation, stability, torsoRotation;
     int turnsSinceHit;
     std::vector<Vector2f> visiblePoints;
 		static std::vector<Vector2i>* pathingOffsets;
@@ -86,6 +91,7 @@ class UnitModel {
 		float Radius() const { return radius; }
 		Vector2f Position() const {return position;}
 		float Rotation() const {return rotation;}
+    float TorsoRotation() const {return torsoRotation; }
     float Stability() const {return stability;}
 		PlayerNumber Owner() const {return owner;}
 		int Type() const {return type;}
@@ -97,7 +103,7 @@ class UnitModel {
 
 	private:
 		Vector2f position;
-		float rotation, currentHealth, maxHealth, radius, stability;
+		float rotation, torsoRotation, currentHealth, maxHealth, radius, stability;
 		int id, type;
 		PlayerNumber owner;
     VisibilityPolygon visibility;

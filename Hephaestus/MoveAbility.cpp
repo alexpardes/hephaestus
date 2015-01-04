@@ -15,6 +15,7 @@ const float kPathingEpsilon = 1.f;
 MoveAbility::MoveAbility(std::shared_ptr<GameUnit> owner,
                          GameState &gameState) : gameState(gameState) {
   this->owner = owner;
+  isStrafing = false;
 }
 
 void MoveAbility::SetDestination(const Vector2f &destination) {
@@ -57,7 +58,11 @@ float CorneringSpeed(const Vector2f &v1, const Vector2f &v2, float acceleration)
 float SpeedAfterTurn(const Vector2f &v1, const Vector2f &v2, float acceleration) {
   auto initialSpeed = Util::Length(v1);
   auto corneringSpeed = CorneringSpeed(v1, v2, acceleration);
-  assert(initialSpeed <= corneringSpeed);
+
+  if (initialSpeed > corneringSpeed) {
+    assert(false);
+    return corneringSpeed;
+  }
 
   auto minAccelerationSquared = std::powf(acceleration * initialSpeed / corneringSpeed, 2);
   auto minSpeed = std::sqrtf(initialSpeed * initialSpeed - minAccelerationSquared);
@@ -79,6 +84,7 @@ float MaxSpeed(float distance, float endSpeed, float acceleration) {
    
   float maxSpeed = std::min((distance)/t + acceleration*(t - 1)/2, endSpeed + acceleration * t);
   assert(maxSpeed >= endSpeed);
+
   return maxSpeed;
 }
 
@@ -100,7 +106,9 @@ float MoveAbility::MaxSpeedAtLegStart(int legIndex) const {
   auto maxSpeedAfterTurn = MaxSpeedAtLegStart(legIndex + 1);
 
   auto endSpeed = CorneringSpeed(direction, nextDirection, MaxAcceleration(), maxSpeedAfterTurn);
+
   auto maxSpeed = MaxSpeed(distance, endSpeed, MaxAcceleration());
+
   if (maxSpeed < distance) {
     auto nextMaxSpeed = MaxSpeed(distance - maxSpeed, endSpeed, MaxAcceleration());
     assert(nextMaxSpeed >= 0.99f * maxSpeed - MaxAcceleration());
@@ -130,16 +138,17 @@ void MoveAbility::Execute() {
   }
 
   auto maxSpeed = MaxSpeedAtLegStart(0);
-  maxSpeed = std::min(maxSpeed, owner->Attributes().Speed());
+  maxSpeed = std::min(maxSpeed, TopSpeed(direction));  
+
   auto currentSpeed = Util::Length(velocity);
 
   if (distanceToGoal < maxSpeed - 0.01f) {
-    assert(currentSpeed <= CorneringSpeed(direction, nextDirection, MaxAcceleration()));
+    //assert(currentSpeed <= CorneringSpeed(direction, nextDirection, MaxAcceleration()));
 
     gameState.MoveUnit(owner->Id(), path.front());
     path.pop_front();
     auto speedAfterTurn = SpeedAfterTurn(velocity, nextDirection, maxAcceleration);
-    speedAfterTurn = std::min(speedAfterTurn, owner->Attributes().Speed());
+    speedAfterTurn = std::min(speedAfterTurn, TopSpeed(nextDirection));
     velocity = Util::Scaled(nextDirection, speedAfterTurn);
 
     auto remainingMovement = Util::Length(velocity) - distanceToGoal;
@@ -153,22 +162,65 @@ void MoveAbility::Execute() {
 
   auto desiredVelocity = Util::Scaled(direction, 0.99f * maxSpeed);
   auto desiredSpeed = Util::Length(desiredVelocity);
-  assert(desiredSpeed >= currentSpeed - maxAcceleration);
+  //assert(desiredSpeed >= currentSpeed - maxAcceleration);
   auto acceleration = desiredVelocity - velocity;
+
   Util::Limit(acceleration, maxAcceleration);
   velocity += acceleration;
+
   Vector2f newPosition = owner->Position() + velocity;
   gameState.MoveUnit(owner->Id(), newPosition);
+}
+
+float MoveAbility::TopSpeed(const Vector2f &v) const {
+  auto movementAngle = Util::FindAngle(v);
+  auto angle = Util::AngleBetween(movementAngle, owner->Rotation());
+
+  auto forwardSpeed = owner->Attributes().Speed();
+  auto sidewaysSpeed = 0.5f * forwardSpeed;
+  auto backwardSpeed = 0.5f * forwardSpeed;
+
+  float linearSpeed;
+  if (angle > M_PI / 2) {
+    linearSpeed = backwardSpeed;
+    angle = M_PI - angle;
+  } else {
+    linearSpeed = forwardSpeed;
+  }
+    
+  auto result = linearSpeed * std::cosf(angle) + sidewaysSpeed * std::sinf(angle);
+  return result;
 }
 
 void MoveAbility::ExecutePassive() {
   if (DestinationReached())
     velocity = Vector2f(0, 0);
 
-  if (Util::Length(velocity) != 0)
-    owner->SetRotation(Util::FindAngle(velocity));
+  if (Util::Length(velocity) != 0) {
+    auto desiredRotation = Util::FindAngle(velocity);
+    bool goBackward = isStrafing && Util::AngleBetween(strafeDirection, desiredRotation) > M_PI / 2;
+    if (goBackward)
+      desiredRotation = desiredRotation + M_PI;
+
+    Rotate(desiredRotation);
+  } else {
+    if (isStrafing)
+      Rotate(strafeDirection);
+  }  
 
   static_cast<AutoAttackAbility*>(owner->GetAbility("AutoAttack"))->Execute();
+}
+
+void MoveAbility::Rotate(float angle) const {
+  auto rotationSpeed = Util::Radians(30);
+  auto currentRotation = owner->Rotation();
+  auto angularDist = Util::AngleBetween(currentRotation, angle);
+  if (angularDist > 0.f) {
+    auto delta = Util::Limit(angularDist, rotationSpeed);
+    auto fraction = delta / angularDist;
+    auto newRotation = Util::InterpolateAngles(currentRotation, angle, fraction);
+    owner->SetRotation(newRotation);
+  }
 }
 
 bool MoveAbility::DestinationReached() const {
@@ -177,4 +229,13 @@ bool MoveAbility::DestinationReached() const {
 
 void MoveAbility::SetPath(const std::deque<const Vector2f> &path) {
   this->path = path;
+}
+
+void MoveAbility::SetStrafeDirection(float angle) {
+  isStrafing = true;
+  strafeDirection = angle;
+}
+
+void MoveAbility::StopStrafing() {
+  isStrafing = false;
 }

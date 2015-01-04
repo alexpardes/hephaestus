@@ -8,9 +8,9 @@ class GameState;
 
 class Projectile : public GameObject {
 	public:
-    Projectile(GameState& gameState, std::shared_ptr<GameUnit> owner,
-        const Vector2f &position, float direction,
-        float damage, float dispersion, float speed);
+    Projectile(GameState& gameState, int id, std::shared_ptr<GameUnit> owner,
+        const Vector2f &position, float direction, float damage,
+        float dispersion, float speed);
 
     virtual size_t HashCode() const;
 		int Id() const {return id;}

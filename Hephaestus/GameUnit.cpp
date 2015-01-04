@@ -22,6 +22,7 @@ GameUnit::GameUnit(UnitId id,
 	currentHealth = attributes.MaxHealth();
 	this->owner = owner;
 	this->rotation = rotation;
+  torsoRotation = 0.f;
   previousRotation = rotation;
   action = nullptr;
   facing = kRight;
@@ -35,6 +36,22 @@ size_t GameUnit::HashCode() const {
   Util::Hash(hash, id);
   Util::Hash(hash, owner);
   return hash;
+}
+
+float GameUnit::TorsoRotation() const {
+  return rotation + torsoRotation;
+}
+
+float GameUnit::RelativeTorsoRotation() const {
+  return torsoRotation;
+}
+
+void GameUnit::SetTorsoRotation(float rotation) {
+  torsoRotation = rotation - this->rotation;
+}
+
+void GameUnit::SetRelativeTorsoRotation(float rotation) {
+  torsoRotation = rotation;
 }
 
 Vector2f GameUnit::PreviousPosition() const {
@@ -83,7 +100,7 @@ void GameUnit::PerformAction() {
     if (action->IsFinished()) {
       action = nullptr;
     } else {
-    action->Execute(*this);
+      action->Execute(*this);
     }
   }
   
@@ -135,6 +152,7 @@ UnitModel::UnitModel(const GameUnit &unit) {
   maxHealth = unit.Attributes().MaxHealth();
 	position = unit.Position();
 	rotation = unit.Rotation();
+  torsoRotation = unit.TorsoRotation();
 	id = unit.Id();
 	type = unit.Attributes().Type();
 	owner = unit.Owner();
@@ -154,6 +172,7 @@ UnitModel::UnitModel(const UnitModel &unit1,
   stability = a * unit1.Stability() + b * unit2.Stability();
 	position = a*unit1.Position() + b*unit2.Position();
   rotation = Util::InterpolateAngles(unit1.Rotation(), unit2.Rotation(), weight);
+  torsoRotation = Util::InterpolateAngles(unit1.TorsoRotation(), unit2.TorsoRotation(), weight);
 
   maxHealth = unit2.MaxHealth();
 	id = unit1.Id();

@@ -108,6 +108,7 @@ class GameState {
 		std::unordered_map<UnitId, std::shared_ptr<GameUnit>> unitTable;
 		Vector2i mapSize;
     int lastUnitId;
+    int lastProjectileId;
     std::vector<const Poly> walls;
     std::vector<const Poly> dilatedWalls;
     SpatialGraph *pathingGraph;

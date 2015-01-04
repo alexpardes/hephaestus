@@ -150,14 +150,15 @@ void ResourceManager::LoadUnitAttributes(const Json::Value &unit) {
 	unitTable.push_back(attributes);
 }
 
-const sf::Texture &ResourceManager::GetImage(int unitType,
-										   PlayerNumber owner) const {
-	switch (owner) {
-		case kPlayer2:
-			return unitImageTable[unitType][1];
-		default:
-			return unitImageTable[unitType][0];
-	}
+sf::Sprite ResourceManager::UnitSprite(int unitType,
+                                       PlayerNumber owner,
+                                       UnitImageType type) const {
+  bool isUpper = type == kUpper;                                         
+  auto &imagePair = unitImageTable[unitType].images[owner];
+
+  auto sprite = sf::Sprite(isUpper ? imagePair.upper : imagePair.lower);
+  sprite.setOrigin(isUpper ? unitImageTable[unitType].upperCenter : unitImageTable[unitType].lowerCenter);
+  return sprite;
 }
 
 const sf::Texture &ResourceManager::GetImage(int projectileType) const {
@@ -166,23 +167,43 @@ const sf::Texture &ResourceManager::GetImage(int projectileType) const {
 
 bool ResourceManager::LoadUnitImages(const Json::Value& unit) {
 	std::string type = unit["Name"].asString();
-	std::string source1 = unit["Image"].asString();
-	std::string source2 = unit["Color Mask"].asString();
+	std::string upperFilename = unit["Upper Image"].asString();
+	std::string upperMaskFilename = unit["Color Mask"].asString();
+  std::string lowerFilename = unit["Lower Image"].asString();
   std::string projectileSource = unit["Projectile"].asString();
 
-  sf::Image base, mask;
-	base.loadFromFile(source1);
-	mask.loadFromFile(source2);
-  if (mask.getSize() != base.getSize())
-    mask = base;
+  sf::Image upperBase, upperMask, lowerBase;
+	upperBase.loadFromFile(upperFilename);
+	upperMask.loadFromFile(upperMaskFilename);
+  lowerBase.loadFromFile(lowerFilename);
+  if (upperMask.getSize() != upperBase.getSize())
+    upperMask = upperBase;
 
-  unitImageTable.push_back(std::vector<const sf::Texture>());
+
+  UnitImageSet imageSet;
+  imageSet.upperCenter = Vector2f(
+    upperBase.getSize().x * 0.4f,
+    upperBase.getSize().y * 0.5f);
+
+  imageSet.lowerCenter = Vector2f(
+    lowerBase.getSize().x * 0.5f,
+    lowerBase.getSize().y * 0.5f);
+
   for (sf::Color color : playerColors) {
-    sf::Texture unitImage;
-    unitImage.loadFromImage(Coloring::ColorImage(base, mask, color));
-    unitImage.setSmooth(true);
-    unitImageTable.back().push_back(unitImage);
+    sf::Texture upperImage;
+    upperImage.loadFromImage(Coloring::ColorImage(upperBase, upperMask, color));
+    upperImage.setSmooth(true);
+
+    sf::Texture lowerImage;
+    lowerImage.loadFromImage(lowerBase);
+    lowerImage.setSmooth(true);    
+
+    UnitImagePair imagePair;
+    imagePair.upper = upperImage;
+    imagePair.lower = lowerImage;
+    imageSet.images.push_back(imagePair);    
   }
+  unitImageTable.push_back(imageSet);
 
   sf::Texture projectileImage;
   projectileImage.loadFromFile(projectileSource);

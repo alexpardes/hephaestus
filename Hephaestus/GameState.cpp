@@ -36,6 +36,7 @@ GameState::GameState(const std::vector<const UnitAttributes> &unitDefinitions,
 	}
 
   lastUnitId = 0;
+  lastProjectileId = 0;
 }
 
 GameState::~GameState() {
@@ -98,9 +99,8 @@ void GameState::ExecuteTurn() {
   }
 }
 
-void GameState::UpdateSightMap(GameUnit& unit) {
-  // TODO: Vision should not depend on attack ability.
-  unit.SightMap().Create(static_cast<AttackAbility *>(unit.GetAbility("Attack"))->AttackPoint(), Walls());
+void GameState::UpdateSightMap(GameUnit &unit) {
+  unit.SightMap().Create(unit.Position(), Walls());
 }
 
 
@@ -149,7 +149,7 @@ void GameState::RemoveUnit(std::shared_ptr<GameUnit> unit) {
 }
 
 std::shared_ptr<GameUnit> GameState::GetUnit(UnitId id) const {
-	std::shared_ptr<GameUnit> unit = NULL;
+	std::shared_ptr<GameUnit> unit = nullptr;
 	if (unitTable.count(id)) unit = unitTable.at(id);
 	return unit;
 }
@@ -160,8 +160,16 @@ void GameState::AddProjectile(std::shared_ptr<GameUnit> owner,
                               float damage,
                               float dispersion,
                               float speed) {
-	Projectile *projectile = new Projectile(*this, owner, location, direction,
-      damage, dispersion, speed);
+	Projectile *projectile = new Projectile(
+    *this,
+    ++lastProjectileId,
+    owner,
+    location,
+    direction,
+    damage,
+    dispersion,
+    speed);
+
 	projectiles.push_back(projectile);
 }
 
