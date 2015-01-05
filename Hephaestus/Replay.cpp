@@ -2,15 +2,17 @@
 #include "CommandTurn.h"
 #include "Replay.h"
 
-void ReplayWriter::OpenFile(const std::string &filename) {
+void ReplayWriter::OpenFile(const std::string &filename,
+                            const std::string &map) {
   file.open(filename, std::ios::binary);
+  file << map << '\n';
 }
 
-void ReplayWriter::WriteTurn(const CommandTurn &turn) {
+void ReplayWriter::AddCommands(std::shared_ptr<CommandTurn> commands) {
   std::array<char, 256> bytes;
   char *bytesStart = &bytes[0];
   char *bytePointer = &bytes[0];
-  turn.Serialize(bytePointer);
+  commands->Serialize(bytePointer);
   size_t size = bytePointer - bytesStart;
   file.write(bytesStart, size);
 }
@@ -68,6 +70,14 @@ std::shared_ptr<CommandTurn> ReplayReader::TakeCommandTurn() {
 
 void ReplayReader::SetGameHash(size_t gameHash) { }
 
+size_t Find(const char *dataStart, size_t size, char search) {
+  for (size_t pos = 0; pos < size; ++pos) {
+    if (dataStart[pos] == search)
+      return pos;
+  }
+  return size;
+}
+
 void ReplayReader::OpenFile(const std::string &filename) {
   std::ifstream file(filename, std::ios::binary);
   file.seekg(0, std::ios::end);
@@ -76,4 +86,5 @@ void ReplayReader::OpenFile(const std::string &filename) {
   rawReplayStart = new char[fileSize];
   rawReplayCurrent = rawReplayStart;
   file.read(rawReplayStart, fileSize);
+  rawReplayCurrent = rawReplayStart + Find(rawReplayStart, fileSize, '\n') + 1;
 }

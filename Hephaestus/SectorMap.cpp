@@ -119,7 +119,7 @@ Sector SectorMap::SectorFromSegment(const LineSegment &segment) const {
   Sector sector;
 
   // startAngle is the angle on the clockwise side of the segment.
-  if (Util::AngleCCW(angle1, angle2) < M_PI)
+  if (Util::AngleCcw(angle1, angle2) < M_PI)
   {
     sector.startAngle = angle1;
     sector.endAngle = angle2;

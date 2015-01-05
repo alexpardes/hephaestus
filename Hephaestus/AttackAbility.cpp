@@ -21,9 +21,6 @@ AttackAbility::AttackAbility(std::shared_ptr<GameUnit> owner,
 }
 
 void AttackAbility::Execute() {
-  auto unit = gameState->GetUnit(target);
-  if (unit && CanAttack(target))
-    Attack(*unit);
 }
 
 void AttackAbility::ExecutePassive() {
@@ -58,11 +55,20 @@ void AttackAbility::Rotate(float angle, bool isStrafing) const {
   }
 
   auto maxAngle = Util::Radians(100);
-  auto rotationSpeed = Util::Radians(30);
+  auto rotationSpeed = Util::Radians(20);
   relativeAngle = Util::Limit(relativeAngle, maxAngle);
   auto currentRotation = Util::Angle(owner->RelativeTorsoRotation(), -M_PI);
   auto rotationChange = Util::Limit(relativeAngle - currentRotation, rotationSpeed);
-  auto newRotation = currentRotation + rotationChange;
+
+  // The torso cannot rotate in the same direction as the hips.
+  if (Util::Sign(rotationChange) == Util::Sign(moveAbility->AngularVelocity()))
+    return;
+
+  auto newRotation = owner->RelativeTorsoRotation() + rotationChange;
+
+  auto oldDist = Util::AngleBetween(owner->TorsoRotation(), angle);
+  auto newDist = Util::AngleBetween(newRotation + owner->Rotation(), angle);
+
   owner->SetRelativeTorsoRotation(newRotation);
   auto handSwitchAngle = Util::Radians(20);
   if (Util::IsBetweenAngles(newRotation, handSwitchAngle, M_PI)) {
@@ -94,10 +100,10 @@ void AttackAbility::Attack(const GameUnit &unit) {
     auto targetPoint = (targetSegment.p1 + targetSegment.p2) / 2.f;
     float targetAngle = Util::FindAngle(targetPoint - owner->Position());
     Rotate(targetAngle, true);
-    if (owner->TorsoRotation() != targetAngle)
+    if (std::abs(owner->TorsoRotation() - targetAngle) > 1e-6f)
       return;
 
-    auto instabilityDispersion = (1 - owner->Stability()) * Util::Radians(45);
+    auto instabilityDispersion = (1 - owner->Stability()) * Util::Radians(30);
     if (loadTime <= 0.f) {
       gameState->AddProjectile(
         owner,

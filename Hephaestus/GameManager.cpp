@@ -38,8 +38,6 @@ void GameManager::StartGame() {
 
 void GameManager::RunGame() {
   Log::Write("Game started");
-  if (saveReplay)
-    replayWriter.OpenFile(GameFolder() + "replay.rep");
 
 	while (status == kRunning) {
     SetHash();
@@ -93,13 +91,14 @@ auto GameManager::QueueCommands() -> Result {
 }
 
 auto GameManager::ApplyCommands() -> Result {
-  auto gameHash = players[0]->NextTurn().GameHash();
-  for (Player* player : players) {
-    const CommandTurn &turn = player->NextTurn();
-    if (saveReplay)
-      replayWriter.WriteTurn(turn);
+  auto gameHash = players[0]->NextTurn()->GameHash();
+  for (auto player : players) {
+    auto turn = player->NextTurn();
 
-    if (turn.GameHash() != gameHash)
+    for (auto listener : commandListeners)
+      listener->AddCommands(turn);
+
+    if (turn->GameHash() != gameHash)
       return kDesync;
 
     player->ExecuteTurn();
@@ -111,11 +110,6 @@ void GameManager::EndGame() {
   if (status == kRunning)
     status = kFinished;
 
-  if (saveReplay) {
-    Log::Write("Creating human readable replay");
-    replayWriter.CloseFile();
-    ReplayReader(GameFolder() + "replay.rep").WriteHumanReadable(GameFolder() + "replay.hrr");
-  }
   thread.join();
   localCommandSources.clear();
 }
@@ -154,7 +148,6 @@ void GameManager::SetSaveReplay(bool saveReplay) {
   this->saveReplay = saveReplay;
 }
 
-
-std::string GameManager::GameFolder() const {
-  return std::string(std::getenv("APPDATA")) + "/Firefight/";
+void GameManager::AddCommandListener(CommandSink *listener) {
+  commandListeners.push_back(listener);
 }

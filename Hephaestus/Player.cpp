@@ -65,6 +65,6 @@ void Player::AddToSelection(UnitId id) {
   selectedUnits.push_back(id);
 }
 
-const CommandTurn &Player::NextTurn() const {
-  return *turnQueue.front();
+const std::shared_ptr<CommandTurn> Player::NextTurn() const {
+  return turnQueue.front();
 }

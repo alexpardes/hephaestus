@@ -19,7 +19,7 @@ class Player {
     void AddToSelection(UnitId id);
     void GiveOrder(const UnitCommand &command);
     void SetCommandSource(CommandSource *source);
-    const CommandTurn &NextTurn() const;
+    const std::shared_ptr<CommandTurn> NextTurn() const;
 
 	private:
     void DeselectDeadUnits();

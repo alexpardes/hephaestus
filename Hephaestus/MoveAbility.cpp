@@ -16,10 +16,11 @@ MoveAbility::MoveAbility(std::shared_ptr<GameUnit> owner,
                          GameState &gameState) : gameState(gameState) {
   this->owner = owner;
   isStrafing = false;
+  angularVelocity = 0.f;
 }
 
 void MoveAbility::SetDestination(const Vector2f &destination) {
-  auto start = gameState.PathingGraph().MakeVertex(owner->Position());
+  auto start = gameState.PathingGraph().MakeVertex(StoppingPoint());
   path = PathFinder::Path(start.get(), gameState.DilatedWalls(), destination);
 }
 
@@ -117,7 +118,7 @@ float MoveAbility::MaxSpeedAtLegStart(int legIndex) const {
 }
 
 float MoveAbility::MaxAcceleration() const {
-  return owner->Attributes().Speed() / 2.5f;
+  return owner->Attributes().Speed() / 3.f;
 }
 
 void MoveAbility::Execute() {
@@ -149,18 +150,18 @@ void MoveAbility::Execute() {
     path.pop_front();
     auto speedAfterTurn = SpeedAfterTurn(velocity, nextDirection, maxAcceleration);
     speedAfterTurn = std::min(speedAfterTurn, TopSpeed(nextDirection));
-    velocity = Util::Scaled(nextDirection, speedAfterTurn);
+    velocity = Util::Resized(nextDirection, speedAfterTurn);
 
     auto remainingMovement = Util::Length(velocity) - distanceToGoal;
     if (remainingMovement > 0) {
-      auto newPosition = owner->Position() + Util::Scaled(velocity, remainingMovement);
+      auto newPosition = owner->Position() + Util::Resized(velocity, remainingMovement);
       gameState.MoveUnit(owner->Id(), newPosition);
     }
       
     return;
   }
 
-  auto desiredVelocity = Util::Scaled(direction, 0.99f * maxSpeed);
+  auto desiredVelocity = Util::Resized(direction, 0.99f * maxSpeed);
   auto desiredSpeed = Util::Length(desiredVelocity);
   //assert(desiredSpeed >= currentSpeed - maxAcceleration);
   auto acceleration = desiredVelocity - velocity;
@@ -193,10 +194,13 @@ float MoveAbility::TopSpeed(const Vector2f &v) const {
 }
 
 void MoveAbility::ExecutePassive() {
-  if (DestinationReached())
-    velocity = Vector2f(0, 0);
+  if (DestinationReached()) {
+    auto acceleration = Util::Limited(-velocity, MaxAcceleration());
+    velocity += acceleration;
+    gameState.MoveUnit(owner->Id(), owner->Position() + velocity);
+  }
 
-  if (Util::Length(velocity) != 0) {
+  if (Util::Length(velocity) > 1e-3f) {
     auto desiredRotation = Util::FindAngle(velocity);
     bool goBackward = isStrafing && Util::AngleBetween(strafeDirection, desiredRotation) > M_PI / 2;
     if (goBackward)
@@ -211,16 +215,27 @@ void MoveAbility::ExecutePassive() {
   static_cast<AutoAttackAbility*>(owner->GetAbility("AutoAttack"))->Execute();
 }
 
-void MoveAbility::Rotate(float angle) const {
+void MoveAbility::Rotate(float angle) {
   auto rotationSpeed = Util::Radians(30);
   auto currentRotation = owner->Rotation();
-  auto angularDist = Util::AngleBetween(currentRotation, angle);
-  if (angularDist > 0.f) {
-    auto delta = Util::Limit(angularDist, rotationSpeed);
-    auto fraction = delta / angularDist;
-    auto newRotation = Util::InterpolateAngles(currentRotation, angle, fraction);
-    owner->SetRotation(newRotation);
+  if (currentRotation == angle) {
+    angularVelocity = 0;
+    return;
   }
+
+  auto angleCw = Util::AngleCw(currentRotation, angle);
+  auto angleCcw = Util::AngleCcw(currentRotation, angle);
+  bool turnCcw;
+  if (isStrafing && Util::AngleBetween(strafeDirection, currentRotation) > M_PI / 2) {
+    turnCcw = Util::AngleCcw(currentRotation, strafeDirection) < Util::AngleCw(currentRotation, strafeDirection);
+  } else {
+    turnCcw = angleCcw < angleCw;
+  }
+
+  auto desiredDelta = turnCcw ? angleCcw : -angleCw;
+  angularVelocity = Util::Limit(desiredDelta, rotationSpeed);
+  auto newRotation = currentRotation + angularVelocity;
+  owner->SetRotation(newRotation);
 }
 
 bool MoveAbility::DestinationReached() const {
@@ -238,4 +253,19 @@ void MoveAbility::SetStrafeDirection(float angle) {
 
 void MoveAbility::StopStrafing() {
   isStrafing = false;
+}
+
+Vector2f MoveAbility::StoppingPoint() const {
+  auto speed = Util::Length(velocity) - MaxAcceleration();
+  auto t = std::ceilf(speed / MaxAcceleration());
+  auto distance = speed * t - MaxAcceleration() * t * (t - 1) / 2;
+  return owner->Position() + Util::Resized(velocity, distance);
+}
+
+void MoveAbility::Stop() {
+  path.clear();
+}
+
+float MoveAbility::AngularVelocity() const {
+  return angularVelocity;
 }

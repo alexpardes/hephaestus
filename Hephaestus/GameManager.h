@@ -21,6 +21,7 @@ class GameManager {
     GameStatus Status() const { return status; }
 		float GetFrameTime();
     float CycleRate() const { return currentStepsPerSecond; }
+    void AddCommandListener(CommandSink *listener);
 
 	private:
     enum Result {
@@ -28,8 +29,7 @@ class GameManager {
       kDesync,
       kConnectionFailure
     };
-
-    std::string GameFolder() const;
+    
 		Result ApplyCommands();
     Result QueueCommands();
     void RunGame();
@@ -45,6 +45,7 @@ class GameManager {
     std::vector<Player*> players;
     std::thread thread;
     std::vector<CommandSource*> localCommandSources;
+    std::vector<CommandSink*> commandListeners;
     float currentStepsPerSecond;
     ReplayWriter replayWriter;
     bool saveReplay;

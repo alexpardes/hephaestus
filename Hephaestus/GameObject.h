@@ -16,7 +16,7 @@ class GameObject {
     Vector2f Position() const { return position; }
     void SetPosition(const Vector2f &position) { this->position = position; }
     float Rotation() const { return rotation; }
-    void SetRotation(float rotation) { this->rotation = rotation; }
+    void SetRotation(float rotation) { this->rotation = Util::Angle(rotation); }
 
   protected:
     Vector2f position;

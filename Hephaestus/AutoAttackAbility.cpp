@@ -13,9 +13,7 @@ AutoAttackAbility::AutoAttackAbility(GameUnit &owner, GameState &gameState) :
 void AutoAttackAbility::Execute() {
   attackAbility->EnableMovement(false);
   if (target) {
-    if (target->IsAlive() && attackAbility->CanAttack(target->Id())) {
-      attackAbility->Execute();
-    } else {
+    if (!target->IsAlive() || !attackAbility->CanAttack(target->Id())) {
       target = nullptr;
     }
   }
@@ -24,20 +22,26 @@ void AutoAttackAbility::Execute() {
     float smallestAngle = FLT_MAX;
     std::shared_ptr<GameUnit> closestUnit;
     for (auto unit : gameState.Units()) {
-      if (unit->Owner() != owner.Owner() && attackAbility->CanAttack(unit->Id())) {
-        float bearing = Util::FindAngle(unit->Position() - owner.Position());
-        float angle = Util::AngleBetween(bearing, owner.Rotation());
-        if (angle < smallestAngle) {
-          smallestAngle = angle;
-          closestUnit = unit;
-        }
+      if (unit->Owner() == owner.Owner())
+        continue;
+
+      if (unit->TurnsVisible() < 6)
+        continue;
+
+      if (!attackAbility->CanAttack(unit->Id()))
+        continue;
+
+      float bearing = Util::FindAngle(unit->Position() - owner.Position());
+      float angle = Util::AngleBetween(bearing, owner.Rotation());
+      if (angle < smallestAngle) {
+        smallestAngle = angle;
+        closestUnit = unit;
       }
     }
 
     target = closestUnit;
     if (target) {
       attackAbility->SetTarget(closestUnit->Id());
-      attackAbility->Execute();
     }
   }
 }

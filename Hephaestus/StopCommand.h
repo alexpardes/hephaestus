@@ -1,9 +1,9 @@
 #pragma once
-#include "ActionCommand.h"
+#include "UnitCommand.h"
 
-class StopCommand : public ActionCommand {
+class StopCommand : public UnitCommand {
   public:
-    virtual UnitAction *MakeUnitAction(GameState &gameState) const;
+    virtual void Execute(GameState &gameState, GameUnit &unit) const;
     virtual std::string ToString() const;
     static void Register();
 

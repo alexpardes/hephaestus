@@ -25,15 +25,16 @@ void TargetGroundAbility::Execute() {
 
 void TargetGroundAbility::SetDestination(const Vector2f &point, bool fullCover) {
   target = point;
+  auto moveAbility = static_cast<MoveAbility*>(owner.GetAbility("Move"));
   SectorMap sectorMap;
   sectorMap.Create(point, gameState.Walls());
-  auto startVertex = gameState.PathingGraph().MakeVertex(owner.Position());
+  auto startVertex = gameState.PathingGraph().MakeVertex(moveAbility->StoppingPoint());
   auto polygonBorder = sectorMap.PolygonBorder();
   if (fullCover)
     polygonBorder = MinkowskiSum::Dilate(polygonBorder, owner.Attributes().CollisionRadius());
 
   auto path = PathFinder::Path(startVertex.get(), gameState.DilatedWalls(), polygonBorder);
-  static_cast<MoveAbility*>(owner.GetAbility("Move"))->SetPath(path);
+  moveAbility->SetPath(path);
 }
 
 bool TargetGroundAbility::DestinationReached() const {

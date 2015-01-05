@@ -19,6 +19,7 @@ GameUnit::GameUnit(UnitId id,
   previousPosition = position;
   stability = 1.f;
   turnsSinceHit = 0;
+  turnsVisible = 0;
 	currentHealth = attributes.MaxHealth();
 	this->owner = owner;
 	this->rotation = rotation;
@@ -39,7 +40,7 @@ size_t GameUnit::HashCode() const {
 }
 
 float GameUnit::TorsoRotation() const {
-  return rotation + torsoRotation;
+  return Util::Angle(rotation + torsoRotation);
 }
 
 float GameUnit::RelativeTorsoRotation() const {
@@ -113,10 +114,26 @@ void GameUnit::PerformAction() {
   }
 
   ++turnsSinceHit;
+
+  if (turnsVisible > 0)
+    ++turnsVisible;
 }
 
 int GameUnit::TurnsSinceHit() const {
   return turnsSinceHit;
+}
+
+int GameUnit::TurnsVisible() const {
+  return turnsVisible;
+}
+
+void GameUnit::SetVisible(bool isVisible) {
+  if (isVisible) {
+    if (turnsVisible == 0)
+      turnsVisible = 1;
+  } else {
+    turnsVisible = 0;
+  }
 }
 
 void GameUnit::OnAttacked(const Projectile &projectile) {
@@ -160,7 +177,7 @@ UnitModel::UnitModel(const GameUnit &unit) {
   stability = unit.Stability();  
   visibility = unit.SightMap().ToPolygon();
   facing = unit.Facing();
-  isVisible = true;
+  isVisible = unit.TurnsVisible() > 0;
 }
 
 UnitModel::UnitModel(const UnitModel &unit1,

@@ -29,6 +29,7 @@ class GameUnit : public GameObject {
     float RelativeTorsoRotation() const;
     float Stability() const;
     int TurnsSinceHit() const;
+    int TurnsVisible() const;
     LineSegment SegmentFromUnit(const Vector2f &viewPoint) const;
 
 		static std::vector<Vector2i> pathing_offsets(int x, int y) {
@@ -40,6 +41,7 @@ class GameUnit : public GameObject {
 
 		void ModifyHealth(float health);
     void OnAttacked(const Projectile &projectile);
+    void SetVisible(bool isVisible);
 
 		float CurrentHealth() const {return currentHealth;}
 
@@ -68,7 +70,7 @@ class GameUnit : public GameObject {
     SectorMap sightMap;
     Vector2f previousPosition;
     float currentHealth, previousRotation, stability, torsoRotation;
-    int turnsSinceHit;
+    int turnsSinceHit, turnsVisible;
     std::vector<Vector2f> visiblePoints;
 		static std::vector<Vector2i>* pathingOffsets;
     Direction facing;

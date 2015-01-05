@@ -48,8 +48,8 @@ class Util {
 
     // Returns the clockwise angle from angle1 to angle2. Assumes input angles
     // are between 0 and 2*pi.
-    static float AngleCW(float angle1, float angle2);
-    static float AngleCCW(float angle1, float angle2);
+    static float AngleCw(float angle1, float angle2);
+    static float AngleCcw(float angle1, float angle2);
 
     // Returns the shortest angle between angle1 and angle2.
     static float AngleBetween(float angle1, float angle2);
@@ -72,8 +72,8 @@ class Util {
 		static Vector2f Perpendicular(const Vector2f &vector);
 		static void Normalize(Vector2f &vector);
     static Vector2f Normalized(const Vector2f &vector);
-		static void Scale(Vector2f &vector, float length);
-    static Vector2f Scaled(const Vector2f &vector, float length);
+		static void Resize(Vector2f &vector, float length);
+    static Vector2f Resized(const Vector2f &vector, float length);
 		static float Square(float x);
 		static int Laterality(const Vector2f &vector1,
 							  const Vector2f &vector2);
@@ -89,6 +89,7 @@ class Util {
 			return Vector2f((float) vector.x, (float) vector.y);
 		}
     static void Limit(Vector2f &v, float length);
+    static Vector2f Limited(const Vector2f &v, float length);
     static float Limit(float v, float length);
 
     template<class T> static T Constrain(T x, T min, T max) {

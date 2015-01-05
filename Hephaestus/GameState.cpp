@@ -74,29 +74,49 @@ Vector2f GameState::Constrain(Vector2f location) const {
   return location;
 }
 
-//TODO: remove duplication; don't modify lists during iteration.
-void GameState::ExecuteTurn() {
+bool IsVisible(const GameUnit &unit,
+               const std::list<std::shared_ptr<GameUnit>> &units) {
+  for (auto otherUnit : units) {
+    if (otherUnit->Owner() == unit.Owner())
+      continue;
 
-  std::list<Projectile*>::iterator it1 = projectiles.begin();
-  while (it1 != projectiles.end()) {
-    Projectile *projectile = *it1++;
+    auto segment = unit.SegmentFromUnit(otherUnit->SightMap().Center());
+    if (otherUnit->SightMap().IsAnyVisible(segment))
+      return true;
+  }
+  return false;
+}
+
+
+//TODO: Remove duplication.
+void GameState::ExecuteTurn() {
+  std::vector<Projectile*> deadProjectiles;
+  for (auto projectile : projectiles) {
     if (projectile->IsAlive()) {
       projectile->PerformAction();
     } else {
-      RemoveProjectile(projectile);
+      deadProjectiles.push_back(projectile);
     }
   }
 
-  std::list<std::shared_ptr<GameUnit>>::iterator it2 = units.begin();
-  while (it2 != units.end()) {
-    std::shared_ptr<GameUnit> unit = *it2++;
+  for (auto projectile : deadProjectiles)
+    RemoveProjectile(projectile);
+
+  std::vector<std::shared_ptr<GameUnit>> deadUnits;
+  for (auto unit : units) {
     if (unit->IsAlive()) {
       UpdateSightMap(*unit);
       unit->PerformAction();
     } else {
-      RemoveUnit(unit);
+      deadUnits.push_back(unit);
     }
   }
+
+  for (auto unit : deadUnits)
+    RemoveUnit(unit);
+
+  for (auto unit : units)
+    unit->SetVisible(IsVisible(*unit, units));
 }
 
 void GameState::UpdateSightMap(GameUnit &unit) {
@@ -419,19 +439,6 @@ size_t GameState::HashCode() const {
 
 const float GameScene::kUnitGridResolution = 25.f;
 
-bool IsVisible(const GameUnit &unit,
-               const std::list<std::shared_ptr<GameUnit>> &units) {
-  for (auto otherUnit : units) {
-    if (otherUnit->Owner() == unit.Owner())
-      continue;
-
-    auto segment = unit.SegmentFromUnit(otherUnit->SightMap().Center());
-    if (otherUnit->SightMap().IsAnyVisible(segment))
-      return true;
-  }
-  return false;
-}
-
 bool IsVisible(const Projectile &projectile,
                const std::list<std::shared_ptr<GameUnit>> &units) {
   for (auto unit : units) {
@@ -456,7 +463,7 @@ GameScene::GameScene(const GameState &gameState) {
 	maxUnitRadius = 0;
 
 	for (auto unit : gameState.Units()) {
-		CreateUnit(*unit, IsVisible(*unit, gameState.Units()));
+		CreateUnit(*unit);
 	}
 
 	for (auto projectile : gameState.Projectiles()) {
@@ -555,9 +562,8 @@ void GameScene::AddUnit(UnitModel *model) {
 	unitTable[model->Id()] = model;
 }
 
-void GameScene::CreateUnit(const GameUnit &unit, bool isVisible) {
+void GameScene::CreateUnit(const GameUnit &unit) {
 	UnitModel *model = new UnitModel(unit);
-  model->SetVisible(isVisible);
 	AddUnit(model);
 }
 

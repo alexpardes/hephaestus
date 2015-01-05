@@ -44,17 +44,19 @@ void Hephaestus::StartSinglePlayerGame(const std::string &map) {
   gameInterface->SetPlayer(kPlayer1);
   gameManager->SetCommandSource(0, commandBuffer, true);
   gameManager->SetCommandSource(1, CommandSource::Null, true);
-  gameManager->SetSaveReplay(true);
+
+  replayWriter.OpenFile(GameFolder() + "replay.rep", map);
+  gameManager->AddCommandListener(&replayWriter);
   StartGame();
 }
 
 void Hephaestus::PlayReplay(const std::string &replay) {
-  // TODO: Get map from replay file.
-  LoadMap("default.map");
+  std::string map;
+  std::getline(std::ifstream(replay), map);
+  LoadMap(map);
   gameInterface->SetPlayer(kPlayer1);
   gameManager->SetCommandSource(0, new ReplayReader(replay, 0), false);
   gameManager->SetCommandSource(1, new ReplayReader(replay, 1), false);
-  gameManager->SetSaveReplay(false);
   StartGame();
 }
 
@@ -92,7 +94,8 @@ void Hephaestus::StartHostedGame(NetworkConnection *connection,
   commandBuffer->CreateTurnDelay(turnDelay);
 
   gameInterface->SetPlayer(PlayerNumber(homePlayerSlot));
-  gameManager->SetSaveReplay(true);
+  replayWriter.OpenFile(GameFolder() + "replay.rep", map);
+  gameManager->AddCommandListener(&replayWriter);
   StartGame();
 }
 
@@ -128,7 +131,8 @@ void Hephaestus::StartJoinedGame(NetworkConnection *connection) {
     gameManager->SetCommandSource(opponentSlot, opponentConnection);
     commandBuffer->RegisterCommandSink(opponentConnection);
     commandBuffer->CreateTurnDelay(turnDelay);
-    gameManager->SetSaveReplay(true);
+    replayWriter.OpenFile(GameFolder() + "replay.rep", map);
+    gameManager->AddCommandListener(&replayWriter);
     StartGame();
   } else {
     if (observer) observer->OnConnectionFailed();
@@ -139,8 +143,8 @@ void Hephaestus::LoadMap(const std::string &map) {
   Log::Write("Loading map: " + map);
 	gameManager->SetGameState(resourceManager->LoadMap(map));
   Log::Write("Map loaded");
-  Vector2i map_size = resourceManager->MapSize(); 
-  gameInterface->SetMapSize(Util::ToVector2f(map_size));
+  Vector2i mapSize = resourceManager->MapSize();
+  gameInterface->SetMapSize(Util::ToVector2f(mapSize));
   gameInterface->Resize();
 }
 
@@ -202,4 +206,8 @@ void Hephaestus::Update() {
     graphics->DrawGame(*display_scene, framerate, gameManager->CycleRate());
     //Log::Write("Done drawing frame");
   }
+}
+
+std::string Hephaestus::GameFolder() const {
+  return std::string(std::getenv("APPDATA")) + "/Firefight/";
 }

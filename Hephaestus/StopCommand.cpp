@@ -1,12 +1,14 @@
 #include "stdafx.h"
 #include "StopCommand.h"
+#include "MoveAbility.h"
 
 CommandType StopCommand::type = 0;
 
 void StopCommand::SerializeInternal(char *&bytes) const { }
 
-UnitAction *StopCommand::MakeUnitAction(GameState &gameState) const {
-  return nullptr;
+void StopCommand::Execute(GameState &gameState, GameUnit &unit) const {
+  unit.SetAction(nullptr);
+  static_cast<MoveAbility*>(unit.GetAbility("Move"))->Stop();
 }
 
 void StopCommand::Register() {

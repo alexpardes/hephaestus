@@ -1,12 +1,14 @@
 #pragma once
 #include <iostream>
 #include <string>
+#include "CommandSink.h"
 #include "CommandSource.h"
 
-class ReplayWriter {
+class ReplayWriter : public CommandSink {
   public:
-    void OpenFile(const std::string &filename);
-    void WriteTurn(const CommandTurn &turn);
+    void OpenFile(const std::string &filename, const std::string &map);
+    virtual void AddCommands(std::shared_ptr<CommandTurn> commands);
+    virtual void AddCommand(std::shared_ptr<Command> command) { }
     void CloseFile();
 
   private:

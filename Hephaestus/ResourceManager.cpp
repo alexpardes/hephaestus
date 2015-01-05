@@ -12,7 +12,7 @@ float FindMaxUnitSize(const std::vector<const UnitAttributes> &unitTable) {
   return maxSize;
 }
 
-GameState *ResourceManager::LoadMap(const std::string& filename) {
+GameState *ResourceManager::LoadMap(const std::string &filename) {
   LoadFonts();
 
 	std::ifstream mapFile(filename);

@@ -58,10 +58,10 @@ std::pair<Vector2f, Vector2f> Rect::WidestPoints(const Vector2f& point) const {
   for (size_t i = 1; i < corners.size(); ++i) {
     auto corner = corners[i];
     float angle = Util::FindAngle(corner - point);
-    if (Util::AngleCCW(maxAngle, angle) <= M_PI) {
+    if (Util::AngleCcw(maxAngle, angle) <= M_PI) {
       maxAngle = angle;
       leftmost = corner;
-    } else if (Util::AngleCW(minAngle, angle) <= M_PI) {
+    } else if (Util::AngleCw(minAngle, angle) <= M_PI) {
       minAngle = angle;
       rightmost = corner;
     }

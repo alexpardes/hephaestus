@@ -16,8 +16,14 @@ size_t Util::HashStart() {
 
 void Util::Limit(Vector2f &v, float length) {
   if (Length(v) > length) {
-    Scale(v, length);
+    Resize(v, length);
   }
+}
+
+Vector2f Util::Limited(const Vector2f &v, float length) {
+  auto result = v;
+  Limit(result, length);
+  return result;
 }
 
 float Util::Limit(float v, float length) {
@@ -165,14 +171,14 @@ Vector2f Util::Normalized(const Vector2f &vector) {
   return copy;
 }
 
-void Util::Scale(Vector2f &vector, float length) {
+void Util::Resize(Vector2f &vector, float length) {
 	Normalize(vector);
 	vector *= length;
 }
 
-Vector2f Util::Scaled(const Vector2f &vector, float length) {
+Vector2f Util::Resized(const Vector2f &vector, float length) {
   auto v = vector;
-  Scale(v, length);
+  Resize(v, length);
   return v;
 }
 
@@ -213,6 +219,9 @@ Rect Util::BoundingRectangle(const DirectedSegment &segment) {
 }
 
 float Util::InterpolateAngles(float angle1, float angle2, float weight) {
+  angle1 = Angle(angle1);
+  angle2 = Angle(angle2);
+
   float result;
   float a = 1.f - weight;
   float b = weight;
@@ -243,15 +252,15 @@ float Util::InterpolateAnglesCcw(float angle1, float angle2, float weight) {
   return result;
 }
 
-float Util::AngleCCW(float angle1, float angle2) {
+float Util::AngleCcw(float angle1, float angle2) {
   float angle = angle2 - angle1;
-  return Angle(angle, 0);
+  return Angle(angle);
 }
 
-float Util::AngleCW(float angle1, float angle2) {
-  return AngleCCW(angle2, angle1);
+float Util::AngleCw(float angle1, float angle2) {
+  return AngleCcw(angle2, angle1);
 }
 
 float Util::AngleBetween(float angle1, float angle2) {
-  return std::min(AngleCCW(angle1, angle2), AngleCW(angle1, angle2));
+  return std::min(AngleCcw(angle1, angle2), AngleCw(angle1, angle2));
 }

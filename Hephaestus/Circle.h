@@ -18,7 +18,7 @@ class Circle {
       float angle1 = Util::FindAngle(point1 - point);
       float angle2 = Util::FindAngle(point2 - point);
 
-      if (Util::AngleCCW(angle1, angle2) <= M_PI) {
+      if (Util::AngleCcw(angle1, angle2) <= M_PI) {
         result.first = point1;
         result.second = point2;
       } else {
